@@ -11,7 +11,7 @@ export const useMarketplace = () => {
   const { sendOrderConfirmation } = useEmail();
   const { user } = useAuth();
 
-  const API_BASE_URL = "http://localhost:5000/api";
+  const API_BASE_URL = "https://vakio-boky-backend.onrender.com/api";
 
   // Récupérer tous les produits
   const fetchProducts = async () => {

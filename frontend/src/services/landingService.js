@@ -1,5 +1,5 @@
 // services/landingService.js
-const API_BASE_URL = 'http://localhost:5000/api/landing';
+const API_BASE_URL = 'https://vakio-boky-backend.onrender.com/api/landing';
 
 // Service pour les témoignages
 export const testimonialsService = {

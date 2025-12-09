@@ -68,7 +68,7 @@
 //     try {
 //       setLoading(true);
 //       const token = localStorage.getItem("vakio_token");
-//       const response = await fetch("http://localhost:5000/api/marketplace/admin/orders", {
+//       const response = await fetch("https://vakio-boky-backend.onrender.com/api/marketplace/admin/orders", {
 //         headers: {
 //           Authorization: `Bearer ${token}`,
 //         },
@@ -81,7 +81,7 @@
 //         const enhancedOrders = await Promise.all(
 //           (data.orders || []).map(async (order) => {
 //             try {
-//               const userResponse = await fetch(`http://localhost:5000/api/users/${order.user_id}`, {
+//               const userResponse = await fetch(`https://vakio-boky-backend.onrender.com/api/users/${order.user_id}`, {
 //                 headers: { Authorization: `Bearer ${token}` },
 //               });
 //               const userData = await userResponse.json();
@@ -111,7 +111,7 @@
 
 //   const confirmOrder = async (orderId) => {
 //     try {
-//       const response = await fetch(`http://localhost:5000/api/marketplace/admin/orders/${orderId}/confirm`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/marketplace/admin/orders/${orderId}/confirm`, {
 //         method: "PUT",
 //         headers: {
 //           Authorization: `Bearer ${user?.token}`,
@@ -139,7 +139,7 @@
 //   const updateOrderStatus = async (orderId, newStatus, trackingNumber = null) => {
 //     try {
 //       const token = localStorage.getItem("vakio_token");
-//       const response = await fetch(`http://localhost:5000/api/marketplace/admin/orders/${orderId}/status`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/marketplace/admin/orders/${orderId}/status`, {
 //         method: "PUT",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -170,7 +170,7 @@
 //   const createDispute = async (orderId, reason, description) => {
 //     try {
 //       const token = localStorage.getItem("vakio_token");
-//       const response = await fetch(`http://localhost:5000/api/marketplace/admin/orders/${orderId}/dispute`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/marketplace/admin/orders/${orderId}/dispute`, {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -788,7 +788,7 @@ export default function AdminOrders() {
         throw new Error("Utilisateur non authentifié");
       }
 
-      const response = await fetch("http://localhost:5000/api/marketplace/admin/orders", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/marketplace/admin/orders", {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -822,7 +822,7 @@ export default function AdminOrders() {
   const confirmOrder = async (orderId) => {
     try {
       setError(null);
-      const response = await fetch(`http://localhost:5000/api/marketplace/admin/orders/${orderId}/confirm`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/marketplace/admin/orders/${orderId}/confirm`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${user?.token}`,
@@ -851,7 +851,7 @@ export default function AdminOrders() {
   const updateOrderStatus = async (orderId, newStatus, trackingNumber = null) => {
     try {
       setError(null);
-      const response = await fetch(`http://localhost:5000/api/marketplace/admin/orders/${orderId}/status`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/marketplace/admin/orders/${orderId}/status`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -891,7 +891,7 @@ export default function AdminOrders() {
   const createDispute = async (orderId, reason, description) => {
     try {
       setError(null);
-      const response = await fetch(`http://localhost:5000/api/marketplace/admin/orders/${orderId}/dispute`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/marketplace/admin/orders/${orderId}/dispute`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

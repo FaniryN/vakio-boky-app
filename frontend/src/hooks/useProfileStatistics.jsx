@@ -38,7 +38,7 @@ export function useProfileStatistics() {
 
       console.log("📊 [useProfileStatistics] Envoi requête avec token...");
 
-      const response = await fetch("http://localhost:5000/api/profile/statistics", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/profile/statistics", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

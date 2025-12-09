@@ -61,7 +61,7 @@ export default function VerifyCode() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/verify-code",
+        "https://vakio-boky-backend.onrender.com/api/auth/verify-code",
         {
           method: "POST",
           headers: {
@@ -103,7 +103,7 @@ export default function VerifyCode() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/forgot-password",
+        "https://vakio-boky-backend.onrender.com/api/auth/forgot-password",
         {
           method: "POST",
           headers: {

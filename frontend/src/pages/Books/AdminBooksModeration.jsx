@@ -72,7 +72,7 @@ export default function AdminBooksModeration() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/admin/books?status=${statusFilter}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/books?status=${statusFilter}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -136,7 +136,7 @@ export default function AdminBooksModeration() {
       const userData = JSON.parse(localStorage.getItem("vakio_user"));
       const token = userData?.token;
 
-      const response = await fetch(`http://localhost:5000/api/admin/books/${bookId}/approve`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/books/${bookId}/approve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -170,7 +170,7 @@ export default function AdminBooksModeration() {
       const userData = JSON.parse(localStorage.getItem("vakio_user"));
       const token = userData?.token;
 
-      const response = await fetch(`http://localhost:5000/api/admin/books/${bookId}/reject`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/books/${bookId}/reject`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -201,7 +201,7 @@ export default function AdminBooksModeration() {
       const userData = JSON.parse(localStorage.getItem("vakio_user"));
       const token = userData?.token;
 
-      const response = await fetch(`http://localhost:5000/api/admin/books/${bookId}/feature`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/books/${bookId}/feature`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -229,7 +229,7 @@ export default function AdminBooksModeration() {
       const userData = JSON.parse(localStorage.getItem("vakio_user"));
       const token = userData?.token;
 
-      const response = await fetch(`http://localhost:5000/api/books/${bookId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/books/${bookId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -263,7 +263,7 @@ export default function AdminBooksModeration() {
       const userData = JSON.parse(localStorage.getItem("vakio_user"));
       const token = userData?.token;
 
-      const response = await fetch(`http://localhost:5000/api/books/${bookToEdit.id}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/books/${bookToEdit.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -297,7 +297,7 @@ export default function AdminBooksModeration() {
       const userData = JSON.parse(localStorage.getItem("vakio_user"));
       const token = userData?.token;
 
-      const response = await fetch(`http://localhost:5000/api/books/${bookId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/books/${bookId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -328,7 +328,7 @@ export default function AdminBooksModeration() {
       const token = userData?.token;
 
       // Mettre à jour le statut en brouillon
-      const response = await fetch(`http://localhost:5000/api/books/${bookId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/books/${bookId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -363,7 +363,7 @@ export default function AdminBooksModeration() {
       const userData = JSON.parse(localStorage.getItem("vakio_user"));
       const token = userData?.token;
 
-      const response = await fetch(`http://localhost:5000/api/books/${bookId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/books/${bookId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -402,7 +402,7 @@ export default function AdminBooksModeration() {
       const token = userData?.token;
 
       // Créer une notification pour l'auteur
-      const response = await fetch(`http://localhost:5000/api/notifications`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/notifications`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

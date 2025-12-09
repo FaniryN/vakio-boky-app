@@ -18,7 +18,7 @@ const InteractiveCalendar = () => {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/events', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/events', {
         headers: user?.token ? { Authorization: `Bearer ${user.token}` } : {},
       });
 

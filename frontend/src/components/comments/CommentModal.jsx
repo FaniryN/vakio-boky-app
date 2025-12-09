@@ -77,7 +77,7 @@ const loadComments = async () => {
     console.log("🔄 Chargement des commentaires pour le post:", post.id);
     
     const response = await fetch(
-      `http://localhost:5000/api/comments/posts/${post.id}/comments`
+      `https://vakio-boky-backend.onrender.com/api/comments/posts/${post.id}/comments`
     );
     
     if (!response.ok) {
@@ -118,7 +118,7 @@ const loadComments = async () => {
       console.log("➕ Ajout d'un commentaire:", newComment);
 
       const response = await fetch(
-        `http://localhost:5000/api/comments/posts/${post.id}/comments`,
+        `https://vakio-boky-backend.onrender.com/api/comments/posts/${post.id}/comments`,
         {
           method: "POST",
           headers: {

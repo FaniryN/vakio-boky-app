@@ -28,7 +28,7 @@ export default function PostComments({
     setLoadingComments(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/comments/${post.id}`
+        `https://vakio-boky-backend.onrender.com/api/comments/${post.id}`
       );
       const data = await response.json();
 
@@ -50,7 +50,7 @@ export default function PostComments({
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/comments`,
+        `https://vakio-boky-backend.onrender.com/api/comments`,
         {
           method: "POST",
           headers: {
@@ -81,7 +81,7 @@ export default function PostComments({
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/comments/${commentId}`,
+        `https://vakio-boky-backend.onrender.com/api/comments/${commentId}`,
         {
           method: "DELETE",
           headers: {
@@ -105,7 +105,7 @@ export default function PostComments({
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/comments/${commentId}`,
+        `https://vakio-boky-backend.onrender.com/api/comments/${commentId}`,
         {
           method: "PUT",
           headers: {

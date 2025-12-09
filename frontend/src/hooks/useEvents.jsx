@@ -25,7 +25,7 @@ export const useEvents = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch("http://localhost:5000/api/events", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/events", {
         method: "GET",
         headers: getAuthHeaders(),
         credentials: "include",
@@ -53,7 +53,7 @@ export const useEvents = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch("http://localhost:5000/api/events", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/events", {
         method: "POST",
         headers: getAuthHeaders(),
         credentials: "include",
@@ -84,7 +84,7 @@ export const useEvents = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch(`http://localhost:5000/api/events/${id}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/${id}`, {
         method: "GET",
         headers: getAuthHeaders(),
         credentials: "include",

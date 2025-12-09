@@ -24,7 +24,7 @@ export default function AdminAnalytics() {
     setLoading(true);
     try {
       const token = localStorage.getItem("vakio_token");
-      const response = await fetch("http://localhost:5000/api/marketplace/analytics", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/marketplace/analytics", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

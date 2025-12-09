@@ -13,7 +13,7 @@ export default function ClubMembers() {
 
   const fetchMembers = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/clubs/${id}/members`, {
+      const res = await fetch(`https://vakio-boky-backend.onrender.com/api/clubs/${id}/members`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       const data = await res.json();
@@ -25,7 +25,7 @@ export default function ClubMembers() {
 
   const fetchClub = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/clubs/${id}`, {
+      const res = await fetch(`https://vakio-boky-backend.onrender.com/api/clubs/${id}`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       const data = await res.json();
@@ -45,7 +45,7 @@ export default function ClubMembers() {
   const updateMemberRole = async (memberId, newRole) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/clubs/${id}/members/${memberId}/role`,
+        `https://vakio-boky-backend.onrender.com/api/clubs/${id}/members/${memberId}/role`,
         {
           method: "PUT",
           headers: {
@@ -73,7 +73,7 @@ export default function ClubMembers() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/clubs/${id}/members/${memberId}`,
+        `https://vakio-boky-backend.onrender.com/api/clubs/${id}/members/${memberId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${user.token}` },

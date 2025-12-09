@@ -26,7 +26,7 @@ export default function AdminDisputes() {
     try {
       setLoading(true);
       const token = localStorage.getItem("vakio_token");
-      const response = await fetch("http://localhost:5000/api/marketplace/admin/disputes", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/marketplace/admin/disputes", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -50,7 +50,7 @@ export default function AdminDisputes() {
   const resolveDispute = async (disputeId, resolution, notes) => {
     try {
       const token = localStorage.getItem("vakio_token");
-      const response = await fetch(`http://localhost:5000/api/marketplace/admin/disputes/${disputeId}/resolve`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/marketplace/admin/disputes/${disputeId}/resolve`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

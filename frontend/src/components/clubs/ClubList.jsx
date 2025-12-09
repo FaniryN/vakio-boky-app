@@ -13,7 +13,7 @@ export default function ClubList() {
 
   useEffect(() => {
     if (!user) return;
-    fetch("http://localhost:5000/api/clubs", {
+    fetch("https://vakio-boky-backend.onrender.com/api/clubs", {
       headers: { Authorization: `Bearer ${user.token}` },
     })
       .then(res => res.json())

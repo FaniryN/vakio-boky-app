@@ -27,7 +27,7 @@
 //     try {
 //       setLoading(true);
 //       setError("");
-//       const response = await fetch("http://localhost:5000/api/books", {
+//       const response = await fetch("https://vakio-boky-backend.onrender.com/api/books", {
 //         method: "GET",
 //         headers: getAuthHeaders(),
 //         credentials: "include",
@@ -57,7 +57,7 @@
 //       setLoading(true);
 //       setError("");
 //       const response = await fetch(
-//         "http://localhost:5000/api/books/mes-livres",
+//         "https://vakio-boky-backend.onrender.com/api/books/mes-livres",
 //         {
 //           method: "GET",
 //           headers: getAuthHeaders(),
@@ -88,7 +88,7 @@
 //     try {
 //       setLoading(true);
 //       setError("");
-//       const response = await fetch(`http://localhost:5000/api/books/${id}`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/books/${id}`, {
 //         method: "GET",
 //         headers: getAuthHeaders(),
 //         credentials: "include",
@@ -115,7 +115,7 @@
 //     try {
 //       setLoading(true);
 //       setError("");
-//       const response = await fetch("http://localhost:5000/api/books", {
+//       const response = await fetch("https://vakio-boky-backend.onrender.com/api/books", {
 //         method: "POST",
 //         headers: getAuthHeaders(),
 //         credentials: "include",
@@ -144,7 +144,7 @@
 //     try {
 //       setLoading(true);
 //       setError("");
-//       const response = await fetch(`http://localhost:5000/api/books/${id}`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/books/${id}`, {
 //         method: "PUT",
 //         headers: getAuthHeaders(),
 //         credentials: "include",
@@ -174,7 +174,7 @@
 //     try {
 //       setLoading(true);
 //       setError("");
-//       const response = await fetch(`http://localhost:5000/api/books/${id}`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/books/${id}`, {
 //         method: "DELETE",
 //         headers: getAuthHeaders(),
 //         credentials: "include",
@@ -271,7 +271,7 @@ export const useBooks = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch("http://localhost:5000/api/books", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/books", {
         method: "GET",
         headers: getAuthHeaders(),
       });
@@ -296,7 +296,7 @@ export const useBooks = () => {
       setLoading(true);
       setError("");
       const response = await fetch(
-        "http://localhost:5000/api/books/mes-livres",
+        "https://vakio-boky-backend.onrender.com/api/books/mes-livres",
         {
           method: "GET",
           headers: getAuthHeaders(),
@@ -323,7 +323,7 @@ export const useBooks = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch(`http://localhost:5000/api/books/${id}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/books/${id}`, {
         method: "GET",
         headers: getAuthHeaders(),
       });
@@ -346,7 +346,7 @@ export const useBooks = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch("http://localhost:5000/api/books", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/books", {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify(bookData),
@@ -372,7 +372,7 @@ export const useBooks = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch(`http://localhost:5000/api/books/${id}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/books/${id}`, {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify(bookData),
@@ -398,7 +398,7 @@ export const useBooks = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch(`http://localhost:5000/api/books/${id}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/books/${id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });

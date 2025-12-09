@@ -176,7 +176,7 @@ export default function Postes() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/posts/${postId}`,
+        `https://vakio-boky-backend.onrender.com/api/posts/${postId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -227,7 +227,7 @@ export default function Postes() {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/posts/${postId}`,
+        `https://vakio-boky-backend.onrender.com/api/posts/${postId}`,
         {
           method: "PUT",
           headers: {

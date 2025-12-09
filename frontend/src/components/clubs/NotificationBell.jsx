@@ -12,7 +12,7 @@ export default function NotificationBell() {
   const fetchNotifications = async () => {
     try {
       const res = await fetch(
-        "http://localhost:5000/api/notifications?limit=5",
+        "https://vakio-boky-backend.onrender.com/api/notifications?limit=5",
         {
           headers: { Authorization: `Bearer ${user.token}` },
         }
@@ -46,7 +46,7 @@ export default function NotificationBell() {
   const markAsRead = async (notificationId) => {
     try {
       await fetch(
-        `http://localhost:5000/api/notifications/${notificationId}/read`,
+        `https://vakio-boky-backend.onrender.com/api/notifications/${notificationId}/read`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${user.token}` },

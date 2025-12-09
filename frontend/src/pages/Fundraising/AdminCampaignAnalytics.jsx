@@ -23,7 +23,7 @@ export default function AdminCampaignAnalytics() {
     try {
       setLoading(true);
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch(`http://localhost:5000/api/campaigns/admin/analytics?range=${timeRange}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/campaigns/admin/analytics?range=${timeRange}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

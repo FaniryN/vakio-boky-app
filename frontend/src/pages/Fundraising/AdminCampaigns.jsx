@@ -61,7 +61,7 @@
 
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/campaigns/${campaignId}`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/campaigns/${campaignId}`, {
 //         method: 'DELETE',
 //         headers: {
 //           'Authorization': `Bearer ${token}`
@@ -83,7 +83,7 @@
 //   const handleApproveCampaign = async (campaignId) => {
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/campaigns/admin/${campaignId}/approve`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/campaigns/admin/${campaignId}/approve`, {
 //         method: 'PUT',
 //         headers: {
 //           'Authorization': `Bearer ${token}`
@@ -107,7 +107,7 @@
 //   const handleRejectCampaign = async (campaignId, reason) => {
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/campaigns/admin/${campaignId}/reject`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/campaigns/admin/${campaignId}/reject`, {
 //         method: 'PUT',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -133,7 +133,7 @@
 //   const handleFeatureCampaign = async (campaignId, featured) => {
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/campaigns/admin/${campaignId}/feature`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/campaigns/admin/${campaignId}/feature`, {
 //         method: 'PUT',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -511,7 +511,7 @@ export default function AdminCampaigns() {
         throw new Error("Utilisateur non authentifié");
       }
 
-      const response = await fetch("http://localhost:5000/api/campaigns/admin/all", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/campaigns/admin/all", {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -543,7 +543,7 @@ export default function AdminCampaigns() {
 
     try {
       setError(null);
-      const response = await fetch(`http://localhost:5000/api/campaigns/${campaignId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/campaigns/${campaignId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${user?.token}`
@@ -566,7 +566,7 @@ export default function AdminCampaigns() {
   const handleApproveCampaign = async (campaignId) => {
     try {
       setError(null);
-      const response = await fetch(`http://localhost:5000/api/campaigns/admin/${campaignId}/approve`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/campaigns/admin/${campaignId}/approve`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${user?.token}`
@@ -592,7 +592,7 @@ export default function AdminCampaigns() {
 
     try {
       setError(null);
-      const response = await fetch(`http://localhost:5000/api/campaigns/admin/${campaignId}/reject`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/campaigns/admin/${campaignId}/reject`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -617,7 +617,7 @@ export default function AdminCampaigns() {
   const handleFeatureCampaign = async (campaignId, featured) => {
     try {
       setError(null);
-      const response = await fetch(`http://localhost:5000/api/campaigns/admin/${campaignId}/feature`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/campaigns/admin/${campaignId}/feature`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -642,7 +642,7 @@ export default function AdminCampaigns() {
   const handleCreateCampaign = async (campaignData) => {
     try {
       setError(null);
-      const response = await fetch("http://localhost:5000/api/campaigns", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/campaigns", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -668,7 +668,7 @@ export default function AdminCampaigns() {
   const handleUpdateCampaign = async (campaignId, campaignData) => {
     try {
       setError(null);
-      const response = await fetch(`http://localhost:5000/api/campaigns/${campaignId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/campaigns/${campaignId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

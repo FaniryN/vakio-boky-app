@@ -46,7 +46,7 @@ export default function CreateClub() {
         submitData.append('image', imageFile);
       }
 
-      const res = await fetch("http://localhost:5000/api/clubs", {
+      const res = await fetch("https://vakio-boky-backend.onrender.com/api/clubs", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${user.token}`,

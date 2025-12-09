@@ -41,7 +41,7 @@ export default function AdminChallengesBadges() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/challenges/admin/badges/all', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/challenges/admin/badges/all', {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -82,8 +82,8 @@ export default function AdminChallengesBadges() {
       }
 
       const url = editingBadge
-        ? `http://localhost:5000/api/challenges/admin/badges/${editingBadge.id}`
-        : 'http://localhost:5000/api/challenges/admin/badges';
+        ? `https://vakio-boky-backend.onrender.com/api/challenges/admin/badges/${editingBadge.id}`
+        : 'https://vakio-boky-backend.onrender.com/api/challenges/admin/badges';
 
       const method = editingBadge ? 'PUT' : 'POST';
 
@@ -138,7 +138,7 @@ export default function AdminChallengesBadges() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/challenges/admin/badges/${badgeId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/challenges/admin/badges/${badgeId}`, {
         method: 'DELETE',
         headers: { 
           'Authorization': `Bearer ${token}`,

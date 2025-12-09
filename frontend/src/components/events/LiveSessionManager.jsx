@@ -31,7 +31,7 @@ const LiveSessionManager = ({ eventId, isHost = false }) => {
 
   const fetchEventDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/events/${eventId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/${eventId}`, {
         headers: user?.token ? { Authorization: `Bearer ${user.token}` } : {},
       });
 

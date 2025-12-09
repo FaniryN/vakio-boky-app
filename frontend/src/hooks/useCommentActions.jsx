@@ -13,7 +13,7 @@ export function useCommentActions() {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/comments/${commentId}/like`,
+        `https://vakio-boky-backend.onrender.com/api/comments/${commentId}/like`,
         {
           method: "POST",
           headers: {
@@ -39,7 +39,7 @@ export function useCommentActions() {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/comments/${commentId}`,
+        `https://vakio-boky-backend.onrender.com/api/comments/${commentId}`,
         {
           method: "PUT",
           headers: {
@@ -67,7 +67,7 @@ export function useCommentActions() {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/comments/${commentId}`,
+        `https://vakio-boky-backend.onrender.com/api/comments/${commentId}`,
         {
           method: "DELETE",
           headers: {
@@ -97,7 +97,7 @@ export function useCommentActions() {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:5000/api/comments/${commentId}/replies`,
+        `https://vakio-boky-backend.onrender.com/api/comments/${commentId}/replies`,
         {
           method: "POST",
           headers: {

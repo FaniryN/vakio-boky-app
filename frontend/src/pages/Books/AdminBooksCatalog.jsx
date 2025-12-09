@@ -52,7 +52,7 @@ export default function AdminBooksCatalog() {
       }
 
       // Pour les genres - CORRECTION
-const genresResponse = await fetch('http://localhost:5000/api/admin/books/genres', {
+const genresResponse = await fetch('https://vakio-boky-backend.onrender.com/api/admin/books/genres', {
   headers: { 
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ const genresResponse = await fetch('http://localhost:5000/api/admin/books/genres
       const genresData = await genresResponse.json();
 
 // Ligne ~45 :
-const collectionsResponse = await fetch('http://localhost:5000/api/admin/books/collections', {
+const collectionsResponse = await fetch('https://vakio-boky-backend.onrender.com/api/admin/books/collections', {
   headers: { 
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ const collectionsResponse = await fetch('http://localhost:5000/api/admin/books/c
       const collectionsData = await collectionsResponse.json();
 
       // Fetch featured books
-     const featuredResponse = await fetch('http://localhost:5000/api/admin/books/featured', {
+     const featuredResponse = await fetch('https://vakio-boky-backend.onrender.com/api/admin/books/featured', {
   headers: { 
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
@@ -114,38 +114,38 @@ const collectionsResponse = await fetch('http://localhost:5000/api/admin/books/c
       //     // Pour les genres, on utilise PUT avec body
       //     endpoint = 'genres/update';
       //     method = 'PUT';
-      //     url = `http://localhost:5000/api/books/admin/${endpoint}`;
+      //     url = `https://vakio-boky-backend.onrender.com/api/books/admin/${endpoint}`;
       //   } else {
       //     endpoint = 'genres';
       //     method = 'POST';
-      //     url = `http://localhost:5000/api/books/admin/${endpoint}`;
+      //     url = `https://vakio-boky-backend.onrender.com/api/books/admin/${endpoint}`;
       //   }
       // } else {
       //   endpoint = 'collections';
       //   if (editingItem) {
       //     method = 'PUT';
-      //     url = `http://localhost:5000/api/books/admin/${endpoint}/${editingItem.id}`;
+      //     url = `https://vakio-boky-backend.onrender.com/api/books/admin/${endpoint}/${editingItem.id}`;
       //   } else {
       //     method = 'POST';
-      //     url = `http://localhost:5000/api/books/admin/${endpoint}`;
+      //     url = `https://vakio-boky-backend.onrender.com/api/books/admin/${endpoint}`;
       //   }
       // }
 // Dans handleSubmit, simplifiez :
 
 if (formData.type === 'genre') {
   if (editingItem) {
-    url = `http://localhost:5000/api/admin/books/genres/update`;
+    url = `https://vakio-boky-backend.onrender.com/api/admin/books/genres/update`;
     method = 'PUT';
   } else {
-    url = `http://localhost:5000/api/admin/books/genres`;
+    url = `https://vakio-boky-backend.onrender.com/api/admin/books/genres`;
     method = 'POST';
   }
 } else {
   if (editingItem) {
-    url = `http://localhost:5000/api/admin/books/collections/${editingItem.id}`;
+    url = `https://vakio-boky-backend.onrender.com/api/admin/books/collections/${editingItem.id}`;
     method = 'PUT';
   } else {
-    url = `http://localhost:5000/api/admin/books/collections`;
+    url = `https://vakio-boky-backend.onrender.com/api/admin/books/collections`;
     method = 'POST';
   }
 }
@@ -203,11 +203,11 @@ if (formData.type === 'genre') {
       if (type === 'genre') {
   endpoint = 'genres/delete';
   method = 'DELETE';
-  url = `http://localhost:5000/api/admin/books/${endpoint}`;
+  url = `https://vakio-boky-backend.onrender.com/api/admin/books/${endpoint}`;
 } else {
   endpoint = 'collections';
   method = 'DELETE';
-  url = `http://localhost:5000/api/admin/books/${endpoint}/${itemId}`;
+  url = `https://vakio-boky-backend.onrender.com/api/admin/books/${endpoint}/${itemId}`;
 }
 
       const response = await fetch(url, {
@@ -238,7 +238,7 @@ if (formData.type === 'genre') {
       const userData = JSON.parse(localStorage.getItem("vakio_user"));
       const token = userData?.token;
 
-      const response = await fetch(`http://localhost:5000/api/admin/books/${bookId}/feature`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/books/${bookId}/feature`, {
   method: 'PUT',
   headers: {
     'Content-Type': 'application/json',

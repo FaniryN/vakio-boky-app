@@ -25,7 +25,7 @@ export default function ReportModal({
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch('http://localhost:5000/api/reports', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/reports', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

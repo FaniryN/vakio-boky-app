@@ -33,7 +33,7 @@ export default function EditClub() {
 
   const fetchClub = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/clubs/${id}`, {
+      const res = await fetch(`https://vakio-boky-backend.onrender.com/api/clubs/${id}`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       const data = await res.json();
@@ -86,7 +86,7 @@ export default function EditClub() {
 
       submitData.append('existing_image', existingImage);
 
-      const res = await fetch(`http://localhost:5000/api/clubs/${id}`, {
+      const res = await fetch(`https://vakio-boky-backend.onrender.com/api/clubs/${id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${user.token}`,
@@ -151,7 +151,7 @@ export default function EditClub() {
               {existingImage && (
                 <div className="mb-2">
                   <img
-                    src={existingImage.startsWith('http') ? existingImage : `http://localhost:5000${existingImage}`}
+                    src={existingImage.startsWith('http') ? existingImage : `https://vakio-boky-backend.onrender.com${existingImage}`}
                     alt="Image actuelle"
                     className="w-32 h-32 object-cover rounded-lg"
                   />

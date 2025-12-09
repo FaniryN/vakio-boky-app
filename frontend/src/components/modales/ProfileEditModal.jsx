@@ -53,7 +53,7 @@ export default function ProfileEditModal({ isOpen, onClose, profileData, onProfi
 
     try {
       // Update profile data
-      const profileResponse = await fetch("http://localhost:5000/api/profile", {
+      const profileResponse = await fetch("https://vakio-boky-backend.onrender.com/api/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -73,7 +73,7 @@ export default function ProfileEditModal({ isOpen, onClose, profileData, onProfi
         const formDataUpload = new FormData();
         formDataUpload.append("profilePicture", selectedFile);
 
-        const uploadResponse = await fetch("http://localhost:5000/api/profile/picture", {
+        const uploadResponse = await fetch("https://vakio-boky-backend.onrender.com/api/profile/picture", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${user.token}`,

@@ -36,7 +36,7 @@ export default function AdminUserRoles() {
   const fetchRoles = async () => {
     try {
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch('http://localhost:5000/api/admin/roles', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/admin/roles', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -58,7 +58,7 @@ export default function AdminUserRoles() {
   const fetchPermissions = async () => {
     try {
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch('http://localhost:5000/api/admin/permissions', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/admin/permissions', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -82,8 +82,8 @@ export default function AdminUserRoles() {
     try {
       const token = localStorage.getItem('vakio_token');
       const url = editingRole
-        ? `http://localhost:5000/api/admin/roles/${editingRole.id}`
-        : 'http://localhost:5000/api/admin/roles';
+        ? `https://vakio-boky-backend.onrender.com/api/admin/roles/${editingRole.id}`
+        : 'https://vakio-boky-backend.onrender.com/api/admin/roles';
 
       const method = editingRole ? 'PUT' : 'POST';
 
@@ -131,7 +131,7 @@ export default function AdminUserRoles() {
 
     try {
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch(`http://localhost:5000/api/admin/roles/${roleId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/roles/${roleId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

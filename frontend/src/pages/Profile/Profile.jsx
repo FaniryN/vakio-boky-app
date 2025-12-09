@@ -36,7 +36,7 @@ export default function Profile() {
       }
 
       try {
-        const response = await fetch("http://localhost:5000/api/profile", {
+        const response = await fetch("https://vakio-boky-backend.onrender.com/api/profile", {
           headers: {
             Authorization: `Bearer ${user.token}`,
             "Content-Type": "application/json",
@@ -194,7 +194,7 @@ export default function Profile() {
               <div className="w-32 h-32 bg-white rounded-full border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
                 {profileData?.photo_profil ? (
                   <img
-                    src={`http://localhost:5000${profileData.photo_profil}`}
+                    src={`https://vakio-boky-backend.onrender.com${profileData.photo_profil}`}
                     alt="Photo de profil"
                     className="w-full h-full object-cover"
                   />

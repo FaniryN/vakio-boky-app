@@ -17,7 +17,7 @@ export default function EventRegistrationsModal({ event, isOpen, onClose }) {
     setLoading(true);
     try {
       // Implémenter l'appel API pour récupérer les inscriptions
-      const response = await fetch(`http://localhost:5000/api/evenements/${event.id}/registrations`);
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/evenements/${event.id}/registrations`);
       const data = await response.json();
       
       if (data.success) {

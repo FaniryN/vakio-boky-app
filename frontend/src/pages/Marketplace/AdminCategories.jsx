@@ -26,7 +26,7 @@ export default function AdminCategories() {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/marketplace/categories");
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/marketplace/categories");
       const data = await response.json();
 
       if (data.success) {
@@ -47,7 +47,7 @@ export default function AdminCategories() {
 
     try {
       const token = localStorage.getItem("vakio_token");
-      const response = await fetch("http://localhost:5000/api/marketplace/categories", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/marketplace/categories", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -76,7 +76,7 @@ export default function AdminCategories() {
 
     try {
       const token = localStorage.getItem("vakio_token");
-      const response = await fetch(`http://localhost:5000/api/marketplace/categories/${editingCategory.id}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/marketplace/categories/${editingCategory.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -111,7 +111,7 @@ export default function AdminCategories() {
 
     try {
       const token = localStorage.getItem("vakio_token");
-      const response = await fetch(`http://localhost:5000/api/marketplace/categories/${categoryId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/marketplace/categories/${categoryId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

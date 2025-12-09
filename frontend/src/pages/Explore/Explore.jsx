@@ -170,7 +170,7 @@ export default function Explore() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/clubs", {
+      const res = await fetch("https://vakio-boky-backend.onrender.com/api/clubs", {
         headers: { Authorization: `Bearer ${user.token}` },
       });
 
@@ -246,7 +246,7 @@ export default function Explore() {
   const handleJoinClub = async (clubId) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/clubs/${clubId}/join`,
+        `https://vakio-boky-backend.onrender.com/api/clubs/${clubId}/join`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${user.token}` },
@@ -385,7 +385,7 @@ export default function Explore() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/posts/${postId}`,
+        `https://vakio-boky-backend.onrender.com/api/posts/${postId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${user?.token}` },
@@ -436,7 +436,7 @@ export default function Explore() {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/posts/${postId}`,
+        `https://vakio-boky-backend.onrender.com/api/posts/${postId}`,
         {
           method: "PUT",
           headers: {
@@ -1033,7 +1033,7 @@ export default function Explore() {
                     <img
                       src={
                         club.image_url
-                          ? `http://localhost:5000${club.image_url}`
+                          ? `https://vakio-boky-backend.onrender.com${club.image_url}`
                           : "/placeholder-club.jpg"
                       }
                       alt={club.nom}

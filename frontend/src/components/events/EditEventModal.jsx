@@ -48,7 +48,7 @@ export default function EditEventModal({ event, isOpen, onClose, onSuccess }) {
         price: formData.price ? parseFloat(formData.price) : 0
       };
 
-      const response = await fetch(`http://localhost:5000/api/events/${event.id}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/${event.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

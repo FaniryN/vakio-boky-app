@@ -36,7 +36,7 @@ export default function AdminEventTemplates() {
     try {
       setLoading(true);
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch('http://localhost:5000/api/events/admin/templates', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/events/admin/templates', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -63,8 +63,8 @@ export default function AdminEventTemplates() {
     try {
       const token = localStorage.getItem('vakio_token');
       const url = editingTemplate
-        ? `http://localhost:5000/api/events/admin/templates/${editingTemplate.id}`
-        : 'http://localhost:5000/api/events/admin/templates';
+        ? `https://vakio-boky-backend.onrender.com/api/events/admin/templates/${editingTemplate.id}`
+        : 'https://vakio-boky-backend.onrender.com/api/events/admin/templates';
 
       const method = editingTemplate ? 'PUT' : 'POST';
 
@@ -116,7 +116,7 @@ export default function AdminEventTemplates() {
 
     try {
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch(`http://localhost:5000/api/events/admin/templates/${templateId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/templates/${templateId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -146,7 +146,7 @@ export default function AdminEventTemplates() {
 
     try {
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch('http://localhost:5000/api/events/admin/templates', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/events/admin/templates', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

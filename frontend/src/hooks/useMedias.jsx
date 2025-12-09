@@ -38,7 +38,7 @@ export function useMedias() {
         fichiers.length,
         "fichier(s)"
       );
-      const response = await fetch("http://localhost:5000/api/medias/upload", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/medias/upload", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -87,7 +87,7 @@ export function useMedias() {
       });
 
       const response = await fetch(
-        `http://localhost:5000/api/medias/livres/${livreId}/couverture`,
+        `https://vakio-boky-backend.onrender.com/api/medias/livres/${livreId}/couverture`,
         {
           method: "POST",
           headers: {
@@ -127,7 +127,7 @@ export function useMedias() {
       console.log("🗑️ [useMedias] Suppression média:", mediaId);
 
       const response = await fetch(
-        `http://localhost:5000/api/medias/${mediaId}`,
+        `https://vakio-boky-backend.onrender.com/api/medias/${mediaId}`,
         {
           method: "DELETE",
           headers: {

@@ -62,7 +62,7 @@ export default function AdminUsers() {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/admin/users', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/admin/users', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ export default function AdminUsers() {
       const userData = JSON.parse(localStorage.getItem("vakio_user"));
       const token = userData?.token;
 
-      const response = await fetch(`http://localhost:5000/api/admin/users/${userId}/promote`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/users/${userId}/promote`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ export default function AdminUsers() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/admin/users/${userId}/block`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/users/${userId}/block`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -201,7 +201,7 @@ export default function AdminUsers() {
       const userData = JSON.parse(localStorage.getItem("vakio_user"));
       const token = userData?.token;
 
-      const response = await fetch(`http://localhost:5000/api/admin/users/${editingUser.id}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/users/${editingUser.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -241,7 +241,7 @@ export default function AdminUsers() {
       const userData = JSON.parse(localStorage.getItem("vakio_user"));
       const token = userData?.token;
 
-      const response = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/users/${userId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -279,7 +279,7 @@ export default function AdminUsers() {
       const token = userData?.token;
 
       const promises = selectedUsers.map(userId =>
-        fetch(`http://localhost:5000/api/admin/users/${userId}/block`, {
+        fetch(`https://vakio-boky-backend.onrender.com/api/admin/users/${userId}/block`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

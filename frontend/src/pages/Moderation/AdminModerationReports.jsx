@@ -34,7 +34,7 @@ export default function AdminModerationReports() {
     try {
       setLoading(true);
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch(`http://localhost:5000/api/admin/moderation/reports?filter=${filter}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/moderation/reports?filter=${filter}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -58,7 +58,7 @@ export default function AdminModerationReports() {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch('http://localhost:5000/api/admin/moderation/reports/stats', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/admin/moderation/reports/stats', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -77,7 +77,7 @@ export default function AdminModerationReports() {
   const handleResolveReport = async (reportId, action, notes = '') => {
     try {
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch(`http://localhost:5000/api/admin/moderation/reports/${reportId}/resolve`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/moderation/reports/${reportId}/resolve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

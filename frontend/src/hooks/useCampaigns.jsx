@@ -26,7 +26,7 @@
 //     try {
 //       setLoading(true);
 //       setError("");
-//       const response = await fetch("http://localhost:5000/api/campaigns", {
+//       const response = await fetch("https://vakio-boky-backend.onrender.com/api/campaigns", {
 //         method: "GET",
 //         headers: getAuthHeaders(),
 //         credentials: "include",
@@ -54,7 +54,7 @@
 //     try {
 //       setLoading(true);
 //       setError("");
-//       const response = await fetch("http://localhost:5000/api/campaigns", {
+//       const response = await fetch("https://vakio-boky-backend.onrender.com/api/campaigns", {
 //         method: "POST",
 //         headers: getAuthHeaders(),
 //         credentials: "include",
@@ -85,7 +85,7 @@
 //     try {
 //       setLoading(true);
 //       setError("");
-//       const response = await fetch("http://localhost:5000/api/donations", {
+//       const response = await fetch("https://vakio-boky-backend.onrender.com/api/donations", {
 //         method: "POST",
 //         headers: getAuthHeaders(),
 //         credentials: "include",
@@ -137,7 +137,7 @@
 //   const [loading, setLoading] = useState(false);
 //   const [error, setError] = useState(null);
 
-//   const API_BASE_URL = 'http://localhost:5000/api';
+//   const API_BASE_URL = 'https://vakio-boky-backend.onrender.com/api';
 
 //   const fetchCampaigns = async () => {
 //     setLoading(true);
@@ -188,7 +188,7 @@ export const useCampaigns = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const API_BASE_URL = 'http://localhost:5000/api';
+  const API_BASE_URL = 'https://vakio-boky-backend.onrender.com/api';
 
   const fetchCampaigns = async () => {
     setLoading(true);

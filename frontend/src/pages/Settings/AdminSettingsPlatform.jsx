@@ -31,7 +31,7 @@ export default function AdminSettingsPlatform() {
       setLoading(true);
       const token = localStorage.getItem("vakio_token");
       const response = await fetch(
-        "http://localhost:5000/api/admin/settings/platform",
+        "https://vakio-boky-backend.onrender.com/api/admin/settings/platform",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -62,7 +62,7 @@ export default function AdminSettingsPlatform() {
 
       const token = localStorage.getItem("vakio_token");
       const response = await fetch(
-        "http://localhost:5000/api/admin/settings/platform",
+        "https://vakio-boky-backend.onrender.com/api/admin/settings/platform",
         {
           method: "PUT",
           headers: {

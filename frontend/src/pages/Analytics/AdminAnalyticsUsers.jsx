@@ -32,7 +32,7 @@
 //     try {
 //       setLoading(true);
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/admin/analytics/users?range=${timeRange}`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/analytics/users?range=${timeRange}`, {
 //         headers: {
 //           Authorization: `Bearer ${token}`,
 //         },
@@ -433,7 +433,7 @@ export default function AdminAnalyticsUsers() {
     try {
       setLoading(true);
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch(`http://localhost:5000/api/admin/analytics/users?range=${timeRange}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/analytics/users?range=${timeRange}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -27,7 +27,7 @@ export default function ClubEvents() {
 
   const fetchEvents = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/clubs/${id}/events`, {
+      const res = await fetch(`https://vakio-boky-backend.onrender.com/api/clubs/${id}/events`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       const data = await res.json();
@@ -78,7 +78,7 @@ export default function ClubEvents() {
 
       console.log("📤 Envoi données événement:", eventData);
 
-      const res = await fetch(`http://localhost:5000/api/clubs/${id}/events`, {
+      const res = await fetch(`https://vakio-boky-backend.onrender.com/api/clubs/${id}/events`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +118,7 @@ export default function ClubEvents() {
   const handleEventJoin = async (eventId) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/events/${eventId}/join`,
+        `https://vakio-boky-backend.onrender.com/api/events/${eventId}/join`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${user.token}` },
@@ -140,7 +140,7 @@ export default function ClubEvents() {
   const handleEventLeave = async (eventId) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/events/${eventId}/leave`,
+        `https://vakio-boky-backend.onrender.com/api/events/${eventId}/leave`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${user.token}` },

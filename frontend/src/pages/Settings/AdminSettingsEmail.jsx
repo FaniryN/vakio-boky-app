@@ -33,7 +33,7 @@ export default function AdminSettingsEmail() {
       setLoading(true);
       const token = localStorage.getItem("vakio_token");
       const response = await fetch(
-        "http://localhost:5000/api/admin/settings/email/templates",
+        "https://vakio-boky-backend.onrender.com/api/admin/settings/email/templates",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -69,7 +69,7 @@ export default function AdminSettingsEmail() {
 
       const token = localStorage.getItem("vakio_token");
       const response = await fetch(
-        `http://localhost:5000/api/admin/settings/email/templates/${selectedTemplate.id}`,
+        `https://vakio-boky-backend.onrender.com/api/admin/settings/email/templates/${selectedTemplate.id}`,
         {
           method: "PUT",
           headers: {
@@ -109,7 +109,7 @@ export default function AdminSettingsEmail() {
     try {
       const token = localStorage.getItem("vakio_token");
       const response = await fetch(
-        "http://localhost:5000/api/admin/settings/email/test",
+        "https://vakio-boky-backend.onrender.com/api/admin/settings/email/test",
         {
           method: "POST",
           headers: {

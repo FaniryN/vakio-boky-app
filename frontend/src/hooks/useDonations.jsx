@@ -7,7 +7,7 @@
 //   const [error, setError] = useState(null);
 //   const { user } = useAuth();
 
-//   const API_BASE_URL = 'http://localhost:5000/api';
+//   const API_BASE_URL = 'https://vakio-boky-backend.onrender.com/api';
 
 //   const createDonation = async (donationData) => {
 //     if (!user?.token) {
@@ -133,7 +133,7 @@ export const useDonations = () => {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
-  const API_BASE_URL = 'http://localhost:5000/api';
+  const API_BASE_URL = 'https://vakio-boky-backend.onrender.com/api';
 
   const createDonation = async (donationData) => {
     if (!user?.token) {

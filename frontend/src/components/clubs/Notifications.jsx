@@ -11,7 +11,7 @@ export default function Notifications() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/notifications", {
+      const res = await fetch("https://vakio-boky-backend.onrender.com/api/notifications", {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       const data = await res.json();
@@ -33,7 +33,7 @@ export default function Notifications() {
   const markAsRead = async (notificationId) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/notifications/${notificationId}/read`,
+        `https://vakio-boky-backend.onrender.com/api/notifications/${notificationId}/read`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${user.token}` },
@@ -52,7 +52,7 @@ export default function Notifications() {
   const markAllAsRead = async () => {
     try {
       const res = await fetch(
-        "http://localhost:5000/api/notifications/read-all",
+        "https://vakio-boky-backend.onrender.com/api/notifications/read-all",
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${user.token}` },
@@ -71,7 +71,7 @@ export default function Notifications() {
   const deleteNotification = async (notificationId) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/notifications/${notificationId}`,
+        `https://vakio-boky-backend.onrender.com/api/notifications/${notificationId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${user.token}` },

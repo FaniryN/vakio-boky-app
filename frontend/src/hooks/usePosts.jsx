@@ -31,7 +31,7 @@ export function usePosts() {
 
       console.log(" [usePosts] Envoi requête avec token...");
 
-      const response = await fetch("http://localhost:5000/api/posts", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/posts", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -70,7 +70,7 @@ export function usePosts() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/posts", {
+      const response = await fetch("https://vakio-boky-backend.onrender.com/api/posts", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -103,7 +103,7 @@ export function usePosts() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/posts/${postId}/like`,
+        `https://vakio-boky-backend.onrender.com/api/posts/${postId}/like`,
         {
           method: "POST",
           headers: {
@@ -152,7 +152,7 @@ export function usePosts() {
 
   //   try {
   //     const response = await fetch(
-  //       `http://localhost:5000/api/posts/${postId}/comments`,
+  //       `https://vakio-boky-backend.onrender.com/api/posts/${postId}/comments`,
   //       {
   //         method: "POST",
   //         headers: {
@@ -189,7 +189,7 @@ export function usePosts() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/posts/${postId}/share`,
+        `https://vakio-boky-backend.onrender.com/api/posts/${postId}/share`,
         {
           method: "POST",
           headers: {

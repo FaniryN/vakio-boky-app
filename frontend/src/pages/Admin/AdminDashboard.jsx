@@ -317,7 +317,7 @@ export default function AdminDashboard() {
       console.log('🔐 Token utilisé depuis useAuth:', token);
 
       // Récupérer les statistiques
-      const statsResponse = await fetch('http://localhost:5000/api/admin/dashboard/stats', {
+      const statsResponse = await fetch('https://vakio-boky-backend.onrender.com/api/admin/dashboard/stats', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -346,7 +346,7 @@ export default function AdminDashboard() {
       }
 
       // Récupérer l'activité récente
-      const activityResponse = await fetch('http://localhost:5000/api/admin/dashboard/activity', {
+      const activityResponse = await fetch('https://vakio-boky-backend.onrender.com/api/admin/dashboard/activity', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

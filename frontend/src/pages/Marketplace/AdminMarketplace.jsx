@@ -60,7 +60,7 @@ export default function AdminMarketplace() {
   const handleApproveProduct = async (productId) => {
     try {
       const token = localStorage.getItem("vakio_token");
-      const response = await fetch(`http://localhost:5000/api/marketplace/admin/${productId}/approve`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/marketplace/admin/${productId}/approve`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -85,7 +85,7 @@ export default function AdminMarketplace() {
     const reason = prompt("Raison du rejet (optionnel):");
     try {
       const token = localStorage.getItem("vakio_token");
-      const response = await fetch(`http://localhost:5000/api/marketplace/admin/${productId}/reject`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/marketplace/admin/${productId}/reject`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

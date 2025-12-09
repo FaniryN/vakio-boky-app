@@ -35,7 +35,7 @@ export default function AdminModerationActions() {
     try {
       setLoading(true);
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch(`http://localhost:5000/api/admin/moderation/actions?filter=${filter}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/moderation/actions?filter=${filter}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -59,7 +59,7 @@ export default function AdminModerationActions() {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch('http://localhost:5000/api/admin/moderation/actions/stats', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/admin/moderation/actions/stats', {
         headers: {
           Authorization: `Bearer ${token}`,
         },

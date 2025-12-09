@@ -66,7 +66,7 @@
 
 // // //     try {
 // // //       const token = localStorage.getItem('vakio_token');
-// // //       const response = await fetch(`http://localhost:5000/api/events/${eventId}`, {
+// // //       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/${eventId}`, {
 // // //         method: 'DELETE',
 // // //         headers: {
 // // //           'Authorization': `Bearer ${token}`
@@ -88,7 +88,7 @@
 // // //   const handleApproveEvent = async (eventId) => {
 // // //     try {
 // // //       const token = localStorage.getItem('vakio_token');
-// // //       const response = await fetch(`http://localhost:5000/api/events/admin/${eventId}/approve`, {
+// // //       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/approve`, {
 // // //         method: 'PUT',
 // // //         headers: {
 // // //           'Authorization': `Bearer ${token}`
@@ -112,7 +112,7 @@
 // // //   const handleRejectEvent = async (eventId, reason) => {
 // // //     try {
 // // //       const token = localStorage.getItem('vakio_token');
-// // //       const response = await fetch(`http://localhost:5000/api/events/admin/${eventId}/reject`, {
+// // //       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/reject`, {
 // // //         method: 'PUT',
 // // //         headers: {
 // // //           'Content-Type': 'application/json',
@@ -138,7 +138,7 @@
 // // //   const handleFeatureEvent = async (eventId, featured) => {
 // // //     try {
 // // //       const token = localStorage.getItem('vakio_token');
-// // //       const response = await fetch(`http://localhost:5000/api/events/admin/${eventId}/feature`, {
+// // //       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/feature`, {
 // // //         method: 'PUT',
 // // //         headers: {
 // // //           'Content-Type': 'application/json',
@@ -548,7 +548,7 @@
 
 // //     try {
 // //       const token = localStorage.getItem('vakio_token');
-// //       const response = await fetch(`http://localhost:5000/api/events/${eventId}`, {
+// //       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/${eventId}`, {
 // //         method: 'DELETE',
 // //         headers: {
 // //           'Authorization': `Bearer ${token}`
@@ -570,7 +570,7 @@
 // //   const handleApproveEvent = async (eventId) => {
 // //     try {
 // //       const token = localStorage.getItem('vakio_token');
-// //       const response = await fetch(`http://localhost:5000/api/events/admin/${eventId}/approve`, {
+// //       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/approve`, {
 // //         method: 'PUT',
 // //         headers: {
 // //           'Authorization': `Bearer ${token}`
@@ -594,7 +594,7 @@
 // //   const handleRejectEvent = async (eventId, reason) => {
 // //     try {
 // //       const token = localStorage.getItem('vakio_token');
-// //       const response = await fetch(`http://localhost:5000/api/events/admin/${eventId}/reject`, {
+// //       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/reject`, {
 // //         method: 'PUT',
 // //         headers: {
 // //           'Content-Type': 'application/json',
@@ -620,7 +620,7 @@
 // //   const handleFeatureEvent = async (eventId, featured) => {
 // //     try {
 // //       const token = localStorage.getItem('vakio_token');
-// //       const response = await fetch(`http://localhost:5000/api/events/admin/${eventId}/feature`, {
+// //       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/feature`, {
 // //         method: 'PUT',
 // //         headers: {
 // //           'Content-Type': 'application/json',
@@ -993,7 +993,7 @@
 //   const fetchAdminEvents = async () => {
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch('http://localhost:5000/api/events/admin/events', {
+//       const response = await fetch('https://vakio-boky-backend.onrender.com/api/events/admin/events', {
 //         headers: {
 //           'Authorization': `Bearer ${token}`
 //         }
@@ -1064,7 +1064,7 @@
 //     setActionLoading(eventId);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/events/${eventId}`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/${eventId}`, {
 //         method: 'DELETE',
 //         headers: {
 //           'Authorization': `Bearer ${token}`
@@ -1091,7 +1091,7 @@
 //     setActionLoading(eventId);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/events/admin/${eventId}/approve`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/approve`, {
 //         method: 'PUT',
 //         headers: {
 //           'Authorization': `Bearer ${token}`
@@ -1123,7 +1123,7 @@
 //     setActionLoading(eventId);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/events/admin/${eventId}/reject`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/reject`, {
 //         method: 'PUT',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -1152,7 +1152,7 @@
 //     setActionLoading(eventId);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/events/admin/${eventId}/feature`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/feature`, {
 //         method: 'PUT',
 //         headers: {
 //           'Content-Type': 'application/json',

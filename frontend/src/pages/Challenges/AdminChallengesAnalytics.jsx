@@ -32,7 +32,7 @@ export default function AdminChallengesAnalytics() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/challenges/admin/analytics?range=${timeRange}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/challenges/admin/analytics?range=${timeRange}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

@@ -30,7 +30,7 @@ export default function Clubs() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/clubs", {
+      const res = await fetch("https://vakio-boky-backend.onrender.com/api/clubs", {
         headers: { Authorization: `Bearer ${user.token}` },
       });
 
@@ -82,7 +82,7 @@ export default function Clubs() {
       return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/clubs/${clubId}`, {
+      const res = await fetch(`https://vakio-boky-backend.onrender.com/api/clubs/${clubId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${user.token}` },
       });
@@ -102,7 +102,7 @@ export default function Clubs() {
   const handleJoinClub = async (clubId) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/clubs/${clubId}/join`,
+        `https://vakio-boky-backend.onrender.com/api/clubs/${clubId}/join`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${user.token}` },
@@ -125,7 +125,7 @@ export default function Clubs() {
   const handleLeaveClub = async (clubId) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/clubs/${clubId}/leave`,
+        `https://vakio-boky-backend.onrender.com/api/clubs/${clubId}/leave`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${user.token}` },
@@ -347,7 +347,7 @@ export default function Clubs() {
                     <img
                       src={
                         club.image_url
-                          ? `http://localhost:5000${club.image_url}`
+                          ? `https://vakio-boky-backend.onrender.com${club.image_url}`
                           : "/placeholder-club.jpg"
                       }
                       alt={club.nom}

@@ -20,7 +20,7 @@
 // //   FiLoader,
 // // } from "react-icons/fi";
 
-// // const API_BASE_URL = "http://localhost:5000/api";
+// // const API_BASE_URL = "https://vakio-boky-backend.onrender.com/api";
 
 // // export default function Home() {
 // //   const navigate = useNavigate();
@@ -810,7 +810,7 @@
 //   FiLoader,
 // } from "react-icons/fi";
 
-// const API_BASE_URL = "http://localhost:5000/api";
+// const API_BASE_URL = "https://vakio-boky-backend.onrender.com/api";
 
 // export default function Home() {
 //   const navigate = useNavigate();
@@ -1720,7 +1720,7 @@ import {
   FiUser,
 } from "react-icons/fi";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "https://vakio-boky-backend.onrender.com/api";
 
 export default function Home() {
   const navigate = useNavigate();

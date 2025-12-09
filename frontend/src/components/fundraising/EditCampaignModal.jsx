@@ -39,7 +39,7 @@ export default function EditCampaignModal({ campaign, isOpen, onClose, onSuccess
         target_amount: parseFloat(formData.target_amount)
       };
 
-      const response = await fetch(`http://localhost:5000/api/campaigns/${campaign.id}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/campaigns/${campaign.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

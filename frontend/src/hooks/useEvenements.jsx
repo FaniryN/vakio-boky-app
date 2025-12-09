@@ -7,7 +7,7 @@
 // // //   const [error, setError] = useState(null);
 // // //   const { user } = useAuth();
 
-// // //   const API_BASE_URL = 'http://localhost:5000/api';
+// // //   const API_BASE_URL = 'https://vakio-boky-backend.onrender.com/api';
 
 // // //   const fetchEvents = async () => {
 // // //     setLoading(true);
@@ -125,7 +125,7 @@
 // //   const [error, setError] = useState(null);
 // //   const { user } = useAuth();
 
-// //   const API_BASE_URL = 'http://localhost:5000/api';
+// //   const API_BASE_URL = 'https://vakio-boky-backend.onrender.com/api';
 
 // //   const fetchEvents = async () => {
 // //     setLoading(true);
@@ -211,7 +211,7 @@
 //     setLoading(true);
 //     setError(null);
 //     try {
-//       const response = await fetch('http://localhost:5000/api/events');
+//       const response = await fetch('https://vakio-boky-backend.onrender.com/api/events');
 //       const data = await response.json();
       
 //       if (data.success) {
@@ -233,7 +233,7 @@
 //     setError(null);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch('http://localhost:5000/api/events/admin/events', {
+//       const response = await fetch('https://vakio-boky-backend.onrender.com/api/events/admin/events', {
 //         headers: {
 //           'Authorization': `Bearer ${token}`
 //         }
@@ -264,7 +264,7 @@
 //     setError(null);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch('http://localhost:5000/api/events', {
+//       const response = await fetch('https://vakio-boky-backend.onrender.com/api/events', {
 //         method: 'POST',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -296,7 +296,7 @@
 //     setError(null);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/events/${eventId}`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/${eventId}`, {
 //         method: 'PUT',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -328,7 +328,7 @@
 //     setError(null);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/events/${eventId}`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/${eventId}`, {
 //         method: 'DELETE',
 //         headers: {
 //           'Authorization': `Bearer ${token}`
@@ -358,7 +358,7 @@
 //     setError(null);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/events/admin/${eventId}/approve`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/approve`, {
 //         method: 'PUT',
 //         headers: {
 //           'Authorization': `Bearer ${token}`
@@ -388,7 +388,7 @@
 //     setError(null);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/events/admin/${eventId}/reject`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/reject`, {
 //         method: 'PUT',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -420,7 +420,7 @@
 //     setError(null);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/events/admin/${eventId}/feature`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/feature`, {
 //         method: 'PUT',
 //         headers: {
 //           'Content-Type': 'application/json',
@@ -452,7 +452,7 @@
 //     setError(null);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/events/admin/analytics?range=${range}`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/admin/analytics?range=${range}`, {
 //         headers: {
 //           'Authorization': `Bearer ${token}`
 //         }
@@ -484,7 +484,7 @@
 //     setError(null);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/events/${eventId}/registrations`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/${eventId}/registrations`, {
 //         headers: {
 //           'Authorization': `Bearer ${token}`
 //         }
@@ -512,7 +512,7 @@
 //     setError(null);
 //     try {
 //       const token = localStorage.getItem('vakio_token');
-//       const response = await fetch(`http://localhost:5000/api/events/${eventId}/register`, {
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/${eventId}/register`, {
 //         method: 'POST',
 //         headers: {
 //           'Authorization': `Bearer ${token}`
@@ -540,7 +540,7 @@
 //     setLoading(true);
 //     setError(null);
 //     try {
-//       const response = await fetch(`http://localhost:5000/api/events/${eventId}`);
+//       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/events/${eventId}`);
 //       const data = await response.json();
 
 //       if (data.success) {
@@ -621,7 +621,7 @@ export const useEvenements = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth('http://localhost:5000/api/events');
+      const data = await fetchWithAuth('https://vakio-boky-backend.onrender.com/api/events');
       
       if (data.success) {
         setEvents(data.events || []);
@@ -641,7 +641,7 @@ export const useEvenements = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth('http://localhost:5000/api/events/admin/events');
+      const data = await fetchWithAuth('https://vakio-boky-backend.onrender.com/api/events/admin/events');
       
       if (data.success) {
         setEvents(data.events || []);
@@ -661,7 +661,7 @@ export const useEvenements = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth('http://localhost:5000/api/events', {
+      const data = await fetchWithAuth('https://vakio-boky-backend.onrender.com/api/events', {
         method: 'POST',
         body: JSON.stringify(eventData)
       });
@@ -686,7 +686,7 @@ export const useEvenements = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth(`http://localhost:5000/api/events/${eventId}`, {
+      const data = await fetchWithAuth(`https://vakio-boky-backend.onrender.com/api/events/${eventId}`, {
         method: 'PUT',
         body: JSON.stringify(updates)
       });
@@ -711,7 +711,7 @@ export const useEvenements = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth(`http://localhost:5000/api/events/${eventId}`, {
+      const data = await fetchWithAuth(`https://vakio-boky-backend.onrender.com/api/events/${eventId}`, {
         method: 'DELETE'
       });
 
@@ -735,7 +735,7 @@ export const useEvenements = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth(`http://localhost:5000/api/events/admin/${eventId}/approve`, {
+      const data = await fetchWithAuth(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/approve`, {
         method: 'PUT'
       });
 
@@ -759,7 +759,7 @@ export const useEvenements = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth(`http://localhost:5000/api/events/admin/${eventId}/reject`, {
+      const data = await fetchWithAuth(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/reject`, {
         method: 'PUT',
         body: JSON.stringify({ reason })
       });
@@ -784,7 +784,7 @@ export const useEvenements = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth(`http://localhost:5000/api/events/admin/${eventId}/feature`, {
+      const data = await fetchWithAuth(`https://vakio-boky-backend.onrender.com/api/events/admin/${eventId}/feature`, {
         method: 'PUT',
         body: JSON.stringify({ featured })
       });
@@ -809,7 +809,7 @@ export const useEvenements = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth(`http://localhost:5000/api/events/admin/analytics?range=${range}`);
+      const data = await fetchWithAuth(`https://vakio-boky-backend.onrender.com/api/events/admin/analytics?range=${range}`);
       
       if (data.success) {
         return { success: true, analytics: data.analytics };
@@ -830,7 +830,7 @@ export const useEvenements = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth(`http://localhost:5000/api/events/${eventId}/registrations`);
+      const data = await fetchWithAuth(`https://vakio-boky-backend.onrender.com/api/events/${eventId}/registrations`);
 
       if (data.success) {
         return { success: true, registrations: data.registrations };
@@ -851,7 +851,7 @@ export const useEvenements = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth(`http://localhost:5000/api/events/${eventId}/register`, {
+      const data = await fetchWithAuth(`https://vakio-boky-backend.onrender.com/api/events/${eventId}/register`, {
         method: 'POST'
       });
 
@@ -874,7 +874,7 @@ export const useEvenements = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth(`http://localhost:5000/api/events/${eventId}`);
+      const data = await fetchWithAuth(`https://vakio-boky-backend.onrender.com/api/events/${eventId}`);
 
       if (data.success) {
         return { success: true, event: data.event };

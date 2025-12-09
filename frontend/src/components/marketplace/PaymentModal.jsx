@@ -56,7 +56,7 @@ const PaymentModal = ({ isOpen, onClose, orderId, amount, onPaymentSuccess }) =>
     setStep('processing');
 
     try {
-      const response = await fetch('http://localhost:5000/api/marketplace/payments', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/marketplace/payments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

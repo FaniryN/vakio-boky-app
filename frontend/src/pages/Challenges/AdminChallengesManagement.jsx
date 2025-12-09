@@ -67,7 +67,7 @@ export default function AdminChallengesManagement() {
       console.log("📡 Envoi requête à: /api/challenges/admin/all");
       console.log("🔑 Token utilisé:", token.substring(0, 20) + "...");
       
-      const response = await fetch('http://localhost:5000/api/challenges/admin/all', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/challenges/admin/all', {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -111,7 +111,7 @@ export default function AdminChallengesManagement() {
       const token = localStorage.getItem('vakio_token');
       if (!token) return;
 
-      const response = await fetch('http://localhost:5000/api/challenges/admin/badges/all', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/challenges/admin/badges/all', {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -157,8 +157,8 @@ export default function AdminChallengesManagement() {
       }
 
       const url = editingChallenge
-        ? `http://localhost:5000/api/challenges/admin/${editingChallenge.id}`
-        : 'http://localhost:5000/api/challenges/admin';
+        ? `https://vakio-boky-backend.onrender.com/api/challenges/admin/${editingChallenge.id}`
+        : 'https://vakio-boky-backend.onrender.com/api/challenges/admin';
 
       const method = editingChallenge ? 'PUT' : 'POST';
 
@@ -214,7 +214,7 @@ export default function AdminChallengesManagement() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/challenges/admin/${challengeId}`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/challenges/admin/${challengeId}`, {
         method: 'DELETE',
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -244,7 +244,7 @@ export default function AdminChallengesManagement() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/challenges/admin/${challengeId}/status`, {
+      const response = await fetch(`https://vakio-boky-backend.onrender.com/api/challenges/admin/${challengeId}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -25,7 +25,7 @@ export default function AdminFeaturedCampaigns() {
     try {
       setLoading(true);
       const token = localStorage.getItem('vakio_token');
-      const response = await fetch('http://localhost:5000/api/campaigns/admin/all', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/campaigns/admin/all', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -109,7 +109,7 @@ export default function AdminFeaturedCampaigns() {
         featured_until: null, // Could add date picker later
       }));
 
-      const response = await fetch('http://localhost:5000/api/campaigns/admin/featured/batch', {
+      const response = await fetch('https://vakio-boky-backend.onrender.com/api/campaigns/admin/featured/batch', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

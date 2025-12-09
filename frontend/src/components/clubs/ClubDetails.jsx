@@ -17,7 +17,7 @@ export default function ClubDetails() {
 
   const fetchClub = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/clubs/${id}`, {
+      const res = await fetch(`https://vakio-boky-backend.onrender.com/api/clubs/${id}`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       const data = await res.json();
@@ -34,7 +34,7 @@ export default function ClubDetails() {
 
   const fetchPosts = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/clubs/${id}/posts`, {
+      const res = await fetch(`https://vakio-boky-backend.onrender.com/api/clubs/${id}/posts`, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       const data = await res.json();
@@ -78,7 +78,7 @@ export default function ClubDetails() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/clubs/${id}/posts`, {
+      const res = await fetch(`https://vakio-boky-backend.onrender.com/api/clubs/${id}/posts`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${user.token}`,
@@ -106,7 +106,7 @@ export default function ClubDetails() {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "/placeholder-club.jpg";
     if (imagePath.startsWith("http")) return imagePath;
-    return `http://localhost:5000${imagePath}`;
+    return `https://vakio-boky-backend.onrender.com${imagePath}`;
   };
 
   if (loading) {

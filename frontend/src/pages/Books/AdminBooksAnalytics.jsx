@@ -41,7 +41,7 @@ export default function AdminBooksAnalytics() {
       }
 
       // Par :
-const response = await fetch(`http://localhost:5000/api/admin/books/analytics?range=${timeRange}`, {
+const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/books/analytics?range=${timeRange}`, {
   headers: {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
