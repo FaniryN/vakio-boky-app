@@ -803,7 +803,7 @@ const getAuthorImagePath = (authorName) => {
     .replace(/\s+/g, '-') // Remplace les espaces par des tirets
     .replace(/[^a-z0-9-]/g, ''); // Garde seulement lettres, chiffres, tirets
   
-  return `/assets/images/authors/${cleanName}.jpg`;
+  return `/assets/images/authors/${cleanName}.png`;
 };
 
 export const getAllLandingData = async (req, res) => {
@@ -930,7 +930,7 @@ export const getAllLandingData = async (req, res) => {
           author_genre: "Littérature",
           published_works: 3,
           // CORRIGÉ : Image locale au lieu de via.placeholder.com
-          image: "/assets/images/authors/auteur-malagasy.jpg",
+          image: "/assets/images/authors/auteur-malagasy.png",
           role: "Auteur"
         },
         {
@@ -940,7 +940,7 @@ export const getAllLandingData = async (req, res) => {
           author_genre: "Roman",
           published_works: 2,
           // CORRIGÉ : Image locale au lieu de via.placeholder.com
-          image: "/assets/images/authors/ecrivain-local.jpg",
+          image: "/assets/images/authors/ecrivain-local.png",
           role: "Auteur"
         }
       ];
@@ -1047,7 +1047,7 @@ export const getRecentBooks = async (req, res) => {
         ? (book.couverture_url.startsWith('http') 
             ? book.couverture_url 
             : `/uploads/books/${book.couverture_url}`)
-        : '/assets/images/books/default-book.jpg',
+        : '/assets/images/books/default-book.png',
       genre: book.genre || 'Non spécifié',
       auteur: book.auteur || 'Auteur inconnu',
       // CORRIGÉ : Image locale pour l'auteur

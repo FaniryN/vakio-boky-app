@@ -705,7 +705,7 @@ useEffect(() => {
                       className="w-full h-48 object-cover rounded-xl mb-6 shadow-lg"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "/assets/images/event-placeholder.jpg";
+                        e.target.src = "/assets/images/event-placeholder.png";
                       }}
                     />
                   ) : (

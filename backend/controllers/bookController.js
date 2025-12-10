@@ -998,7 +998,7 @@ import pool from "../config/db.js";
 
 // Fonction utilitaire pour générer les chemins d'images de livres
 const getBookCoverPath = (bookTitle, genre = 'roman') => {
-  if (!bookTitle) return "/assets/images/books/default-book.jpg";
+  if (!bookTitle) return "/assets/images/books/default-book.png";
   
   // Nettoyer le titre pour créer un chemin de fichier
   const cleanTitle = bookTitle
@@ -1007,7 +1007,7 @@ const getBookCoverPath = (bookTitle, genre = 'roman') => {
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9-]/g, '');
   
-  return `/assets/images/books/${cleanTitle}.jpg`;
+  return `/assets/images/books/${cleanTitle}.png`;
 };
 
 // GET /api/books - Liste des livres publiés
@@ -1330,7 +1330,7 @@ const getRecent = async (req, res) => {
         author: "Johary Ravaloson",
         description: "Roman poétique sur la vie à Madagascar",
         // CORRIGÉ : Image locale au lieu de via.placeholder.com
-        cover: "/assets/images/books/ny-onja.jpg",
+        cover: "/assets/images/books/ny-onja.png",
         price: 15000,
         rating: 4.5,
         category: "Roman",
@@ -1347,7 +1347,7 @@ const getRecent = async (req, res) => {
         author: "Michèle Rakotoson",
         description: "Histoire contemporaine malgache",
         // CORRIGÉ : Image locale au lieu de via.placeholder.com
-        cover: "/assets/images/books/dernier-crepuscule.jpg",
+        cover: "/assets/images/books/dernier-crepuscule.png",
         price: 12000,
         rating: 4.2,
         category: "Roman",
@@ -1364,7 +1364,7 @@ const getRecent = async (req, res) => {
         author: "Collectif d'Auteurs",
         description: "Recueil de contes traditionnels malgaches",
         // CORRIGÉ : Image locale au lieu de via.placeholder.com
-        cover: "/assets/images/books/contes-nuit-malgache.jpg",
+        cover: "/assets/images/books/contes-nuit-malgache.png",
         price: 8000,
         rating: 4.7,
         category: "Contes",
@@ -1399,7 +1399,7 @@ const getRecent = async (req, res) => {
           title: "Livre de Test",
           author: "Auteur Test",
           // CORRIGÉ : Image locale au lieu de via.placeholder.com
-          cover: "/assets/images/books/livre-test.jpg",
+          cover: "/assets/images/books/livre-test.png",
           price: 10000,
           category: "Test"
         }
