@@ -2569,7 +2569,7 @@ export default function Home() {
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = "/assets/images/avatar-placeholder.jpg";
+                          e.target.src = "/https://via.placeholder.com/150";
                         }}
                       />
                     ) : (
@@ -2661,7 +2661,7 @@ export default function Home() {
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = "/assets/images/avatar-placeholder.jpg";
+                          e.target.src = "/https://via.placeholder.com/150";
                         }}
                       />
                     ) : (
