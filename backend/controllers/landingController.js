@@ -445,7 +445,7 @@ import pool from "../config/db.js";
 
 export const getAllLandingData = async (req, res) => {
   try {
-    console.log("🟡 Début de getAllLandingData - Version simplifiée");
+    console.log("🟡 Début de getAllLandingData - Version corrigée");
     
     const [testimonialsResult, eventsResult, authorsResult, statsResult] = await Promise.all([
       // Témoignages
@@ -482,7 +482,7 @@ export const getAllLandingData = async (req, res) => {
         return { rows: [] };
       }),
       
-      // Auteurs simplifié
+      // Auteurs
       pool.query(`
         SELECT 
           u.id, 
@@ -494,11 +494,11 @@ export const getAllLandingData = async (req, res) => {
           u.role
         FROM utilisateur u
         LEFT JOIN (
-          SELECT user_id, COUNT(*) as book_count 
+          SELECT auteur_id, COUNT(*) as book_count 
           FROM livres 
           WHERE statut = 'publié'
-          GROUP BY user_id
-        ) l ON u.id = l.user_id
+          GROUP BY auteur_id
+        ) l ON u.id = l.auteur_id
         WHERE u.role IN ('auteur', 'author', 'writer', 'editeur', 'admin')
         ORDER BY l.book_count DESC NULLS LAST, u.created_at DESC
         LIMIT 8
@@ -541,19 +541,27 @@ export const getAllLandingData = async (req, res) => {
       authors: authorsResult.rows.length,
     });
 
-    // Formater les auteurs SANS placeholder externe
+    // Fonction pour générer une URL d'avatar sécurisée
+    const generateAvatarUrl = (name, size = 200) => {
+      const initials = name 
+        ? name.split(' ').map(n => n.charAt(0)).join('').toUpperCase()
+        : 'A';
+      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 0 ${size} ${size}'%3E%3Crect width='${size}' height='${size}' fill='%234A5568'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial,sans-serif' font-size='${size/3}' fill='white' text-anchor='middle' dy='.3em'%3E${initials}%3C/text%3E%3C/svg%3E`;
+    };
+
+    // Formater les auteurs avec URLs d'avatar sécurisées
     const authors = authorsResult.rows.map(author => ({
       id: author.id,
       name: author.name || 'Auteur inconnu',
       bio: author.bio || `Auteur ${author.author_genre || 'littéraire'}`,
       author_genre: author.author_genre || 'Auteur',
       published_works: parseInt(author.published_works) || 1,
-      // URL LOCAL OU ABSOLUE - PAS DE via.placeholder.com
-      image: author.image || '/assets/images/avatar-default.png',
+      // Utiliser l'image existante ou générer un avatar SVG
+      image: author.image || generateAvatarUrl(author.name || 'Auteur'),
       role: author.role || 'Auteur'
     }));
 
-    // Fallback si pas d'auteurs
+    // Fallback amélioré
     let finalAuthors = authors;
     if (authors.length === 0) {
       console.log("⚠️ Aucun auteur trouvé, création de données minimales");
@@ -564,7 +572,7 @@ export const getAllLandingData = async (req, res) => {
           bio: "Auteur passionné par la littérature malgache",
           author_genre: "Littérature",
           published_works: 3,
-          image: "/assets/images/avatar-default.png",
+          image: generateAvatarUrl("Auteur Malagasy"),
           role: "Auteur"
         },
         {
@@ -573,17 +581,23 @@ export const getAllLandingData = async (req, res) => {
           bio: "Promouvoir la culture malgache à travers l'écriture",
           author_genre: "Roman",
           published_works: 2,
-          image: "/assets/images/avatar-default.png",
+          image: generateAvatarUrl("Écrivain Local"),
           role: "Auteur"
         }
       ];
     }
 
+    // Formater les événements
+    const formattedEvents = eventsResult.rows.map(event => ({
+      ...event,
+      image_url: event.image_url || generateBookCover(event.title || 'Événement')
+    }));
+
     res.json({
       success: true,
       data: {
         testimonials: testimonialsResult.rows,
-        events: eventsResult.rows,
+        events: formattedEvents,
         authors: finalAuthors,
         stats: statsResult
       }
@@ -598,7 +612,14 @@ export const getAllLandingData = async (req, res) => {
   }
 };
 
-// Autres fonctions (gardées pour compatibilité)
+// Fonction helper pour générer des couvertures de livre
+const generateBookCover = (title, width = 400, height = 600) => {
+  const text = title || 'Livre';
+  const encodedText = encodeURIComponent(text.substring(0, 20));
+  return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}' viewBox='0 0 ${width} ${height}'%3E%3Crect width='${width}' height='${height}' fill='%234A5568'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial,sans-serif' font-size='24' fill='white' text-anchor='middle' dy='.3em'%3E${encodedText}%3C/text%3E%3C/svg%3E`;
+};
+
+// Autres fonctions conservées pour compatibilité
 export const getPromotedAuthors = async (req, res) => {
   try {
     const result = await pool.query(`
@@ -612,15 +633,22 @@ export const getPromotedAuthors = async (req, res) => {
         u.role
       FROM utilisateur u
       LEFT JOIN (
-        SELECT user_id, COUNT(*) as book_count 
+        SELECT auteur_id, COUNT(*) as book_count 
         FROM livres 
         WHERE statut = 'publié'
-        GROUP BY user_id
-      ) l ON u.id = l.user_id
+        GROUP BY auteur_id
+      ) l ON u.id = l.auteur_id
       WHERE u.role IN ('auteur', 'author', 'writer', 'editeur', 'admin')
       ORDER BY l.book_count DESC NULLS LAST, u.created_at DESC
       LIMIT 12
     `);
+
+    const generateAvatarUrl = (name, size = 200) => {
+      const initials = name 
+        ? name.split(' ').map(n => n.charAt(0)).join('').toUpperCase()
+        : 'A';
+      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 0 ${size} ${size}'%3E%3Crect width='${size}' height='${size}' fill='%234A5568'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial,sans-serif' font-size='${size/3}' fill='white' text-anchor='middle' dy='.3em'%3E${initials}%3C/text%3E%3C/svg%3E`;
+    };
 
     const authors = result.rows.map(author => ({
       id: author.id,
@@ -628,7 +656,7 @@ export const getPromotedAuthors = async (req, res) => {
       bio: author.bio || `Auteur spécialisé en ${author.author_genre || 'littérature'}`,
       author_genre: author.author_genre || 'Auteur',
       published_works: parseInt(author.published_works) || 1,
-      image: author.image || '/assets/images/avatar-default.png',
+      image: author.image || generateAvatarUrl(author.name || 'Auteur'),
       role: author.role || 'Auteur'
     }));
 
@@ -647,7 +675,6 @@ export const getPromotedAuthors = async (req, res) => {
   }
 };
 
-// Export des autres fonctions...
 export const getRecentBooks = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 6;
@@ -664,20 +691,26 @@ export const getRecentBooks = async (req, res) => {
         u.nom as auteur,
         u.photo_profil as auteur_image
       FROM livres l
-      LEFT JOIN utilisateur u ON l.user_id = u.id
+      LEFT JOIN utilisateur u ON l.auteur_id = u.id
       WHERE l.statut = 'publié'
       ORDER BY l.created_at DESC
       LIMIT $1
     `, [limit]);
 
+    const generateBookCover = (title, width = 400, height = 600) => {
+      const text = title || 'Livre';
+      const encodedText = encodeURIComponent(text.substring(0, 20));
+      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}' viewBox='0 0 ${width} ${height}'%3E%3Crect width='${width}' height='${height}' fill='%234A5568'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial,sans-serif' font-size='24' fill='white' text-anchor='middle' dy='.3em'%3E${encodedText}%3C/text%3E%3C/svg%3E`;
+    };
+
     const books = result.rows.map(book => ({
       id: book.id,
       titre: book.titre || 'Titre non disponible',
       description: book.description || 'Aucune description disponible',
-      couverture_url: book.couverture_url || '/assets/images/book-placeholder.jpg',
+      couverture_url: book.couverture_url || generateBookCover(book.titre),
       genre: book.genre || 'Non spécifié',
       auteur: book.auteur || 'Auteur inconnu',
-      auteur_image: book.auteur_image || '/assets/images/avatar-default.png',
+      auteur_image: book.auteur_image || generateAvatarUrl(book.auteur),
       statut: book.statut,
       created_at: book.created_at
     }));
@@ -695,6 +728,14 @@ export const getRecentBooks = async (req, res) => {
       message: 'Erreur lors de la récupération des livres récents'
     });
   }
+};
+
+// Fonction helper pour générer un avatar
+const generateAvatarUrl = (name, size = 200) => {
+  const initials = name 
+    ? name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().substring(0, 2)
+    : 'A';
+  return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 0 ${size} ${size}'%3E%3Crect width='${size}' height='${size}' fill='%234A5568'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial,sans-serif' font-size='${size/3}' fill='white' text-anchor='middle' dy='.3em'%3E${initials}%3C/text%3E%3C/svg%3E`;
 };
 
 // Anciennes fonctions conservées...
@@ -731,6 +772,12 @@ export const getFeaturedTestimonials = async (req, res) => {
 
 export const getUpcomingEvents = async (req, res) => {
   try {
+    const generateBookCover = (title, width = 400, height = 300) => {
+      const text = title || 'Événement';
+      const encodedText = encodeURIComponent(text.substring(0, 20));
+      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}' viewBox='0 0 ${width} ${height}'%3E%3Crect width='${width}' height='${height}' fill='%232D3748'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial,sans-serif' font-size='20' fill='white' text-anchor='middle' dy='.3em'%3E${encodedText}%3C/text%3E%3C/svg%3E`;
+    };
+
     const result = await pool.query(
       `SELECT 
         id, title, description, event_date, location, 
@@ -743,10 +790,15 @@ export const getUpcomingEvents = async (req, res) => {
       [new Date()]
     );
 
+    const events = result.rows.map(event => ({
+      ...event,
+      image_url: event.image_url || generateBookCover(event.title)
+    }));
+
     res.json({
       success: true,
-      data: result.rows,
-      count: result.rowCount
+      data: events,
+      count: events.length
     });
   } catch (error) {
     console.error('Error fetching events:', error);

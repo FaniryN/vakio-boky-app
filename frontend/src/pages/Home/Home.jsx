@@ -1230,6 +1230,41 @@ export default function Home() {
     return name.charAt(0).toUpperCase();
   };
 
+  // Fonction pour générer des images SVG sécurisées
+  const generateSvgImage = (text, type = 'book', width = 400, height = 600) => {
+    const colors = {
+      book: '4A5568',
+      avatar: '2D3748',
+      event: '4C51BF',
+      club: '2F855A'
+    };
+    
+    const textMap = {
+      book: text || 'Livre',
+      avatar: getAuthorInitials(text) || 'A',
+      event: text || 'Événement',
+      club: text || 'Club'
+    };
+    
+    const fontSize = {
+      book: 24,
+      avatar: Math.floor(width / 3),
+      event: 20,
+      club: 22
+    };
+    
+    const encodedText = encodeURIComponent(textMap[type]);
+    const color = colors[type] || '4A5568';
+    
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}' viewBox='0 0 ${width} ${height}'%3E%3Crect width='${width}' height='${height}' fill='%23${color}'/%3E%3Ctext x='50%25' y='50%25' font-family='Arial,sans-serif' font-size='${fontSize[type]}' fill='white' text-anchor='middle' dy='.3em'%3E${encodedText}%3C/text%3E%3C/svg%3E`;
+  };
+
+  // Handler d'erreur d'image
+  const handleImageError = (e, type = 'book', text = '') => {
+    e.target.onerror = null;
+    e.target.src = generateSvgImage(text, type);
+  };
+
   // 1. Récupération des livres récents
   useEffect(() => {
     const fetchLivres = async () => {
@@ -1259,17 +1294,36 @@ export default function Home() {
             // Gérer différents formats
             if (data.success && data.books) {
               console.log(`✅ ${data.books.length} livres chargés`);
-              setLivres(data.books);
+              
+              // Assurer que chaque livre a une image valide
+              const safeBooks = data.books.map(livre => ({
+                ...livre,
+                couverture_url: livre.couverture_url || generateSvgImage(livre.titre, 'book')
+              }));
+              
+              setLivres(safeBooks);
               return;
             } 
             else if (data.success && data.data) {
               console.log(`✅ ${data.data.length} livres chargés`);
-              setLivres(data.data);
+              
+              const safeBooks = data.data.map(livre => ({
+                ...livre,
+                couverture_url: livre.couverture_url || generateSvgImage(livre.titre, 'book')
+              }));
+              
+              setLivres(safeBooks);
               return;
             }
             else if (Array.isArray(data)) {
               console.log(`✅ ${data.length} livres chargés`);
-              setLivres(data);
+              
+              const safeBooks = data.map(livre => ({
+                ...livre,
+                couverture_url: livre.couverture_url || generateSvgImage(livre.titre, 'book')
+              }));
+              
+              setLivres(safeBooks);
               return;
             }
             else {
@@ -1282,14 +1336,14 @@ export default function Home() {
           }
         }
         
-        // SI TOUT ÉCHOUE, utiliser des données mock avec URLS LOCALES
+        // SI TOUT ÉCHOUE, utiliser des données mock avec IMAGES SVG
         console.log("⚠️ Utilisation de données de démonstration");
         setLivres([
           {
             id: 1,
             titre: "Ny Onja",
             description: "Roman poétique sur la vie à Madagascar",
-            couverture_url: "/assets/images/book-placeholder.jpg",
+            couverture_url: generateSvgImage("Ny Onja", 'book'),
             genre: "Roman",
             auteur: "Johary Ravaloson"
           },
@@ -1297,7 +1351,7 @@ export default function Home() {
             id: 2,
             titre: "Dernier Crépuscule",
             description: "Histoire d'une famille malgache",
-            couverture_url: "/assets/images/book-placeholder.jpg",
+            couverture_url: generateSvgImage("Dernier Crépuscule", 'book'),
             genre: "Roman",
             auteur: "Michèle Rakotoson"
           },
@@ -1305,7 +1359,7 @@ export default function Home() {
             id: 3,
             titre: "Contes de Madagascar",
             description: "Contes traditionnels malgaches",
-            couverture_url: "/assets/images/book-placeholder.jpg",
+            couverture_url: generateSvgImage("Contes de Madagascar", 'book'),
             genre: "Contes",
             auteur: "Collectif"
           }
@@ -1344,23 +1398,51 @@ export default function Home() {
         });
 
         if (result.success) {
-          setLandingData({
+          // Assurer que toutes les images sont valides
+          const safeData = {
             testimonials: result.data.testimonials || [],
-            events: result.data.events || [],
-            authors: result.data.authors || [],
+            events: result.data.events?.map(event => ({
+              ...event,
+              image_url: event.image_url || generateSvgImage(event.title, 'event', 400, 300)
+            })) || [],
+            authors: result.data.authors?.map(author => ({
+              ...author,
+              image: author.image || generateSvgImage(author.name, 'avatar', 200, 200)
+            })) || [],
             stats: result.data.stats || null,
-          });
+          };
+          
+          setLandingData(safeData);
         } else {
           throw new Error(result.message || "Erreur inconnue du serveur");
         }
       } catch (error) {
         console.error("❌ Erreur chargement données landing:", error);
         setError(error.message);
-        // Données de fallback
+        // Données de fallback avec images SVG
         setLandingData({
           testimonials: [],
           events: [],
-          authors: [],
+          authors: [
+            {
+              id: 1,
+              name: "Auteur Malagasy",
+              bio: "Auteur passionné par la littérature malgache",
+              author_genre: "Littérature",
+              published_works: 3,
+              image: generateSvgImage("Auteur Malagasy", 'avatar'),
+              role: "Auteur"
+            },
+            {
+              id: 2,
+              name: "Écrivain Local",
+              bio: "Promouvoir la culture malgache à travers l'écriture",
+              author_genre: "Roman",
+              published_works: 2,
+              image: generateSvgImage("Écrivain Local", 'avatar'),
+              role: "Auteur"
+            }
+          ],
           stats: null,
         });
       } finally {
@@ -1471,7 +1553,6 @@ export default function Home() {
   };
 
   const getEventTypeLabel = (event) => {
-    // Détermine le type d'événement basé sur le titre ou d'autres propriétés
     if (event.title?.toLowerCase().includes("rencontre")) return "Rencontre";
     if (event.title?.toLowerCase().includes("webinaire")) return "Webinaire";
     if (event.title?.toLowerCase().includes("atelier")) return "Atelier";
@@ -1845,21 +1926,12 @@ export default function Home() {
                   whileHover={{ scale: 1.05, y: -5 }}
                   className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl border border-white/20 shadow-xl hover:shadow-2xl transition-all duration-300"
                 >
-                  {event.image_url ? (
-                    <img
-                      src={event.image_url}
-                      alt={event.title}
-                      className="w-full h-48 object-cover rounded-xl mb-6 shadow-lg"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/assets/images/event-placeholder.jpg";
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-xl mb-6 flex items-center justify-center">
-                      <FiCalendar className="text-white/50 text-4xl" />
-                    </div>
-                  )}
+                  <img
+                    src={event.image_url}
+                    alt={event.title}
+                    className="w-full h-48 object-cover rounded-xl mb-6 shadow-lg"
+                    onError={(e) => handleImageError(e, 'event', event.title)}
+                  />
                   
                   <div className="text-2xl font-bold text-blue-200 mb-2">
                     {formatEventDate(event.event_date)}
@@ -2000,13 +2072,10 @@ export default function Home() {
                 >
                   <div className="relative overflow-hidden h-64">
                     <img
-                      src={livre.couverture_url || livre.cover || "/assets/images/book-placeholder.jpg"}
+                      src={livre.couverture_url}
                       alt={livre.titre || "Livre"}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/assets/images/book-placeholder.jpg";
-                      }}
+                      onError={(e) => handleImageError(e, 'book', livre.titre)}
                     />
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
                   </div>
@@ -2110,19 +2179,12 @@ export default function Home() {
                   className="text-center bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl border border-amber-100 transition-all duration-300 group"
                 >
                   <div className="w-24 h-24 bg-gradient-to-br from-amber-200 to-orange-200 rounded-full mx-auto mb-6 flex items-center justify-center text-amber-800 font-bold text-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300">
-                    {author.image ? (
-                      <img
-                        src={author.image}
-                        alt={author.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "/assets/images/avatar-default.png";
-                        }}
-                      />
-                    ) : (
-                      <FiPenTool className="text-amber-600 text-2xl" />
-                    )}
+                    <img
+                      src={author.image}
+                      alt={author.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => handleImageError(e, 'avatar', author.name)}
+                    />
                   </div>
                   <h3 className="font-bold text-xl text-gray-800 mb-2 group-hover:text-amber-600 transition-colors line-clamp-2">
                     {author.name || "Auteur inconnu"}

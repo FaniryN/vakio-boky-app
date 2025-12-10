@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  FiBook, 
-  FiUser, 
-  FiSearch, 
-  FiStar, 
-  FiUsers, 
-  FiBookOpen, 
-  FiFileText, 
-  FiHeart, 
-  FiMessageCircle, 
-  FiShare2, 
-  FiImage, 
-  FiVideo, 
-  FiFile, 
-  FiX, 
-  FiEdit, 
-  FiTrash2, 
+import {
+  FiBook,
+  FiUser,
+  FiSearch,
+  FiStar,
+  FiUsers,
+  FiBookOpen,
+  FiFileText,
+  FiHeart,
+  FiMessageCircle,
+  FiShare2,
+  FiImage,
+  FiVideo,
+  FiFile,
+  FiX,
+  FiEdit,
+  FiTrash2,
   FiPlus,
   FiMinus,
   FiFilter,
@@ -25,7 +25,7 @@ import {
   FiAward,
   FiBarChart2,
   FiArrowDown,
-  FiArrowUp
+  FiArrowUp,
 } from "react-icons/fi";
 import Button from "@/components/ui/Button";
 import { useBooks } from "../../hooks/useBooks.jsx";
@@ -70,7 +70,15 @@ export default function Explore() {
   const [filterCategory, setFilterCategory] = useState("");
 
   // Posts state
-  const { posts, loading: postsLoading, error: postsError, createPost, toggleLike, sharePost, refetch } = usePosts();
+  const {
+    posts,
+    loading: postsLoading,
+    error: postsError,
+    createPost,
+    toggleLike,
+    sharePost,
+    refetch,
+  } = usePosts();
   const { uploadMedias } = useMedias();
   const [newPostContent, setNewPostContent] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -101,7 +109,7 @@ export default function Explore() {
   // Détection de la section active
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['livres', 'clubs', 'publications'];
+      const sections = ["livres", "clubs", "publications"];
       const scrollY = window.scrollY + 100;
 
       // Détection de la section active
@@ -120,8 +128,8 @@ export default function Explore() {
       setShowFloatingNav(window.scrollY > 400);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Navigation vers une section
@@ -132,7 +140,7 @@ export default function Explore() {
       const elementPosition = element.offsetTop - offset;
       window.scrollTo({
         top: elementPosition,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   };
@@ -170,9 +178,12 @@ export default function Explore() {
     }
 
     try {
-      const res = await fetch("https://vakio-boky-backend.onrender.com/api/clubs", {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
+      const res = await fetch(
+        "https://vakio-boky-backend.onrender.com/api/clubs",
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+        }
+      );
 
       if (res.status === 401 || res.status === 403) {
         setClubsError("Session expirée.");
@@ -495,7 +506,9 @@ export default function Explore() {
           <div className="p-6 flex items-center space-x-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
             <FiFile className="text-blue-600 text-2xl flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-gray-900 truncate">Document joint</p>
+              <p className="font-semibold text-gray-900 truncate">
+                Document joint
+              </p>
               <a
                 href={post.media_url}
                 target="_blank"
@@ -523,7 +536,9 @@ export default function Explore() {
 
       {post.media_url && (
         <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-          <p className="text-sm font-semibold text-blue-900 mb-2">Média actuel:</p>
+          <p className="text-sm font-semibold text-blue-900 mb-2">
+            Média actuel:
+          </p>
           {renderMedia(post)}
           <button
             onClick={removeEditMedia}
@@ -564,7 +579,9 @@ export default function Explore() {
 
       {editPostMedias.length > 0 && (
         <div className="bg-green-50 rounded-xl p-4 border border-green-200">
-          <p className="text-sm font-semibold text-green-900 mb-2">Nouveau média:</p>
+          <p className="text-sm font-semibold text-green-900 mb-2">
+            Nouveau média:
+          </p>
           <div className="flex items-center justify-between">
             <span className="text-sm text-green-800 font-medium">
               {editPostMedias[0].url.split("/").pop()}
@@ -606,12 +623,19 @@ export default function Explore() {
   // Composant de navigation flottante
   const FloatingSectionNavigator = () => {
     const sections = [
-      { id: 'livres', label: 'Livres', icon: FiBook, color: 'blue' },
-      { id: 'clubs', label: 'Clubs', icon: FiUsers, color: 'green' },
-      { id: 'publications', label: 'Publications', icon: FiFileText, color: 'purple' }
+      { id: "livres", label: "Livres", icon: FiBook, color: "blue" },
+      { id: "clubs", label: "Clubs", icon: FiUsers, color: "green" },
+      {
+        id: "publications",
+        label: "Publications",
+        icon: FiFileText,
+        color: "purple",
+      },
     ];
 
-    const currentIndex = sections.findIndex(section => section.id === activeSection);
+    const currentIndex = sections.findIndex(
+      (section) => section.id === activeSection
+    );
     const nextSection = sections[currentIndex + 1];
     const prevSection = sections[currentIndex - 1];
 
@@ -676,7 +700,7 @@ export default function Explore() {
                     className={`flex-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
                       activeSection === section.id
                         ? `bg-${section.color}-600 text-white shadow-lg`
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                     }`}
                   >
                     {section.label}
@@ -727,9 +751,13 @@ export default function Explore() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex overflow-x-auto py-4 gap-2 scrollbar-hide">
               {[
-                { id: 'livres', label: '📚 Bibliothèque', icon: FiBook },
-                { id: 'clubs', label: '👥 Clubs Littéraires', icon: FiUsers },
-                { id: 'publications', label: '💬 Fil d\'Actualité', icon: FiFileText }
+                { id: "livres", label: "📚 Bibliothèque", icon: FiBook },
+                { id: "clubs", label: "👥 Clubs Littéraires", icon: FiUsers },
+                {
+                  id: "publications",
+                  label: "💬 Fil d'Actualité",
+                  icon: FiFileText,
+                },
               ].map((item) => (
                 <motion.button
                   key={item.id}
@@ -738,8 +766,8 @@ export default function Explore() {
                   onClick={() => scrollToSection(item.id)}
                   className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold whitespace-nowrap transition-all duration-300 flex-shrink-0 ${
                     activeSection === item.id
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                   }`}
                 >
                   <item.icon size={18} />
@@ -783,9 +811,11 @@ export default function Explore() {
                 </div>
                 Bibliothèque
               </h2>
-              <p className="text-gray-600 text-lg">Découvrez et gérez votre collection de livres</p>
+              <p className="text-gray-600 text-lg">
+                Découvrez et gérez votre collection de livres
+              </p>
             </div>
-            
+
             <Button
               onClick={() => setShowBookForm(true)}
               className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 px-8 py-4 rounded-2xl font-semibold"
@@ -799,7 +829,7 @@ export default function Explore() {
           <div className="flex space-x-1 bg-gray-100/80 rounded-2xl p-2 mb-8 max-w-md backdrop-blur-sm">
             {[
               { id: "public", label: "Livres Publiés" },
-              { id: "mes-livres", label: "Mes Livres" }
+              { id: "mes-livres", label: "Mes Livres" },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -875,13 +905,14 @@ export default function Explore() {
             >
               <FiBookOpen className="mx-auto text-6xl text-gray-400 mb-4" />
               <h3 className="text-2xl font-semibold text-gray-600 mb-2">
-                {activeBookTab === "public" ? "Aucun livre publié" : "Votre bibliothèque est vide"}
+                {activeBookTab === "public"
+                  ? "Aucun livre publié"
+                  : "Votre bibliothèque est vide"}
               </h3>
               <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                {activeBookTab === "public" 
+                {activeBookTab === "public"
                   ? "Soyez le premier à publier un livre dans la communauté"
-                  : "Commencez par ajouter votre premier livre à votre collection"
-                }
+                  : "Commencez par ajouter votre premier livre à votre collection"}
               </p>
               <Button
                 onClick={() => setShowBookForm(true)}
@@ -933,7 +964,8 @@ export default function Explore() {
               Clubs Littéraires
             </h2>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Rejoignez des communautés passionnées et partagez vos découvertes littéraires
+              Rejoignez des communautés passionnées et partagez vos découvertes
+              littéraires
             </p>
           </div>
 
@@ -1003,7 +1035,7 @@ export default function Explore() {
                   ? "Soyez le premier à créer un club littéraire et à rassembler une communauté de passionnés !"
                   : "Aucun club ne correspond à votre recherche. Essayez d'autres termes."}
               </p>
-              <Button 
+              <Button
                 onClick={() => nav("/create")}
                 className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-8 py-4 rounded-2xl font-semibold"
               >
@@ -1029,7 +1061,7 @@ export default function Explore() {
                   )}
 
                   {/* Image du club */}
-                  <div className="relative overflow-hidden h-48">
+                  {/* <div className="relative overflow-hidden h-48">
                     <img
                       src={
                         club.image_url
@@ -1041,6 +1073,30 @@ export default function Explore() {
                       onError={(e) => {
                         e.target.src = "/placeholder-club.jpg";
                       }}
+                    />
+                    <div className="absolute top-0 right-0 bg-black/80 text-white px-3 py-2 rounded-bl-2xl text-sm font-medium">
+                      {club.visibilite}
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
+                      <h3 className="text-xl font-bold text-white truncate">
+                        {club.nom}
+                      </h3>
+                    </div>
+                  </div> */}
+                  {/* Image du club */}
+                  <div className="relative overflow-hidden h-48">
+                    <SafeImage
+                      src={
+                        club.image_url
+                          ? `${API_BASE_URL}${club.image_url}`
+                          : undefined
+                      }
+                      alt={club.nom}
+                      fallbackType="club"
+                      fallbackText={club.nom}
+                      width={400}
+                      height={200}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute top-0 right-0 bg-black/80 text-white px-3 py-2 rounded-bl-2xl text-sm font-medium">
                       {club.visibilite}
@@ -1069,7 +1125,8 @@ export default function Explore() {
                       <div className="flex items-center text-sm text-gray-500">
                         <FiUsers className="w-4 h-4 mr-3 text-green-500" />
                         <span className="font-medium">
-                          {club.membres_count} membre{club.membres_count !== 1 ? "s" : ""}
+                          {club.membres_count} membre
+                          {club.membres_count !== 1 ? "s" : ""}
                         </span>
                       </div>
 
@@ -1133,7 +1190,8 @@ export default function Explore() {
               Fil d'Actualité
             </h2>
             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Partagez vos découvertes, discutez avec la communauté et restez connecté
+              Partagez vos découvertes, discutez avec la communauté et restez
+              connecté
             </p>
           </div>
 
@@ -1155,8 +1213,12 @@ export default function Explore() {
                   )}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 text-lg">{user?.nom}</h3>
-                  <p className="text-gray-500">Partagez vos impressions de lecture...</p>
+                  <h3 className="font-semibold text-gray-900 text-lg">
+                    {user?.nom}
+                  </h3>
+                  <p className="text-gray-500">
+                    Partagez vos impressions de lecture...
+                  </p>
                 </div>
               </div>
 
@@ -1174,8 +1236,13 @@ export default function Explore() {
                 ) : (
                   <div className="text-gray-400 text-center py-8">
                     <FiEdit className="mx-auto text-3xl mb-3" />
-                    <p className="text-lg">Cliquez pour commencer à écrire...</p>
-                    <p className="text-sm mt-2">Partagez vos citations favorites, vos critiques ou vos découvertes</p>
+                    <p className="text-lg">
+                      Cliquez pour commencer à écrire...
+                    </p>
+                    <p className="text-sm mt-2">
+                      Partagez vos citations favorites, vos critiques ou vos
+                      découvertes
+                    </p>
                   </div>
                 )}
               </motion.div>
@@ -1190,7 +1257,9 @@ export default function Explore() {
                     <div className="flex items-center gap-4">
                       <FiFile className="text-green-600 text-xl" />
                       <div>
-                        <p className="font-semibold text-green-900">Fichier prêt à être publié</p>
+                        <p className="font-semibold text-green-900">
+                          Fichier prêt à être publié
+                        </p>
                         <p className="text-green-700 text-sm">
                           {postMedias[0].url.split("/").pop()}
                         </p>
@@ -1209,9 +1278,24 @@ export default function Explore() {
               <div className="flex items-center justify-between pt-6 border-t border-gray-200">
                 <div className="flex gap-2">
                   {[
-                    { type: "image", icon: FiImage, color: "blue", label: "Image" },
-                    { type: "video", icon: FiVideo, color: "purple", label: "Vidéo" },
-                    { type: "file", icon: FiFile, color: "green", label: "Document" }
+                    {
+                      type: "image",
+                      icon: FiImage,
+                      color: "blue",
+                      label: "Image",
+                    },
+                    {
+                      type: "video",
+                      icon: FiVideo,
+                      color: "purple",
+                      label: "Vidéo",
+                    },
+                    {
+                      type: "file",
+                      icon: FiFile,
+                      color: "green",
+                      label: "Document",
+                    },
                   ].map(({ type, icon: Icon, color, label }) => (
                     <motion.button
                       key={type}
@@ -1264,7 +1348,9 @@ export default function Explore() {
           >
             <div className="p-8">
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-2xl font-bold text-gray-900">Créer une publication</h3>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Créer une publication
+                </h3>
                 <button
                   onClick={() => setShowModal(false)}
                   className="p-3 hover:bg-gray-100 rounded-2xl transition-colors"
@@ -1358,7 +1444,9 @@ export default function Explore() {
                 className="bg-white rounded-3xl shadow-lg border border-gray-200 p-16 text-center"
               >
                 <div className="animate-spin rounded-full h-12 w-12 border-2 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-                <h3 className="text-xl font-semibold text-gray-600">Chargement des publications...</h3>
+                <h3 className="text-xl font-semibold text-gray-600">
+                  Chargement des publications...
+                </h3>
               </motion.div>
             ) : posts.length === 0 ? (
               <motion.div
@@ -1367,8 +1455,12 @@ export default function Explore() {
                 className="bg-white rounded-3xl shadow-lg border border-gray-200 p-16 text-center"
               >
                 <FiFileText className="mx-auto text-6xl text-gray-300 mb-6" />
-                <h3 className="text-2xl font-semibold text-gray-600 mb-4">Aucune publication</h3>
-                <p className="text-gray-500 text-lg mb-8">Soyez le premier à partager vos découvertes littéraires !</p>
+                <h3 className="text-2xl font-semibold text-gray-600 mb-4">
+                  Aucune publication
+                </h3>
+                <p className="text-gray-500 text-lg mb-8">
+                  Soyez le premier à partager vos découvertes littéraires !
+                </p>
                 <Button
                   onClick={() => setShowModal(true)}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 px-8 py-4 rounded-2xl font-semibold"
@@ -1404,13 +1496,16 @@ export default function Explore() {
                             {post.auteur_nom || "Utilisateur"}
                           </h3>
                           <p className="text-gray-500">
-                            {new Date(post.created_at).toLocaleDateString("fr-FR", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {new Date(post.created_at).toLocaleDateString(
+                              "fr-FR",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
                           </p>
                         </div>
                       </div>
@@ -1494,44 +1589,47 @@ export default function Explore() {
 
                         <div className="flex items-center justify-between border-t border-gray-200 pt-6">
                           {[
-                            { 
-                              icon: FiHeart, 
-                              label: "J'aime", 
+                            {
+                              icon: FiHeart,
+                              label: "J'aime",
                               action: () => handleLike(post.id),
                               active: post.user_liked,
-                              color: "red"
+                              color: "red",
                             },
-                            { 
-                              icon: FiMessageCircle, 
-                              label: "Commenter", 
+                            {
+                              icon: FiMessageCircle,
+                              label: "Commenter",
                               action: () => setSelectedPostForComments(post),
-                              color: "blue"
+                              color: "blue",
                             },
-                            { 
-                              icon: FiShare2, 
-                              label: "Partager", 
+                            {
+                              icon: FiShare2,
+                              label: "Partager",
                               action: () => handleShare(post.id),
-                              color: "green"
-                            }
-                          ].map(({ icon: Icon, label, action, active, color }) => (
-                            <motion.button
-                              key={label}
-                              whileHover={{ scale: 1.05, y: -2 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={action}
-                              className={`flex items-center space-x-3 px-8 py-4 rounded-2xl transition-all duration-200 font-semibold flex-1 mx-2 justify-center
-                                ${active 
-                                  ? `text-${color}-600 bg-${color}-50 border border-${color}-200` 
-                                  : `text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200`
+                              color: "green",
+                            },
+                          ].map(
+                            ({ icon: Icon, label, action, active, color }) => (
+                              <motion.button
+                                key={label}
+                                whileHover={{ scale: 1.05, y: -2 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={action}
+                                className={`flex items-center space-x-3 px-8 py-4 rounded-2xl transition-all duration-200 font-semibold flex-1 mx-2 justify-center
+                                ${
+                                  active
+                                    ? `text-${color}-600 bg-${color}-50 border border-${color}-200`
+                                    : `text-gray-600 hover:bg-gray-50 border border-transparent hover:border-gray-200`
                                 }`}
-                            >
-                              <Icon
-                                size={20}
-                                fill={active ? "currentColor" : "none"}
-                              />
-                              <span>{label}</span>
-                            </motion.button>
-                          ))}
+                              >
+                                <Icon
+                                  size={20}
+                                  fill={active ? "currentColor" : "none"}
+                                />
+                                <span>{label}</span>
+                              </motion.button>
+                            )
+                          )}
                         </div>
                       </>
                     )}
