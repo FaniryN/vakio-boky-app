@@ -1061,7 +1061,7 @@ export default function Explore() {
                   )}
 
                   {/* Image du club */}
-                  {/* <div className="relative overflow-hidden h-48">
+                  <div className="relative overflow-hidden h-48">
                     <img
                       src={
                         club.image_url
@@ -1073,30 +1073,6 @@ export default function Explore() {
                       onError={(e) => {
                         e.target.src = "/placeholder-club.jpg";
                       }}
-                    />
-                    <div className="absolute top-0 right-0 bg-black/80 text-white px-3 py-2 rounded-bl-2xl text-sm font-medium">
-                      {club.visibilite}
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                      <h3 className="text-xl font-bold text-white truncate">
-                        {club.nom}
-                      </h3>
-                    </div>
-                  </div> */}
-                  {/* Image du club */}
-                  <div className="relative overflow-hidden h-48">
-                    <SafeImage
-                      src={
-                        club.image_url
-                          ? `${API_BASE_URL}${club.image_url}`
-                          : undefined
-                      }
-                      alt={club.nom}
-                      fallbackType="club"
-                      fallbackText={club.nom}
-                      width={400}
-                      height={200}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute top-0 right-0 bg-black/80 text-white px-3 py-2 rounded-bl-2xl text-sm font-medium">
                       {club.visibilite}
