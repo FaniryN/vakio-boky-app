@@ -445,10 +445,10 @@ import pool from "../config/db.js";
 
 export const getAllLandingData = async (req, res) => {
   try {
-    console.log("🟡 Début de getAllLandingData - Version améliorée");
+    console.log("🟡 Début de getAllLandingData - Version simplifiée");
     
     const [testimonialsResult, eventsResult, authorsResult, statsResult] = await Promise.all([
-      // Témoignages - Utilise les commentaires récents comme témoignages
+      // Témoignages
       pool.query(`
         SELECT 
           c.id,
@@ -467,7 +467,7 @@ export const getAllLandingData = async (req, res) => {
         return { rows: [] };
       }),
       
-      // Événements - Récupère les événements récents
+      // Événements
       pool.query(`
         SELECT 
           id, title, description, event_date, location, 
@@ -482,29 +482,16 @@ export const getAllLandingData = async (req, res) => {
         return { rows: [] };
       }),
       
-      // NOUVELLE REQUÊTE AUTEURS - Plus robuste
+      // Auteurs simplifié
       pool.query(`
-        -- Méthode 1: Utilisateurs promus
         SELECT 
-          id, nom, bio, author_genre, 
-          published_works, photo_profil as profile_image, role,
-          is_promoted, promoted_at,
-          'promoted' as source
-        FROM utilisateur 
-        WHERE is_promoted = true 
-          AND role IN ('auteur', 'editeur', 'admin', 'author', 'writer')
-        ORDER BY promoted_at DESC NULLS LAST, created_at DESC
-        LIMIT 4
-        
-        UNION
-        
-        -- Méthode 2: Utilisateurs avec des livres publiés
-        SELECT DISTINCT
-          u.id, u.nom, u.bio, u.author_genre, 
-          COALESCE(l.book_count, 0) as published_works, 
-          u.photo_profil as profile_image, u.role,
-          u.is_promoted, u.promoted_at,
-          'has_books' as source
+          u.id, 
+          u.nom as name, 
+          u.bio, 
+          u.author_genre, 
+          COALESCE(l.book_count, 0) as published_works,
+          u.photo_profil as image,
+          u.role
         FROM utilisateur u
         LEFT JOIN (
           SELECT user_id, COUNT(*) as book_count 
@@ -512,45 +499,12 @@ export const getAllLandingData = async (req, res) => {
           WHERE statut = 'publié'
           GROUP BY user_id
         ) l ON u.id = l.user_id
-        WHERE u.role IN ('auteur', 'author', 'writer', 'editeur')
-          AND (l.book_count > 0 OR u.is_promoted = false)
-          AND u.id NOT IN (
-            SELECT id FROM utilisateur WHERE is_promoted = true
-          )
-        ORDER BY published_works DESC
-        LIMIT 4
-        
-        UNION
-        
-        -- Méthode 3: Utilisateurs récents avec rôle auteur
-        SELECT 
-          id, nom, bio, author_genre, 
-          0 as published_works, 
-          photo_profil as profile_image, role,
-          is_promoted, promoted_at,
-          'recent_author' as source
-        FROM utilisateur 
-        WHERE role IN ('auteur', 'author', 'writer')
-          AND created_at >= NOW() - INTERVAL '30 days'
-        ORDER BY created_at DESC
-        LIMIT 2
+        WHERE u.role IN ('auteur', 'author', 'writer', 'editeur', 'admin')
+        ORDER BY l.book_count DESC NULLS LAST, u.created_at DESC
+        LIMIT 8
       `).catch(err => {
         console.error("❌ Erreur authors:", err);
-        // Fallback simple
-        return pool.query(`
-          SELECT 
-            id, nom, bio, author_genre, 
-            1 as published_works, 
-            photo_profil as profile_image, role,
-            false as is_promoted, NULL as promoted_at,
-            'fallback' as source
-          FROM utilisateur 
-          WHERE role IN ('auteur', 'author', 'writer', 'editeur', 'admin')
-          LIMIT 8
-        `).catch(fallbackErr => {
-          console.error("❌ Erreur fallback authors:", fallbackErr);
-          return { rows: [] };
-        });
+        return { rows: [] };
       }),
       
       // Statistiques
@@ -559,13 +513,7 @@ export const getAllLandingData = async (req, res) => {
           const [booksResult, usersResult, authorsResult, eventsResult] = await Promise.all([
             pool.query("SELECT COUNT(*) FROM livres WHERE statut = 'publié'"),
             pool.query("SELECT COUNT(*) FROM utilisateur"),
-            pool.query(`
-              SELECT COUNT(DISTINCT u.id) 
-              FROM utilisateur u
-              LEFT JOIN livres l ON u.id = l.user_id
-              WHERE u.role IN ('auteur', 'author', 'writer', 'editeur')
-                AND (l.id IS NOT NULL OR u.is_promoted = true)
-            `),
+            pool.query("SELECT COUNT(*) FROM utilisateur WHERE role IN ('auteur', 'author', 'writer', 'editeur')"),
             pool.query("SELECT COUNT(*) FROM events WHERE event_date >= $1 AND status = 'active'", [new Date()])
           ]);
 
@@ -591,25 +539,24 @@ export const getAllLandingData = async (req, res) => {
       testimonials: testimonialsResult.rows.length,
       events: eventsResult.rows.length, 
       authors: authorsResult.rows.length,
-      sources: [...new Set(authorsResult.rows.map(a => a.source))]
     });
 
-    // Formater les auteurs de manière cohérente
+    // Formater les auteurs SANS placeholder externe
     const authors = authorsResult.rows.map(author => ({
       id: author.id,
-      name: author.nom || 'Auteur inconnu',
+      name: author.name || 'Auteur inconnu',
       bio: author.bio || `Auteur ${author.author_genre || 'littéraire'}`,
       author_genre: author.author_genre || 'Auteur',
       published_works: parseInt(author.published_works) || 1,
-      image: author.profile_image || 'https://via.placeholder.com/100/4A5568/FFFFFF?text=' + encodeURIComponent((author.nom?.charAt(0) || 'A')),
-      role: author.role || 'Auteur',
-      source: author.source // Pour débogage
+      // URL LOCAL OU ABSOLUE - PAS DE via.placeholder.com
+      image: author.image || '/assets/images/avatar-default.png',
+      role: author.role || 'Auteur'
     }));
 
-    // Assurer qu'on a toujours des auteurs (fallback si vide)
+    // Fallback si pas d'auteurs
     let finalAuthors = authors;
     if (authors.length === 0) {
-      console.log("⚠️ Aucun auteur trouvé, création de données de fallback");
+      console.log("⚠️ Aucun auteur trouvé, création de données minimales");
       finalAuthors = [
         {
           id: 1,
@@ -617,9 +564,8 @@ export const getAllLandingData = async (req, res) => {
           bio: "Auteur passionné par la littérature malgache",
           author_genre: "Littérature",
           published_works: 3,
-          image: "https://via.placeholder.com/100/4A5568/FFFFFF?text=AM",
-          role: "Auteur",
-          source: "fallback"
+          image: "/assets/images/avatar-default.png",
+          role: "Auteur"
         },
         {
           id: 2,
@@ -627,9 +573,8 @@ export const getAllLandingData = async (req, res) => {
           bio: "Promouvoir la culture malgache à travers l'écriture",
           author_genre: "Roman",
           published_works: 2,
-          image: "https://via.placeholder.com/100/4A5568/FFFFFF?text=EL",
-          role: "Auteur",
-          source: "fallback"
+          image: "/assets/images/avatar-default.png",
+          role: "Auteur"
         }
       ];
     }
@@ -648,17 +593,14 @@ export const getAllLandingData = async (req, res) => {
     console.error("🔥 Erreur critique dans getAllLandingData:", error);
     res.status(500).json({ 
       success: false,
-      message: 'Erreur serveur: ' + error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      message: 'Erreur serveur: ' + error.message
     });
   }
 };
 
-// NOUVEAU ENDPOINT : Récupération spécifique des auteurs
+// Autres fonctions (gardées pour compatibilité)
 export const getPromotedAuthors = async (req, res) => {
   try {
-    console.log("👥 Appel de getPromotedAuthors");
-    
     const result = await pool.query(`
       SELECT 
         u.id, 
@@ -667,12 +609,7 @@ export const getPromotedAuthors = async (req, res) => {
         u.author_genre, 
         COALESCE(l.book_count, 0) as published_works,
         u.photo_profil as image,
-        u.role,
-        CASE 
-          WHEN u.is_promoted = true THEN 'promoted'
-          WHEN l.book_count > 0 THEN 'has_books'
-          ELSE 'author_role'
-        END as status
+        u.role
       FROM utilisateur u
       LEFT JOIN (
         SELECT user_id, COUNT(*) as book_count 
@@ -681,15 +618,7 @@ export const getPromotedAuthors = async (req, res) => {
         GROUP BY user_id
       ) l ON u.id = l.user_id
       WHERE u.role IN ('auteur', 'author', 'writer', 'editeur', 'admin')
-        AND (u.is_promoted = true OR l.book_count > 0 OR u.author_genre IS NOT NULL)
-      ORDER BY 
-        CASE 
-          WHEN u.is_promoted = true THEN 1
-          WHEN l.book_count > 0 THEN 2
-          ELSE 3
-        END,
-        l.book_count DESC NULLS LAST,
-        u.created_at DESC
+      ORDER BY l.book_count DESC NULLS LAST, u.created_at DESC
       LIMIT 12
     `);
 
@@ -699,12 +628,9 @@ export const getPromotedAuthors = async (req, res) => {
       bio: author.bio || `Auteur spécialisé en ${author.author_genre || 'littérature'}`,
       author_genre: author.author_genre || 'Auteur',
       published_works: parseInt(author.published_works) || 1,
-      image: author.image || 'https://via.placeholder.com/100/4A5568/FFFFFF?text=' + encodeURIComponent((author.name?.charAt(0) || 'A')),
-      role: author.role || 'Auteur',
-      status: author.status
+      image: author.image || '/assets/images/avatar-default.png',
+      role: author.role || 'Auteur'
     }));
-
-    console.log(`✅ ${authors.length} auteurs récupérés via getPromotedAuthors`);
 
     res.json({
       success: true,
@@ -716,17 +642,14 @@ export const getPromotedAuthors = async (req, res) => {
     console.error('❌ Error fetching promoted authors:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Erreur lors de la récupération des auteurs promus',
-      error: error.message 
+      message: 'Erreur lors de la récupération des auteurs'
     });
   }
 };
 
-// NOUVEAU ENDPOINT : Récupération des livres récents
+// Export des autres fonctions...
 export const getRecentBooks = async (req, res) => {
   try {
-    console.log("📚 Appel de getRecentBooks");
-    
     const limit = parseInt(req.query.limit) || 6;
     
     const result = await pool.query(`
@@ -751,15 +674,13 @@ export const getRecentBooks = async (req, res) => {
       id: book.id,
       titre: book.titre || 'Titre non disponible',
       description: book.description || 'Aucune description disponible',
-      couverture_url: book.couverture_url || 'https://via.placeholder.com/400x600/718096/FFFFFF?text=' + encodeURIComponent(book.titre?.substring(0, 10) || 'Livre'),
+      couverture_url: book.couverture_url || '/assets/images/book-placeholder.jpg',
       genre: book.genre || 'Non spécifié',
       auteur: book.auteur || 'Auteur inconnu',
-      auteur_image: book.auteur_image,
+      auteur_image: book.auteur_image || '/assets/images/avatar-default.png',
       statut: book.statut,
       created_at: book.created_at
     }));
-
-    console.log(`✅ ${books.length} livres récupérés`);
 
     res.json({
       success: true,
@@ -771,13 +692,12 @@ export const getRecentBooks = async (req, res) => {
     console.error('❌ Error fetching recent books:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Erreur lors de la récupération des livres récents',
-      error: error.message 
+      message: 'Erreur lors de la récupération des livres récents'
     });
   }
 };
 
-// Anciennes fonctions (conservées pour compatibilité)
+// Anciennes fonctions conservées...
 export const getFeaturedTestimonials = async (req, res) => {
   try {
     const result = await pool.query(`
@@ -804,8 +724,7 @@ export const getFeaturedTestimonials = async (req, res) => {
     console.error('Error fetching testimonials:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Erreur lors de la récupération des témoignages',
-      error: error.message 
+      message: 'Erreur lors de la récupération des témoignages'
     });
   }
 };
@@ -833,8 +752,7 @@ export const getUpcomingEvents = async (req, res) => {
     console.error('Error fetching events:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Erreur lors de la récupération des événements',
-      error: error.message 
+      message: 'Erreur lors de la récupération des événements'
     });
   }
 };
@@ -849,13 +767,7 @@ export const getLandingStats = async (req, res) => {
     ] = await Promise.all([
       pool.query("SELECT COUNT(*) FROM livres WHERE statut = 'publié'"),
       pool.query("SELECT COUNT(*) FROM utilisateur"),
-      pool.query(`
-        SELECT COUNT(DISTINCT u.id) 
-        FROM utilisateur u
-        LEFT JOIN livres l ON u.id = l.user_id
-        WHERE u.role IN ('auteur', 'author', 'writer', 'editeur')
-          AND (l.id IS NOT NULL OR u.is_promoted = true)
-      `),
+      pool.query("SELECT COUNT(*) FROM utilisateur WHERE role IN ('auteur', 'author', 'writer', 'editeur')"),
       pool.query("SELECT COUNT(*) FROM events WHERE event_date >= $1 AND status = 'active'", [new Date()])
     ]);
 
@@ -875,8 +787,7 @@ export const getLandingStats = async (req, res) => {
     console.error('Error fetching stats:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Erreur lors de la récupération des statistiques',
-      error: error.message 
+      message: 'Erreur lors de la récupération des statistiques'
     });
   }
 };

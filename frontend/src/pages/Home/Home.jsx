@@ -1282,14 +1282,14 @@ export default function Home() {
           }
         }
         
-        // SI TOUT ÉCHOUE, utiliser des données mock
+        // SI TOUT ÉCHOUE, utiliser des données mock avec URLS LOCALES
         console.log("⚠️ Utilisation de données de démonstration");
         setLivres([
           {
             id: 1,
             titre: "Ny Onja",
             description: "Roman poétique sur la vie à Madagascar",
-            couverture_url: "https://via.placeholder.com/400x600/4A5568/FFFFFF?text=Ny+Onja",
+            couverture_url: "/assets/images/book-placeholder.jpg",
             genre: "Roman",
             auteur: "Johary Ravaloson"
           },
@@ -1297,7 +1297,7 @@ export default function Home() {
             id: 2,
             titre: "Dernier Crépuscule",
             description: "Histoire d'une famille malgache",
-            couverture_url: "https://via.placeholder.com/400x600/2D3748/FFFFFF?text=Crépuscule",
+            couverture_url: "/assets/images/book-placeholder.jpg",
             genre: "Roman",
             auteur: "Michèle Rakotoson"
           },
@@ -1305,7 +1305,7 @@ export default function Home() {
             id: 3,
             titre: "Contes de Madagascar",
             description: "Contes traditionnels malgaches",
-            couverture_url: "https://via.placeholder.com/400x600/ED8936/FFFFFF?text=Contes",
+            couverture_url: "/assets/images/book-placeholder.jpg",
             genre: "Contes",
             auteur: "Collectif"
           }
@@ -1852,7 +1852,7 @@ export default function Home() {
                       className="w-full h-48 object-cover rounded-xl mb-6 shadow-lg"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "https://via.placeholder.com/400x300/4A5568/FFFFFF?text=Événement";
+                        e.target.src = "/assets/images/event-placeholder.jpg";
                       }}
                     />
                   ) : (
@@ -2000,12 +2000,12 @@ export default function Home() {
                 >
                   <div className="relative overflow-hidden h-64">
                     <img
-                      src={livre.couverture_url || livre.cover || "https://via.placeholder.com/400x600/718096/FFFFFF?text=" + encodeURIComponent((livre.titre?.substring(0, 10) || "Livre"))}
+                      src={livre.couverture_url || livre.cover || "/assets/images/book-placeholder.jpg"}
                       alt={livre.titre || "Livre"}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "https://via.placeholder.com/400x600/718096/FFFFFF?text=Couverture";
+                        e.target.src = "/assets/images/book-placeholder.jpg";
                       }}
                     />
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
@@ -2117,7 +2117,7 @@ export default function Home() {
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = "https://via.placeholder.com/150/4A5568/FFFFFF?text=" + encodeURIComponent(getAuthorInitials(author.name));
+                          e.target.src = "/assets/images/avatar-default.png";
                         }}
                       />
                     ) : (
