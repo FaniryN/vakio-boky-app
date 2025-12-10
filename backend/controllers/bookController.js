@@ -994,9 +994,6 @@
 //   updateCollection,
 //   deleteCollection,
 // };
-Je vois le problème ! Dans votre fichier, il y a une fonction `getAllBooksAdmin` qui est référencée mais pas définie. Je vais vous donner le fichier COMPLET et CORRIGÉ :
-
-```javascript
 import pool from "../config/db.js";
 
 // Fonction helper pour générer des couvertures de livre sécurisées
@@ -2042,3 +2039,4 @@ const bookController = {
   approveBook,
   rejectBook,
   featureBook,
+  };
