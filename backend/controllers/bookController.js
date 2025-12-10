@@ -2026,7 +2026,7 @@ export const deleteCollection = async (req, res) => {
   }
 };
 
-// Export par défaut (pour compatibilité)
+// AJOUTEZ CETTE SECTION À LA FIN DU FICHIER POUR L'EXPORT PAR DÉFAUT
 const bookController = {
   getBooks,
   getRecent,
@@ -2035,8 +2035,20 @@ const bookController = {
   createBook,
   updateBook,
   deleteBook,
-  getAllBooksAdmin,  // AJOUTÉE
+  getAllBooksAdmin,
   approveBook,
   rejectBook,
   featureBook,
-  };
+  getFeaturedBooks,
+  getBookAnalytics,
+  getGenres,
+  createGenre,
+  updateGenre,
+  deleteGenre,
+  getCollections,
+  createCollection,
+  updateCollection,
+  deleteCollection
+};
+
+export default bookController;
