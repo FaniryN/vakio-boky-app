@@ -45,18 +45,18 @@ export default function Home() {
   // Fonction pour gérer les URLs d'images avec fallback LOCAL
   const getImageUrl = (url, fallbackType = "book") => {
     if (!url || url.includes("via.placeholder.com") || url.includes("placeholder.com")) {
-      // Retourner des images locales selon le type
+      // Retourner des images locales selon le type (format PNG)
       switch(fallbackType) {
         case "book":
-          return "/assets/images/books/book-default.jpg";
+          return "/assets/images/books/book-default.png";
         case "author":
           return "/assets/images/authors/author-default.png";
         case "event":
-          return "/assets/images/events/event-default.jpg";
+          return "/assets/images/events/event-default.png";
         case "profile":
           return "/assets/images/profiles/profile-default.png";
         default:
-          return "/assets/images/default-image.jpg";
+          return "/assets/images/default-image.png";
       }
     }
     
@@ -108,17 +108,43 @@ export default function Home() {
         }
         else {
           console.warn("Format de données inattendu:", data);
-          setLivres([]);
+          // Données mock avec images PNG
+          setLivres([
+            {
+              id: 1,
+              titre: "Ny Onja",
+              description: "Roman poétique sur la vie à Madagascar",
+              couverture_url: "/assets/images/books/book-default.png",
+              genre: "Roman",
+              auteur: "Johary Ravaloson"
+            },
+            {
+              id: 2,
+              titre: "Dernier Crépuscule",
+              description: "Histoire d'une famille malgache",
+              couverture_url: "/assets/images/books/book-default.png",
+              genre: "Roman",
+              auteur: "Michèle Rakotoson"
+            },
+            {
+              id: 3,
+              titre: "Contes de Madagascar",
+              description: "Contes traditionnels malgaches",
+              couverture_url: "/assets/images/books/book-default.png",
+              genre: "Contes",
+              auteur: "Collectif"
+            }
+          ]);
         }
       } catch (err) {
         console.error("❌ Erreur récupération livres:", err);
-        // Données mock avec images locales
+        // Données mock avec images PNG
         setLivres([
           {
             id: 1,
             titre: "Ny Onja",
             description: "Roman poétique sur la vie à Madagascar",
-            couverture_url: "/assets/images/books/book-default.jpg",
+            couverture_url: "/assets/images/books/book-default.png",
             genre: "Roman",
             auteur: "Johary Ravaloson"
           },
@@ -126,7 +152,7 @@ export default function Home() {
             id: 2,
             titre: "Dernier Crépuscule",
             description: "Histoire d'une famille malgache",
-            couverture_url: "/assets/images/books/book-default.jpg",
+            couverture_url: "/assets/images/books/book-default.png",
             genre: "Roman",
             auteur: "Michèle Rakotoson"
           },
@@ -134,7 +160,7 @@ export default function Home() {
             id: 3,
             titre: "Contes de Madagascar",
             description: "Contes traditionnels malgaches",
-            couverture_url: "/assets/images/books/book-default.jpg",
+            couverture_url: "/assets/images/books/book-default.png",
             genre: "Contes",
             auteur: "Collectif"
           }
@@ -355,7 +381,7 @@ export default function Home() {
       <div className="relative min-h-screen overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm scale-105"
-          style={{ backgroundImage: "url('/assets/images/home.jpeg')" }}
+          style={{ backgroundImage: "url('/assets/images/home.png')" }}
         ></div>
 
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/60 to-purple-900/40"></div>
@@ -690,7 +716,7 @@ export default function Home() {
                       className="w-full h-48 object-cover rounded-xl mb-6 shadow-lg"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "/assets/images/events/event-default.jpg";
+                        e.target.src = "/assets/images/events/event-default.png";
                       }}
                     />
                   ) : (
@@ -843,7 +869,7 @@ export default function Home() {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "/assets/images/books/book-default.jpg";
+                        e.target.src = "/assets/images/books/book-default.png";
                       }}
                     />
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
