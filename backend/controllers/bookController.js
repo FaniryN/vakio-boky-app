@@ -264,28 +264,115 @@ const deleteBook = async (req, res) => {
 };
 
 // GET /api/books/recent - Récupérer les livres récents
-const getRecent = async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit) || 5;
-    const result = await pool.query(
-      `SELECT l.*, u.nom as auteur_nom
-       FROM livres l 
-       LEFT JOIN utilisateur u ON l.auteur_id = u.id
-       WHERE l.statut = 'publié'
-       ORDER BY l.created_at DESC
-       LIMIT $1`,
-      [limit]
-    );
+// const getRecent = async (req, res) => {
+//   try {
+//     const limit = parseInt(req.query.limit) || 5;
+//     const result = await pool.query(
+//       `SELECT l.*, u.nom as auteur_nom
+//        FROM livres l 
+//        LEFT JOIN utilisateur u ON l.auteur_id = u.id
+//        WHERE l.statut = 'publié'
+//        ORDER BY l.created_at DESC
+//        LIMIT $1`,
+//       [limit]
+//     );
 
-    res.json({
+//     res.json({
+//       success: true,
+//       books: result.rows,
+//     });
+//   } catch (error) {
+//     console.error('❌ Erreur récupération livres récents:', error);
+//     res.status(500).json({ 
+//       success: false,
+//       error: 'Erreur serveur' 
+//     });
+//   }
+// };
+const getRecent = async (req, res) => {
+  console.log('📚 Controller: getRecent appelé');
+  
+  try {
+    // DONNÉES MOCKÉES POUR LA DÉMO
+    const recentBooks = [
+      {
+        id: 1,
+        title: "Ny Onja",
+        author: "Johary Ravaloson",
+        description: "Roman poétique sur la vie à Madagascar",
+        cover: "https://via.placeholder.com/300x400/4A5568/FFFFFF?text=Ny+Onja",
+        price: 15000,
+        rating: 4.5,
+        category: "Roman",
+        pages: 240,
+        published_year: 2020,
+        language: "Français",
+        publisher: "Éditions Malgaches",
+        created_at: new Date().toISOString(),
+        status: "published"
+      },
+      {
+        id: 2,
+        title: "Dernier Crépuscule",
+        author: "Michèle Rakotoson",
+        description: "Histoire contemporaine malgache",
+        cover: "https://via.placeholder.com/300x400/2D3748/FFFFFF?text=Crépuscule",
+        price: 12000,
+        rating: 4.2,
+        category: "Roman",
+        pages: 320,
+        published_year: 2018,
+        language: "Français",
+        publisher: "Madabook",
+        created_at: new Date().toISOString(),
+        status: "published"
+      },
+      {
+        id: 3,
+        title: "Contes de la Nuit Malgache",
+        author: "Collectif d'Auteurs",
+        description: "Recueil de contes traditionnels malgaches",
+        cover: "https://via.placeholder.com/300x400/ED8936/FFFFFF?text=Contes",
+        price: 8000,
+        rating: 4.7,
+        category: "Contes",
+        pages: 180,
+        published_year: 2021,
+        language: "Français",
+        publisher: "Éditions Traditions",
+        created_at: new Date().toISOString(),
+        status: "published"
+      }
+    ];
+    
+    // RÉPONSE SUCCÈS
+    res.status(200).json({
       success: true,
-      books: result.rows,
+      message: "Livres récents récupérés (données de démonstration)",
+      books: recentBooks,
+      count: recentBooks.length,
+      timestamp: new Date().toISOString()
     });
+    
   } catch (error) {
-    console.error('❌ Erreur récupération livres récents:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Erreur serveur' 
+    console.error('❌ Erreur dans getRecent:', error);
+    
+    // FALLBACK ULTIME
+    res.status(200).json({
+      success: true,
+      message: "Livres récents - Données de secours",
+      books: [
+        {
+          id: 999,
+          title: "Livre de Test",
+          author: "Auteur Test",
+          cover: "https://via.placeholder.com/300x400/718096/FFFFFF?text=Livre+Test",
+          price: 10000,
+          category: "Test"
+        }
+      ],
+      count: 1,
+      is_mock_data: true
     });
   }
 };

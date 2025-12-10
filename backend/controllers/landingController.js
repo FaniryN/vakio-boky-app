@@ -572,7 +572,8 @@ export const getAllLandingData = async (req, res) => {
           bio: "Auteur passionné par la littérature malgache",
           author_genre: "Littérature",
           published_works: 3,
-          image: "/assets/images/avatar-placeholder.jpg",
+          // image: "/assets/images/avatar-placeholder.jpg",
+          image: "https://via.placeholder.com/100/4A5568/FFFFFF?text=Auteur",
           role: "Auteur",
           source: "fallback"
         },
@@ -582,7 +583,8 @@ export const getAllLandingData = async (req, res) => {
           bio: "Promouvoir la culture malgache à travers l'écriture",
           author_genre: "Roman",
           published_works: 2,
-          image: "/assets/images/avatar-placeholder.jpg",
+          // image: "/assets/images/avatar-placeholder.jpg",
+          image: "https://via.placeholder.com/100/4A5568/FFFFFF?text=Auteur",
           role: "Auteur",
           source: "fallback"
         }
