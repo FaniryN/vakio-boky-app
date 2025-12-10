@@ -381,7 +381,7 @@ export default function Home() {
       <div className="relative min-h-screen overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm scale-105"
-          style={{ backgroundImage: "url('/assets/images/home.png')" }}
+          style={{ backgroundImage: "url('/assets/images/home.jpeg')" }}
         ></div>
 
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/60 to-purple-900/40"></div>
