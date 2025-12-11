@@ -1350,19 +1350,15 @@ import pool from "../config/db.js";
 export const cleanImageUrl = (url, type = "event") => {
   if (!url) return null;
   
-  // Si l'URL contient un double chemin (problème détecté)
   if (url.includes('//uploads/')) {
-    // Extraire juste le nom de fichier
     const filename = url.split('/').pop();
     return `/uploads/${type}s/${filename}`;
   }
   
-  // Si c'est déjà une URL correcte
   if (url.startsWith('/uploads/')) {
     return url;
   }
   
-  // Si c'est juste un nom de fichier
   if (!url.startsWith('http') && !url.startsWith('/')) {
     return `/uploads/${type}s/${url}`;
   }
@@ -1401,7 +1397,6 @@ export const getEvents = async (req, res) => {
     const result = await pool.query(query);
     console.log("✅ Événements récupérés:", result.rows.length);
 
-    // Nettoyer les URLs d'images
     const events = result.rows.map(event => formatEventImageUrl(event));
 
     res.json({
@@ -1413,7 +1408,6 @@ export const getEvents = async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Erreur serveur lors de la récupération des événements",
-      details: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
@@ -1441,7 +1435,6 @@ export const getEventById = async (req, res) => {
       });
     }
 
-    // Nettoyer l'URL de l'image
     const event = formatEventImageUrl(result.rows[0]);
 
     res.json({
@@ -1450,51 +1443,6 @@ export const getEventById = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Erreur récupération événement:", error);
-    res.status(500).json({
-      success: false,
-      error: "Erreur serveur lors de la récupération de l'événement"
-    });
-  }
-};
-
-// GET /api/events/detail/:id - Récupérer les détails d'un événement (pour compatibilité)
-export const getDetailById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    console.log(`🔍 Récupération détails événement ID: ${id}`);
-    
-    const query = `
-      SELECT *
-      FROM events 
-      WHERE id = $1 AND status = 'active'
-    `;
-    
-    const result = await pool.query(query, [id]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Événement non trouvé'
-      });
-    }
-    
-    // Nettoyer l'URL de l'image
-    const event = formatEventImageUrl(result.rows[0]);
-    
-    // Formater la date pour le frontend
-    const formattedEvent = {
-      ...event,
-      event_date: new Date(event.event_date).toISOString()
-    };
-    
-    res.json({
-      success: true,
-      data: formattedEvent
-    });
-    
-  } catch (error) {
-    console.error('❌ Erreur récupération événement:', error);
     res.status(500).json({
       success: false,
       error: "Erreur serveur lors de la récupération de l'événement"
@@ -1516,7 +1464,6 @@ export const createEvent = async (req, res) => {
       status = "active"
     } = req.body;
 
-    // Validation des champs requis
     if (!title || !event_date || !location) {
       return res.status(400).json({
         success: false,
@@ -1524,7 +1471,6 @@ export const createEvent = async (req, res) => {
       });
     }
 
-    // Nettoyer l'URL de l'image
     const cleanImageUrlValue = cleanImageUrl(image_url, "event");
 
     const query = `
@@ -1547,7 +1493,6 @@ export const createEvent = async (req, res) => {
     const result = await pool.query(query, values);
     const event = formatEventImageUrl(result.rows[0]);
 
-    // Créer des notifications pour le nouvel événement
     if (status === "active") {
       await pool.query(
         `INSERT INTO notifications (user_id, titre, message, type, lien)
@@ -1561,7 +1506,6 @@ export const createEvent = async (req, res) => {
         ]
       );
 
-      // Notification supplémentaire pour les webinaires (sessions live)
       if (title.toLowerCase().includes('webinar') || 
           title.toLowerCase().includes('live') || 
           title.toLowerCase().includes('direct')) {
@@ -1616,7 +1560,6 @@ export const updateEvent = async (req, res) => {
 
     allowedFields.forEach((field) => {
       if (updates[field] !== undefined) {
-        // Nettoyer l'URL si c'est le champ image_url
         const value = field === "image_url" 
           ? cleanImageUrl(updates[field], "event")
           : updates[field];
@@ -1651,7 +1594,6 @@ export const updateEvent = async (req, res) => {
       });
     }
 
-    // Nettoyer l'URL de l'image
     const event = formatEventImageUrl(result.rows[0]);
 
     res.json({
@@ -1675,7 +1617,6 @@ export const deleteEvent = async (req, res) => {
 
     console.log(`🗑️ Tentative de suppression de l'événement ${id}`);
 
-    // Vérifier d'abord si l'événement existe
     const eventCheck = await pool.query(
       "SELECT * FROM events WHERE id = $1",
       [id]
@@ -1688,13 +1629,11 @@ export const deleteEvent = async (req, res) => {
       });
     }
 
-    // Supprimer d'abord les inscriptions associées
     await pool.query(
       "DELETE FROM event_registrations WHERE event_id = $1",
       [id]
     );
 
-    // Puis supprimer l'événement
     const result = await pool.query(
       "DELETE FROM events WHERE id = $1 RETURNING *",
       [id]
@@ -1712,7 +1651,6 @@ export const deleteEvent = async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Erreur serveur lors de la suppression de l'événement",
-      details: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
@@ -1730,7 +1668,6 @@ export const registerForEvent = async (req, res) => {
       });
     }
 
-    // Vérifier si l'événement existe et a des places disponibles
     const eventResult = await pool.query(
       `
       SELECT e.*, COUNT(er.id) as registered_count
@@ -1751,7 +1688,6 @@ export const registerForEvent = async (req, res) => {
 
     const event = eventResult.rows[0];
 
-    // Vérifier si des places sont disponibles
     if (
       event.max_participants &&
       event.registered_count >= event.max_participants
@@ -1762,7 +1698,6 @@ export const registerForEvent = async (req, res) => {
       });
     }
 
-    // Vérifier si l'utilisateur est déjà inscrit
     const existingRegistration = await pool.query(
       "SELECT * FROM event_registrations WHERE user_id = $1 AND event_id = $2",
       [user_id, id]
@@ -1775,7 +1710,6 @@ export const registerForEvent = async (req, res) => {
       });
     }
 
-    // Créer l'inscription
     const result = await pool.query(
       `
       INSERT INTO event_registrations (user_id, event_id)
@@ -1827,8 +1761,51 @@ export const getEventRegistrations = async (req, res) => {
   }
 };
 
+// GET /api/events/detail/:id - Récupérer les détails d'un événement
+export const getDetailById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log(`🔍 Récupération détails événement ID: ${id}`);
+    
+    const query = `
+      SELECT *
+      FROM events 
+      WHERE id = $1 AND status = 'active'
+    `;
+    
+    const result = await pool.query(query, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Événement non trouvé'
+      });
+    }
+    
+    const event = formatEventImageUrl(result.rows[0]);
+    
+    const formattedEvent = {
+      ...event,
+      event_date: new Date(event.event_date).toISOString()
+    };
+    
+    res.json({
+      success: true,
+      data: formattedEvent
+    });
+    
+  } catch (error) {
+    console.error('❌ Erreur récupération événement:', error);
+    res.status(500).json({
+      success: false,
+      error: "Erreur serveur lors de la récupération de l'événement"
+    });
+  }
+};
+
 // GET /api/admin/events - Tous les événements pour admin
-export const getAdminEvents = async (req, res) => {
+export const getAllEventsAdmin = async (req, res) => {
   try {
     const { status = 'all', search = '', page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
@@ -1860,18 +1837,15 @@ export const getAdminEvents = async (req, res) => {
       count++;
     }
 
-    // Get total count
     const countQuery = `SELECT COUNT(*) as total FROM (${query}) as filtered`;
     const countResult = await pool.query(countQuery, values);
     const total = parseInt(countResult.rows[0].total);
 
-    // Get paginated results
     query += ` ORDER BY e.created_at DESC LIMIT $${count} OFFSET $${count + 1}`;
     values.push(limit, offset);
 
     const result = await pool.query(query, values);
 
-    // Nettoyer les URLs d'images
     const events = result.rows.map(event => formatEventImageUrl(event));
 
     res.json({
@@ -1913,7 +1887,6 @@ export const approveEvent = async (req, res) => {
 
     const event = formatEventImageUrl(result.rows[0]);
 
-    // Créer une notification pour l'organisateur
     await pool.query(
       `INSERT INTO notifications (user_id, titre, message, type, lien)
        SELECT id, $1, $2, 'event', $3
@@ -1967,9 +1940,6 @@ export const rejectEvent = async (req, res) => {
     }
 
     const event = result.rows[0];
-
-    // TODO: Envoyer une notification à l'organisateur avec le motif du rejet
-    // Vous pouvez utiliser le système de notifications ici
 
     res.json({
       success: true,
@@ -2041,7 +2011,6 @@ export const getFeaturedEvents = async (req, res) => {
 
     const result = await pool.query(query);
 
-    // Nettoyer les URLs d'images
     const events = result.rows.map(event => formatEventImageUrl(event));
 
     res.json({
@@ -2063,7 +2032,6 @@ export const getEventAnalytics = async (req, res) => {
     const { range = '30d' } = req.query;
     let dateFilter = '';
 
-    // Calculer la date basée sur la plage
     switch (range) {
       case '7d':
         dateFilter = "CURRENT_DATE - INTERVAL '7 days'";
@@ -2081,7 +2049,6 @@ export const getEventAnalytics = async (req, res) => {
         dateFilter = "CURRENT_DATE - INTERVAL '30 days'";
     }
 
-    // Statistiques générales
     const statsQuery = `
       SELECT 
         COUNT(*) as totalEvents,
@@ -2103,7 +2070,6 @@ export const getEventAnalytics = async (req, res) => {
     const statsResult = await pool.query(statsQuery);
     const stats = statsResult.rows[0];
 
-    // Événements les plus populaires
     const topEventsQuery = `
       SELECT 
         e.id,
@@ -2125,7 +2091,6 @@ export const getEventAnalytics = async (req, res) => {
 
     const topEventsResult = await pool.query(topEventsQuery);
 
-    // Distribution par statut
     const statusDistribution = [
       { status: 'actif', count: parseInt(stats.activeevents) || 0 },
       { status: 'en attente', count: parseInt(stats.pendingevents) || 0 },
@@ -2161,7 +2126,7 @@ export const getEventAnalytics = async (req, res) => {
   }
 };
 
-// Export par défaut pour compatibilité (si nécessaire)
+// Pour compatibilité avec l'import par défaut (optionnel)
 export default {
   getEvents,
   getEventById,
@@ -2171,7 +2136,7 @@ export default {
   deleteEvent,
   registerForEvent,
   getEventRegistrations,
-  getAdminEvents,
+  getAllEventsAdmin,
   approveEvent,
   rejectEvent,
   featureEvent,

@@ -107,12 +107,11 @@ import {
   registerForEvent,
   getEventRegistrations,
   getDetailById,
-  getAllEventsAdmin,  // Changé de getAdminEvents à getAllEventsAdmin
+  getAllEventsAdmin,  // IMPORTANT: doit correspondre au nom dans le contrôleur
   approveEvent,
   rejectEvent,
   featureEvent,
-  getEventAnalytics,
-  getFeaturedEvents  // Ajouté si vous avez besoin de cette route
+  getEventAnalytics
 } from "../controllers/evenementController.js";
 
 const router = express.Router();
@@ -125,16 +124,13 @@ router.put("/:id", updateEvent);
 router.delete("/:id", deleteEvent);
 router.post("/:id/register", registerForEvent);
 router.get("/:id/registrations", getEventRegistrations);
-router.get("/detail/:id", getDetailById);  // Correction: le paramètre doit être dans l'URL
+router.get("/detail/:id", getDetailById);  // Note: format correct
 
 // Routes d'administration
-router.get("/admin/all", getAllEventsAdmin);  // Changé de /admin/events à /admin/all
+router.get("/admin/all", getAllEventsAdmin);  // IMPORTANT: utilisez "/admin/all"
 router.put("/admin/:id/approve", approveEvent);
 router.put("/admin/:id/reject", rejectEvent);
 router.put("/admin/:id/feature", featureEvent);
 router.get("/admin/analytics", getEventAnalytics);
-
-// Route pour les événements en avant (optionnelle)
-router.get("/featured", getFeaturedEvents);
 
 export default router;
