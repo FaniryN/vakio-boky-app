@@ -59,92 +59,142 @@ export default function Home() {
   //         return "/assets/images/default-image.png";
   //     }
   //   }
-    
+
   //   // Si c'est une URL absolue du backend
   //   if (url.startsWith('http') && !url.startsWith(window.location.origin)) {
   //     return url;
   //   }
-    
+
   //   // Si c'est une URL relative
   //   if (url.startsWith('/uploads/')) {
   //     return url;
   //   }
-    
+
   //   return url;
   // };
-const getImageUrl = (url, fallbackType = "book") => {
-  // Si pas d'URL ou placeholder, retourner image par défaut
-  if (!url || url.includes("via.placeholder.com") || url.includes("placeholder.com")) {
-    // Retourner des images locales selon le type (format PNG)
-    switch(fallbackType) {
-      case "book":
-        return "/assets/images/books/book-default.png";
-      case "author":
-        return "/assets/images/authors/author-default.png";
-      case "event":
-        return "/assets/images/events/event-default.png";
-      case "profile":
-        return "/assets/images/profiles/profile-default.png";
-      default:
-        return "/assets/images/default-image.png";
+  // const getImageUrl = (url, fallbackType = "book") => {
+  //   // Si pas d'URL ou placeholder, retourner image par défaut
+  //   if (!url || url.includes("via.placeholder.com") || url.includes("placeholder.com")) {
+  //     // Retourner des images locales selon le type (format PNG)
+  //     switch(fallbackType) {
+  //       case "book":
+  //         return "/assets/images/books/book-default.png";
+  //       case "author":
+  //         return "/assets/images/authors/author-default.png";
+  //       case "event":
+  //         return "/assets/images/events/event-default.png";
+  //       case "profile":
+  //         return "/assets/images/profiles/profile-default.png";
+  //       default:
+  //         return "/assets/images/default-image.png";
+  //     }
+  //   }
+
+  //   // CORRECTION SPÉCIFIQUE POUR LE BUG DU BACKEND
+  //   // Si l'URL contient le double chemin "/uploads/profiles//uploads/profiles/"
+  //   if (url.includes("//uploads/profiles/")) {
+  //     // Extraire juste le nom de fichier
+  //     const filename = url.split('/').pop(); // "profile-1-1765403913262-560889623.png"
+  //     // Retourner le chemin correct
+  //     return `/uploads/profiles/${filename}`;
+  //   }
+
+  //   // Si c'est une URL absolue du backend
+  //   if (url.startsWith('http') && !url.startsWith(window.location.origin)) {
+  //     return url;
+  //   }
+
+  //   // Si c'est une URL relative normale
+  //   if (url.startsWith('/uploads/')) {
+  //     return url;
+  //   }
+
+  //   return url;
+  // };
+  const getImageUrl = (url, fallbackType = "book") => {
+    // Si pas d'URL ou placeholder, retourner image par défaut
+    if (
+      !url ||
+      url.includes("via.placeholder.com") ||
+      url.includes("placeholder.com")
+    ) {
+      // Retourner des images locales selon le type (format PNG)
+      switch (fallbackType) {
+        case "book":
+          return "/assets/images/books/book-default.png";
+        case "author":
+          return "/assets/images/authors/author-default.png";
+        case "event":
+          return "/assets/images/events/event-default.png";
+        case "profile":
+          return "/assets/images/profiles/profile-default.png";
+        default:
+          return "/assets/images/default-image.png";
+      }
     }
-  }
-  
-  // CORRECTION SPÉCIFIQUE POUR LE BUG DU BACKEND
-  // Si l'URL contient le double chemin "/uploads/profiles//uploads/profiles/"
-  if (url.includes("//uploads/profiles/")) {
-    // Extraire juste le nom de fichier
-    const filename = url.split('/').pop(); // "profile-1-1765403913262-560889623.png"
-    // Retourner le chemin correct
-    return `/uploads/profiles/${filename}`;
-  }
-  
-  // Si c'est une URL absolue du backend
-  if (url.startsWith('http') && !url.startsWith(window.location.origin)) {
+
+    // CORRECTION COMPLÈTE : Toujours renvoyer l'URL complète vers le backend
+    const backendUrl = "https://vakio-boky-backend.onrender.com";
+
+    // 1. Si l'URL est déjà complète (commence par http), la retourner telle quelle
+    if (url.startsWith("http")) {
+      return url;
+    }
+
+    // 2. Si c'est un chemin relatif, ajouter l'URL du backend
+    if (url.startsWith("/uploads/")) {
+      return `${backendUrl}${url}`;
+    }
+
+    // 3. Si l'URL contient le double chemin "/uploads/profiles//uploads/profiles/"
+    if (url.includes("//uploads/profiles/")) {
+      // Extraire juste le nom de fichier
+      const filename = url.split("/").pop(); // "profile-1-1765403913262-560889623.png"
+      // Retourner le chemin complet vers le backend
+      return `${backendUrl}/uploads/profiles/${filename}`;
+    }
+
+    // 4. Sinon, retourner l'URL telle quelle
     return url;
-  }
-  
-  // Si c'est une URL relative normale
-  if (url.startsWith('/uploads/')) {
-    return url;
-  }
-  
-  return url;
-};
+  };
   // 1. Récupération des livres récents
   useEffect(() => {
     const fetchLivres = async () => {
       try {
         console.log("🔄 Récupération des livres récents depuis l'API...");
-        
+
         const response = await fetch(`${API_BASE_URL}/books/recent`);
-        
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         console.log("📦 Réponse API:", data);
-        
+
         // Gérer les livres reçus
         if (data.success && data.books) {
           // Nettoyer les URLs d'images
-          const cleanedBooks = data.books.map(book => ({
+          const cleanedBooks = data.books.map((book) => ({
             ...book,
-            couverture_url: getImageUrl(book.couverture_url || book.cover, "book")
+            couverture_url: getImageUrl(
+              book.couverture_url || book.cover,
+              "book"
+            ),
           }));
           console.log(`✅ ${cleanedBooks.length} livres chargés`);
           setLivres(cleanedBooks);
-        } 
-        else if (Array.isArray(data)) {
-          const cleanedBooks = data.map(book => ({
+        } else if (Array.isArray(data)) {
+          const cleanedBooks = data.map((book) => ({
             ...book,
-            couverture_url: getImageUrl(book.couverture_url || book.cover, "book")
+            couverture_url: getImageUrl(
+              book.couverture_url || book.cover,
+              "book"
+            ),
           }));
           console.log(`✅ ${cleanedBooks.length} livres chargés`);
           setLivres(cleanedBooks);
-        }
-        else {
+        } else {
           console.warn("Format de données inattendu:", data);
           // Données mock avec images PNG
           setLivres([
@@ -154,7 +204,7 @@ const getImageUrl = (url, fallbackType = "book") => {
               description: "Roman poétique sur la vie à Madagascar",
               couverture_url: "/assets/images/books/book-default.png",
               genre: "Roman",
-              auteur: "Johary Ravaloson"
+              auteur: "Johary Ravaloson",
             },
             {
               id: 2,
@@ -162,7 +212,7 @@ const getImageUrl = (url, fallbackType = "book") => {
               description: "Histoire d'une famille malgache",
               couverture_url: "/assets/images/books/book-default.png",
               genre: "Roman",
-              auteur: "Michèle Rakotoson"
+              auteur: "Michèle Rakotoson",
             },
             {
               id: 3,
@@ -170,8 +220,8 @@ const getImageUrl = (url, fallbackType = "book") => {
               description: "Contes traditionnels malgaches",
               couverture_url: "/assets/images/books/book-default.png",
               genre: "Contes",
-              auteur: "Collectif"
-            }
+              auteur: "Collectif",
+            },
           ]);
         }
       } catch (err) {
@@ -184,7 +234,7 @@ const getImageUrl = (url, fallbackType = "book") => {
             description: "Roman poétique sur la vie à Madagascar",
             couverture_url: "/assets/images/books/book-default.png",
             genre: "Roman",
-            auteur: "Johary Ravaloson"
+            auteur: "Johary Ravaloson",
           },
           {
             id: 2,
@@ -192,7 +242,7 @@ const getImageUrl = (url, fallbackType = "book") => {
             description: "Histoire d'une famille malgache",
             couverture_url: "/assets/images/books/book-default.png",
             genre: "Roman",
-            auteur: "Michèle Rakotoson"
+            auteur: "Michèle Rakotoson",
           },
           {
             id: 3,
@@ -200,12 +250,12 @@ const getImageUrl = (url, fallbackType = "book") => {
             description: "Contes traditionnels malgaches",
             couverture_url: "/assets/images/books/book-default.png",
             genre: "Contes",
-            auteur: "Collectif"
-          }
+            auteur: "Collectif",
+          },
         ]);
       }
     };
-    
+
     fetchLivres();
   }, []);
 
@@ -229,24 +279,24 @@ const getImageUrl = (url, fallbackType = "book") => {
           testimonials: result.data?.testimonials?.length || 0,
           events: result.data?.events?.length || 0,
           authors: result.data?.authors?.length || 0,
-          hasStats: !!result.data?.stats
+          hasStats: !!result.data?.stats,
         });
 
         if (result.success) {
           // Nettoyer les URLs d'images dans les données
           const cleanedData = {
             testimonials: result.data.testimonials || [],
-            events: (result.data.events || []).map(event => ({
+            events: (result.data.events || []).map((event) => ({
               ...event,
-              image_url: getImageUrl(event.image_url, "event")
+              image_url: getImageUrl(event.image_url, "event"),
             })),
-            authors: (result.data.authors || []).map(author => ({
+            authors: (result.data.authors || []).map((author) => ({
               ...author,
-              image: getImageUrl(author.image, "author")
+              image: getImageUrl(author.image, "author"),
             })),
             stats: result.data.stats || null,
           };
-          
+
           setLandingData(cleanedData);
         } else {
           throw new Error(result.message || "Erreur inconnue du serveur");
@@ -380,13 +430,20 @@ const getImageUrl = (url, fallbackType = "book") => {
   };
 
   const formatTestimonialAuthor = (testimonial) => {
-    return testimonial.author?.charAt(0)?.toUpperCase() || 
-           testimonial.name?.charAt(0)?.toUpperCase() || 
-           "U";
+    return (
+      testimonial.author?.charAt(0)?.toUpperCase() ||
+      testimonial.name?.charAt(0)?.toUpperCase() ||
+      "U"
+    );
   };
 
   const getTestimonialContent = (testimonial) => {
-    return testimonial.content || testimonial.contenu || testimonial.message || "Excellent service !";
+    return (
+      testimonial.content ||
+      testimonial.contenu ||
+      testimonial.message ||
+      "Excellent service !"
+    );
   };
 
   const getTestimonialAuthorName = (testimonial) => {
@@ -661,45 +718,47 @@ const getImageUrl = (url, fallbackType = "book") => {
 
           {landingData?.testimonials?.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {landingData.testimonials.slice(0, 6).map((testimonial, index) => (
-                <motion.div
-                  key={testimonial.id || index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  whileHover={{ scale: 1.02, y: -5 }}
-                  className="bg-gradient-to-br from-white to-blue-50 p-8 rounded-2xl border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  <div className="flex items-center gap-2 mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <FiStar
-                        key={i}
-                        className={
-                          i < (testimonial.rating || 5)
-                            ? "text-yellow-400 fill-current"
-                            : "text-gray-300"
-                        }
-                      />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 italic text-lg leading-relaxed mb-6">
-                    "{getTestimonialContent(testimonial)}"
-                  </p>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
-                      {formatTestimonialAuthor(testimonial)}
+              {landingData.testimonials
+                .slice(0, 6)
+                .map((testimonial, index) => (
+                  <motion.div
+                    key={testimonial.id || index}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    whileHover={{ scale: 1.02, y: -5 }}
+                    className="bg-gradient-to-br from-white to-blue-50 p-8 rounded-2xl border border-blue-100 shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <div className="flex items-center gap-2 mb-4">
+                      {[...Array(5)].map((_, i) => (
+                        <FiStar
+                          key={i}
+                          className={
+                            i < (testimonial.rating || 5)
+                              ? "text-yellow-400 fill-current"
+                              : "text-gray-300"
+                          }
+                        />
+                      ))}
                     </div>
-                    <div>
-                      <div className="font-semibold text-gray-800 text-lg">
-                        {getTestimonialAuthorName(testimonial)}
+                    <p className="text-gray-700 italic text-lg leading-relaxed mb-6">
+                      "{getTestimonialContent(testimonial)}"
+                    </p>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg">
+                        {formatTestimonialAuthor(testimonial)}
                       </div>
-                      <div className="text-blue-600 font-medium">
-                        {getTestimonialRole(testimonial)}
+                      <div>
+                        <div className="font-semibold text-gray-800 text-lg">
+                          {getTestimonialAuthorName(testimonial)}
+                        </div>
+                        <div className="text-blue-600 font-medium">
+                          {getTestimonialRole(testimonial)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))}
             </div>
           ) : (
             <div className="text-center py-12">
@@ -735,7 +794,7 @@ const getImageUrl = (url, fallbackType = "book") => {
               Découvrez les prochains événements généraux et de clubs
             </p>
           </motion.div>
-          
+
           {landingData?.events?.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
               {landingData.events.slice(0, 6).map((event, index) => (
@@ -754,7 +813,8 @@ const getImageUrl = (url, fallbackType = "book") => {
                       className="w-full h-48 object-cover rounded-xl mb-6 shadow-lg"
                       onError={(e) => {
                         e.target.onerror = null;
-                        e.target.src = "/assets/images/events/event-default.png";
+                        e.target.src =
+                          "/assets/images/events/event-default.png";
                       }}
                     />
                   ) : (
@@ -762,7 +822,7 @@ const getImageUrl = (url, fallbackType = "book") => {
                       <FiCalendar className="text-white/50 text-4xl" />
                     </div>
                   )}
-                  
+
                   <div className="text-2xl font-bold text-blue-200 mb-2">
                     {formatEventDate(event.event_date)}
                   </div>
@@ -777,7 +837,7 @@ const getImageUrl = (url, fallbackType = "book") => {
                       {event.description}
                     </p>
                   )}
-                  
+
                   <div className="space-y-3 text-blue-100 mb-6">
                     <div className="flex items-center gap-3">
                       <FiMapPin className="text-blue-200 text-lg" />
@@ -795,7 +855,7 @@ const getImageUrl = (url, fallbackType = "book") => {
                       </div>
                     )}
                   </div>
-                  
+
                   <Button
                     variant="outline"
                     size="lg"
@@ -825,7 +885,7 @@ const getImageUrl = (url, fallbackType = "book") => {
               )}
             </div>
           )}
-          
+
           <EventModal
             eventId={selectedEventId}
             isOpen={isEventModalOpen}
@@ -986,7 +1046,8 @@ const getImageUrl = (url, fallbackType = "book") => {
               <span className="text-amber-600">auteurs promus</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Soutenez la littérature locale et découvrez des talents exceptionnels
+              Soutenez la littérature locale et découvrez des talents
+              exceptionnels
             </p>
           </motion.div>
 
@@ -1009,7 +1070,8 @@ const getImageUrl = (url, fallbackType = "book") => {
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = "/assets/images/authors/author-default.png";
+                          e.target.src =
+                            "/assets/images/authors/author-default.png";
                         }}
                       />
                     ) : (
@@ -1044,9 +1106,7 @@ const getImageUrl = (url, fallbackType = "book") => {
                   Nos auteurs seront bientôt présentés ici.
                 </p>
                 {error && (
-                  <p className="text-sm text-red-500 mt-2">
-                    Erreur: {error}
-                  </p>
+                  <p className="text-sm text-red-500 mt-2">Erreur: {error}</p>
                 )}
               </div>
             </div>
