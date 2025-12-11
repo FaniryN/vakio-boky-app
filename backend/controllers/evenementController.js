@@ -1347,7 +1347,7 @@
 import pool from "../config/db.js";
 
 // Fonction utilitaire pour nettoyer les URLs d'images (version locale)
-const cleanImageUrl = (url, type = "event") => {
+export const cleanImageUrl = (url, type = "event") => {
   if (!url) return null;
   
   // Si l'URL contient un double chemin (problème détecté)
@@ -1371,7 +1371,7 @@ const cleanImageUrl = (url, type = "event") => {
 };
 
 // Fonction pour formater les URLs d'images dans les événements
-const formatEventImageUrl = (event) => {
+export const formatEventImageUrl = (event) => {
   if (!event) return event;
   
   return {
@@ -1381,7 +1381,7 @@ const formatEventImageUrl = (event) => {
 };
 
 // GET /api/events - Liste des événements actifs
-const getEvents = async (req, res) => {
+export const getEvents = async (req, res) => {
   try {
     console.log("🔄 Tentative de récupération des événements...");
 
@@ -1419,7 +1419,7 @@ const getEvents = async (req, res) => {
 };
 
 // GET /api/events/:id - Récupérer un événement spécifique
-const getEventById = async (req, res) => {
+export const getEventById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -1458,7 +1458,7 @@ const getEventById = async (req, res) => {
 };
 
 // GET /api/events/detail/:id - Récupérer les détails d'un événement (pour compatibilité)
-const getDetailById = async (req, res) => {
+export const getDetailById = async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -1503,7 +1503,7 @@ const getDetailById = async (req, res) => {
 };
 
 // POST /api/events - Créer un événement
-const createEvent = async (req, res) => {
+export const createEvent = async (req, res) => {
   try {
     const {
       title,
@@ -1594,7 +1594,7 @@ const createEvent = async (req, res) => {
 };
 
 // PUT /api/events/:id - Modifier un événement
-const updateEvent = async (req, res) => {
+export const updateEvent = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -1669,7 +1669,7 @@ const updateEvent = async (req, res) => {
 };
 
 // DELETE /api/events/:id - Supprimer un événement
-const deleteEvent = async (req, res) => {
+export const deleteEvent = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -1718,7 +1718,7 @@ const deleteEvent = async (req, res) => {
 };
 
 // POST /api/events/:id/register - S'inscrire à un événement
-const registerForEvent = async (req, res) => {
+export const registerForEvent = async (req, res) => {
   try {
     const { id } = req.params;
     const user_id = req.user?.id;
@@ -1800,7 +1800,7 @@ const registerForEvent = async (req, res) => {
 };
 
 // GET /api/events/:id/registrations - Récupérer les inscriptions d'un événement
-const getEventRegistrations = async (req, res) => {
+export const getEventRegistrations = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -1828,7 +1828,7 @@ const getEventRegistrations = async (req, res) => {
 };
 
 // GET /api/admin/events - Tous les événements pour admin
-const getAllEventsAdmin = async (req, res) => {
+export const getAdminEvents = async (req, res) => {
   try {
     const { status = 'all', search = '', page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
@@ -1894,7 +1894,7 @@ const getAllEventsAdmin = async (req, res) => {
 };
 
 // PUT /api/admin/events/:id/approve - Approuver un événement
-const approveEvent = async (req, res) => {
+export const approveEvent = async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -1941,7 +1941,7 @@ const approveEvent = async (req, res) => {
 };
 
 // PUT /api/admin/events/:id/reject - Rejeter un événement
-const rejectEvent = async (req, res) => {
+export const rejectEvent = async (req, res) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;
@@ -1986,7 +1986,7 @@ const rejectEvent = async (req, res) => {
 };
 
 // PUT /api/admin/events/:id/feature - Mettre en avant un événement
-const featureEvent = async (req, res) => {
+export const featureEvent = async (req, res) => {
   try {
     const { id } = req.params;
     const { featured } = req.body;
@@ -2023,7 +2023,7 @@ const featureEvent = async (req, res) => {
 };
 
 // GET /api/events/featured - Événements en avant
-const getFeaturedEvents = async (req, res) => {
+export const getFeaturedEvents = async (req, res) => {
   try {
     const query = `
       SELECT e.*,
@@ -2058,7 +2058,7 @@ const getFeaturedEvents = async (req, res) => {
 };
 
 // GET /api/admin/events/analytics - Analytics des événements
-const getEventAnalytics = async (req, res) => {
+export const getEventAnalytics = async (req, res) => {
   try {
     const { range = '30d' } = req.query;
     let dateFilter = '';
@@ -2161,6 +2161,7 @@ const getEventAnalytics = async (req, res) => {
   }
 };
 
+// Export par défaut pour compatibilité (si nécessaire)
 export default {
   getEvents,
   getEventById,
@@ -2170,7 +2171,7 @@ export default {
   deleteEvent,
   registerForEvent,
   getEventRegistrations,
-  getAllEventsAdmin,
+  getAdminEvents,
   approveEvent,
   rejectEvent,
   featureEvent,
