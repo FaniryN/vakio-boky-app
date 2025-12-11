@@ -651,32 +651,9 @@
 // };
 
 import pool from "../config/db.js";
+import { cleanImageUrl } from "./profileController.js"; // Import la fonction existante
 
-// CORRIGÉ : Fonction utilitaire pour nettoyer les URLs d'images
-const cleanImageUrl = (url, type = "event") => {
-  if (!url) return null;
-  
-  // Si l'URL contient un double chemin (problème détecté)
-  if (url.includes('//uploads/')) {
-    // Extraire juste le nom de fichier
-    const filename = url.split('/').pop();
-    return `/uploads/${type}s/${filename}`;
-  }
-  
-  // Si c'est déjà une URL correcte
-  if (url.startsWith('/uploads/')) {
-    return url;
-  }
-  
-  // Si c'est juste un nom de fichier
-  if (!url.startsWith('http') && !url.startsWith('/')) {
-    return `/uploads/${type}s/${url}`;
-  }
-  
-  return url;
-};
-
-// CORRIGÉ : Fonction pour formater les URLs d'images dans les événements
+// Fonction pour formater les URLs d'images dans les événements
 const formatEventImageUrl = (event) => {
   if (!event) return event;
   
@@ -705,7 +682,7 @@ export const getEvents = async (req, res) => {
 
     console.log("✅ Événements récupérés:", result.rows.length);
 
-    // CORRIGÉ : Nettoyer les URLs d'images
+    // Nettoyer les URLs d'images
     const events = result.rows.map(event => formatEventImageUrl(event));
 
     res.json({
@@ -750,7 +727,7 @@ export const createEvent = async (req, res) => {
       });
     }
 
-    // CORRIGÉ : Nettoyer l'URL de l'image
+    // Nettoyer l'URL de l'image
     const cleanImageUrlValue = cleanImageUrl(image_url, "event");
 
     const result = await pool.query(
@@ -834,7 +811,7 @@ export const getEventById = async (req, res) => {
       });
     }
 
-    // CORRIGÉ : Nettoyer l'URL de l'image
+    // Nettoyer l'URL de l'image
     const event = formatEventImageUrl(result.rows[0]);
 
     res.json({
@@ -871,7 +848,7 @@ export const updateEvent = async (req, res) => {
 
     allowedFields.forEach((field) => {
       if (updates[field] !== undefined) {
-        // CORRIGÉ : Nettoyer l'URL si c'est le champ image_url
+        // Nettoyer l'URL si c'est le champ image_url
         const value = field === "image_url" 
           ? cleanImageUrl(updates[field], "event")
           : updates[field];
@@ -906,7 +883,7 @@ export const updateEvent = async (req, res) => {
       });
     }
 
-    // CORRIGÉ : Nettoyer l'URL de l'image
+    // Nettoyer l'URL de l'image
     const event = formatEventImageUrl(result.rows[0]);
 
     res.json({
@@ -1085,7 +1062,7 @@ export const getDetailById = async (req, res) => {
       });
     }
     
-    // CORRIGÉ : Nettoyer l'URL de l'image
+    // Nettoyer l'URL de l'image
     const event = formatEventImageUrl(result.rows[0]);
     
     console.log('✅ Event found:', event);
@@ -1163,7 +1140,7 @@ export const getAdminEvents = async (req, res) => {
 
     console.log("✅ Événements admin récupérés:", result.rows.length);
 
-    // CORRIGÉ : Nettoyer les URLs d'images
+    // Nettoyer les URLs d'images
     const events = result.rows.map(event => formatEventImageUrl(event));
 
     res.json({
@@ -1196,7 +1173,7 @@ export const approveEvent = async (req, res) => {
       });
     }
 
-    // CORRIGÉ : Nettoyer l'URL de l'image
+    // Nettoyer l'URL de l'image
     const event = formatEventImageUrl(result.rows[0]);
 
     res.json({
@@ -1265,7 +1242,7 @@ export const featureEvent = async (req, res) => {
       });
     }
 
-    // CORRIGÉ : Nettoyer l'URL de l'image
+    // Nettoyer l'URL de l'image
     const event = formatEventImageUrl(result.rows[0]);
 
     res.json({
@@ -1366,4 +1343,4 @@ export const getEventAnalytics = async (req, res) => {
 };
 
 // Export des fonctions utilitaires
-export { cleanImageUrl, formatEventImageUrl };
+export { formatEventImageUrl };

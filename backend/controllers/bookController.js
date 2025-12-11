@@ -1049,32 +1049,9 @@
 //   deleteCollection,
 // };
 import pool from "../config/db.js";
+import { cleanImageUrl } from "./profileController.js"; // Import la fonction existante
 
-// CORRIGÉ : Fonction utilitaire pour nettoyer les URLs d'images
-const cleanImageUrl = (url, type = "book") => {
-  if (!url) return null;
-  
-  // Si l'URL contient un double chemin (problème détecté)
-  if (url.includes('//uploads/')) {
-    // Extraire juste le nom de fichier
-    const filename = url.split('/').pop();
-    return `/uploads/${type}s/${filename}`;
-  }
-  
-  // Si c'est déjà une URL correcte
-  if (url.startsWith('/uploads/')) {
-    return url;
-  }
-  
-  // Si c'est juste un nom de fichier
-  if (!url.startsWith('http') && !url.startsWith('/')) {
-    return `/uploads/${type}s/${url}`;
-  }
-  
-  return url;
-};
-
-// CORRIGÉ : Fonction utilitaire pour générer les chemins d'images de livres
+// Fonction utilitaire pour générer les chemins d'images de livres
 const getBookCoverPath = (bookTitle, genre = 'roman') => {
   if (!bookTitle) return "/assets/images/books/default-book.png";
   
@@ -1100,7 +1077,7 @@ const getBooks = async (req, res) => {
     `;
     const result = await pool.query(query);
     
-    // CORRIGÉ : Formater avec URLs nettoyées
+    // Formater avec URLs nettoyées
     const formattedBooks = result.rows.map(book => ({
       ...book,
       couverture_url: book.couverture_url 
@@ -1132,7 +1109,7 @@ const getMyBooks = async (req, res) => {
     `;
     const result = await pool.query(query, [auteur_id]);
 
-    // CORRIGÉ : Formater avec URLs nettoyées
+    // Formater avec URLs nettoyées
     const formattedBooks = result.rows.map(book => ({
       ...book,
       couverture_url: cleanImageUrl(book.couverture_url, "book") || 
@@ -1172,7 +1149,7 @@ const getBook = async (req, res) => {
     }
 
     const book = result.rows[0];
-    // CORRIGÉ : Nettoyer l'URL de l'image
+    // Nettoyer l'URL de l'image
     const bookWithLocalImage = {
       ...book,
       couverture_url: cleanImageUrl(book.couverture_url, "book") || 
@@ -1212,7 +1189,7 @@ const createBook = async (req, res) => {
       });
     }
 
-    // CORRIGÉ : Nettoyer l'URL de l'image
+    // Nettoyer l'URL de l'image
     const finalCoverUrl = couverture_url 
       ? cleanImageUrl(couverture_url, "book")
       : getBookCoverPath(titre, genre);
@@ -1293,7 +1270,7 @@ const updateBook = async (req, res) => {
       });
     }
 
-    // CORRIGÉ : Nettoyer l'URL de l'image
+    // Nettoyer l'URL de l'image
     let finalCoverUrl = couverture_url 
       ? cleanImageUrl(couverture_url, "book")
       : ancienneCouverture || getBookCoverPath(titre || ancienTitre, genre);
@@ -1385,19 +1362,17 @@ const deleteBook = async (req, res) => {
   }
 };
 
-// GET /api/books/recent - Récupérer les livres récents - COMPLÈTEMENT CORRIGÉ
+// GET /api/books/recent - Récupérer les livres récents
 const getRecent = async (req, res) => {
   console.log('📚 Controller: getRecent appelé');
   
   try {
-    // DONNÉES AVEC IMAGES LOCALES - CORRIGÉ
     const recentBooks = [
       {
         id: 1,
         title: "Ny Onja",
         author: "Johary Ravaloson",
         description: "Roman poétique sur la vie à Madagascar",
-        // CORRIGÉ : Image locale au lieu de via.placeholder.com
         cover: "/assets/images/books/ny-onja.png",
         price: 15000,
         rating: 4.5,
@@ -1414,7 +1389,6 @@ const getRecent = async (req, res) => {
         title: "Dernier Crépuscule",
         author: "Michèle Rakotoson",
         description: "Histoire contemporaine malgache",
-        // CORRIGÉ : Image locale au lieu de via.placeholder.com
         cover: "/assets/images/books/dernier-crepuscule.png",
         price: 12000,
         rating: 4.2,
@@ -1431,7 +1405,6 @@ const getRecent = async (req, res) => {
         title: "Contes de la Nuit Malgache",
         author: "Collectif d'Auteurs",
         description: "Recueil de contes traditionnels malgaches",
-        // CORRIGÉ : Image locale au lieu de via.placeholder.com
         cover: "/assets/images/books/contes-nuit-malgache.png",
         price: 8000,
         rating: 4.7,
@@ -1445,7 +1418,6 @@ const getRecent = async (req, res) => {
       }
     ];
     
-    // RÉPONSE SUCCÈS
     res.status(200).json({
       success: true,
       message: "Livres récents récupérés (données de démonstration)",
@@ -1457,7 +1429,6 @@ const getRecent = async (req, res) => {
   } catch (error) {
     console.error('❌ Erreur dans getRecent:', error);
     
-    // FALLBACK AVEC IMAGE LOCALE - CORRIGÉ
     res.status(200).json({
       success: true,
       message: "Livres récents - Données de secours",
@@ -1466,7 +1437,6 @@ const getRecent = async (req, res) => {
           id: 999,
           title: "Livre de Test",
           author: "Auteur Test",
-          // CORRIGÉ : Image locale au lieu de via.placeholder.com
           cover: "/assets/images/books/livre-test.png",
           price: 10000,
           category: "Test"
@@ -1526,7 +1496,7 @@ const getAllBooksAdmin = async (req, res) => {
 
     const result = await pool.query(query, values);
 
-    // CORRIGÉ : Formater avec URLs nettoyées
+    // Formater avec URLs nettoyées
     const formattedBooks = result.rows.map(book => ({
       ...book,
       couverture_url: cleanImageUrl(book.couverture_url, "book") || 
@@ -1552,7 +1522,7 @@ const getAllBooksAdmin = async (req, res) => {
   }
 };
 
-// Les autres fonctions admin que vous avez dans votre fichier original
+// Les autres fonctions admin
 const approveBook = async (req, res) => {
   try {
     const { id } = req.params;
@@ -1722,7 +1692,7 @@ const getFeaturedBooks = async (req, res) => {
        ORDER BY l.created_at DESC`,
     );
 
-    // CORRIGÉ : Formater avec URLs nettoyées
+    // Formater avec URLs nettoyées
     const formattedBooks = result.rows.map(book => ({
       ...book,
       couverture_url: cleanImageUrl(book.couverture_url, "book") || 
@@ -1810,7 +1780,7 @@ const getBookAnalytics = async (req, res) => {
        LIMIT 5`
     );
 
-    // CORRIGÉ : Formater avec URLs nettoyées
+    // Formater avec URLs nettoyées
     const recentBooks = recentBooksResult.rows.map(book => ({
       ...book,
       couverture_url: cleanImageUrl(book.couverture_url, "book") || 
@@ -2101,6 +2071,4 @@ export default {
   createCollection,
   updateCollection,
   deleteCollection,
-  cleanImageUrl,
-  getBookCoverPath
 };

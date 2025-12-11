@@ -384,6 +384,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import generateToken from "../utils/generateToken.js";
 import { sendEmail } from "../utils/emailService.js";
+import { cleanImageUrl } from "./profileController.js"; // Import depuis profileController
 
 // Stockage temporaire des codes
 const resetCodes = new Map();
@@ -435,6 +436,9 @@ const login = async (req, res) => {
     }
 
     const token = generateToken(user.id);
+
+    // Nettoyer l'URL de la photo de profil
+    user.photo_profil = cleanImageUrl(user.photo_profil, "profile");
 
     res.json({
       success: true,
@@ -527,6 +531,9 @@ const register = async (req, res) => {
 
     const newUser = result.rows[0];
     const token = generateToken(newUser.id);
+
+    // Nettoyer l'URL de la photo de profil
+    newUser.photo_profil = cleanImageUrl(newUser.photo_profil, "profile");
 
     res.status(201).json({
       success: true,

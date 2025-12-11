@@ -343,6 +343,30 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
+// Fonction utilitaire pour nettoyer les URLs d'images
+const cleanImageUrl = (url, type = "profile") => {
+  if (!url) return null;
+  
+  // Si l'URL contient un double chemin (problème détecté)
+  if (url.includes('//uploads/')) {
+    // Extraire juste le nom de fichier
+    const filename = url.split('/').pop();
+    return `/uploads/${type}s/${filename}`;
+  }
+  
+  // Si c'est déjà une URL correcte
+  if (url.startsWith('/uploads/')) {
+    return url;
+  }
+  
+  // Si c'est juste un nom de fichier
+  if (!url.startsWith('http') && !url.startsWith('/')) {
+    return `/uploads/${type}s/${url}`;
+  }
+  
+  return url;
+};
+
 // Obtenir le profil utilisateur
 const getProfile = async (req, res) => {
   try {
@@ -362,6 +386,10 @@ const getProfile = async (req, res) => {
     }
 
     const user = result.rows[0];
+    
+    // Nettoyer l'URL de la photo de profil
+    user.photo_profil = cleanImageUrl(user.photo_profil, "profile");
+    
     res.json({ user });
   } catch (error) {
     console.error("Erreur getProfile:", error);
@@ -389,9 +417,13 @@ const updateProfile = async (req, res) => {
       return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
 
+    const user = result.rows[0];
+    // Nettoyer l'URL de la photo de profil
+    user.photo_profil = cleanImageUrl(user.photo_profil, "profile");
+
     res.json({
       message: "Profil mis à jour avec succès",
-      user: result.rows[0],
+      user: user,
     });
   } catch (error) {
     console.error("Erreur updateProfile:", error);
@@ -489,31 +521,7 @@ export const upload = multer({
   },
 });
 
-// CORRIGÉ : Fonction utilitaire pour nettoyer les URLs d'images
-const cleanImageUrl = (url) => {
-  if (!url) return null;
-  
-  // Si l'URL contient un double chemin (problème détecté)
-  if (url.includes('//uploads/')) {
-    // Extraire juste le nom de fichier
-    const filename = url.split('/').pop();
-    return `/uploads/profiles/${filename}`;
-  }
-  
-  // Si c'est déjà une URL correcte
-  if (url.startsWith('/uploads/')) {
-    return url;
-  }
-  
-  // Si c'est juste un nom de fichier
-  if (!url.startsWith('http') && !url.startsWith('/')) {
-    return `/uploads/profiles/${url}`;
-  }
-  
-  return url;
-};
-
-// CORRIGÉ : Upload de la photo de profil
+// Upload de la photo de profil
 const uploadProfilePicture = async (req, res) => {
   try {
     if (!req.file) {
@@ -521,7 +529,6 @@ const uploadProfilePicture = async (req, res) => {
     }
 
     const userId = req.user.id;
-    // CORRIGÉ : Ne pas ajouter de chemin supplémentaire, Multer gère déjà le chemin
     const photoUrl = `/uploads/profiles/${req.file.filename}`;
 
     console.log(`✅ Upload photo pour user ${userId}: ${photoUrl}`);
@@ -542,8 +549,8 @@ const uploadProfilePicture = async (req, res) => {
     }
 
     const user = result.rows[0];
-    // CORRIGÉ : Nettoyer l'URL avant de la retourner
-    user.photo_profil = cleanImageUrl(user.photo_profil);
+    // Nettoyer l'URL avant de la retourner
+    user.photo_profil = cleanImageUrl(user.photo_profil, "profile");
 
     res.json({
       message: "Photo de profil mise à jour avec succès",
@@ -562,7 +569,7 @@ const uploadProfilePicture = async (req, res) => {
   }
 };
 
-// CORRIGÉ : Supprimer la photo de profil
+// Supprimer la photo de profil
 const deleteProfilePicture = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -582,8 +589,10 @@ const deleteProfilePicture = async (req, res) => {
 
     // Nettoyer l'URL pour obtenir le chemin correct
     if (oldPhoto) {
-      const cleanUrl = cleanImageUrl(oldPhoto);
-      oldPhotoPath = path.join(process.cwd(), cleanUrl);
+      const cleanUrl = cleanImageUrl(oldPhoto, "profile");
+      if (cleanUrl && cleanUrl.startsWith('/uploads/')) {
+        oldPhotoPath = path.join(process.cwd(), cleanUrl);
+      }
     }
 
     // Mettre à jour la base de données
@@ -644,7 +653,7 @@ const getUserStatistics = async (req, res) => {
       // Number of posts created
       safeQuery("SELECT COUNT(*) as count FROM posts WHERE auteur_id = $1", [userId]),
 
-      // Number of likes received on posts - CORRIGÉ : utiliser user_id au lieu de auteur_id
+      // Number of likes received on posts
       safeQuery(
         "SELECT COUNT(*) as count FROM post_likes WHERE user_id = $1",
         [userId]
@@ -698,16 +707,7 @@ const getUserStatistics = async (req, res) => {
   }
 };
 
-// CORRIGÉ : Fonction pour formater les URLs d'images dans les réponses
-export const formatUserResponse = (user) => {
-  if (!user) return user;
-  
-  return {
-    ...user,
-    photo_profil: cleanImageUrl(user.photo_profil)
-  };
-};
-
+// EXPORT UNIQUEMENT LES FONCTIONS NÉCESSAIRES (pas de duplicate export)
 export {
   getProfile,
   updateProfile,
@@ -715,6 +715,5 @@ export {
   uploadProfilePicture,
   deleteProfilePicture,
   getUserStatistics,
-  cleanImageUrl,
-  formatUserResponse
+  cleanImageUrl  // On exporte seulement si nécessaire pour d'autres fichiers
 };
