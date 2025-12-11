@@ -13,14 +13,14 @@ import pool from "./config/db.js";
 // Middleware
 import { handleUploadErrors } from "./middleware/upload.js";
 
-// Routes
+// Routes imports
 import authRoutes from "./routes/auth.js";
 import profileRoutes from "./routes/profile.js";
 import postRoutes from "./routes/posts.js";
 import mediaRoutes from "./routes/medias.js";
 import commentRoutes from "./routes/comments.js";
 import bookRoutes from "./routes/bookRoutes.js";
-import adminBookRoutes from "./routes/adminBookRoutes.js"; // IMPORT ADMIN BOOK ROUTES
+import adminBookRoutes from "./routes/adminBookRoutes.js";
 import clubRoutes from "./routes/clubs.js";
 import emailRoutes from "./routes/emailRoutes.js";
 import notificationRoutes from "./routes/notifications.js";
@@ -47,7 +47,13 @@ const __dirname = path.dirname(__filename);
 
 // CORS configuration
 const corsOptions = {
-  origin: ["https://vakio-boky-frontend.onrender.com","http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"],
+  origin: [
+    "https://vakio-boky-frontend.onrender.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174"
+  ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
@@ -86,7 +92,7 @@ const API_ROUTES = {
 
   // Library
   "/api/books": bookRoutes,
-  "/api/admin/books": adminBookRoutes, // ADD THIS LINE
+  "/api/admin/books": adminBookRoutes,
 
   // Community
   "/api/clubs": clubRoutes,
@@ -118,7 +124,6 @@ const API_ROUTES = {
 
   // Moderation
   "/api/admin/moderation": moderationRoutes,
-  // Signalements utilisateurs
   "/api/reports": reportRoutes,
 
   // Settings
