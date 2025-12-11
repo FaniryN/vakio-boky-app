@@ -1278,72 +1278,77 @@ import generateToken from "../utils/generateToken.js";
 import { sendEmail } from "../utils/emailService.js";
 
 // Fonction utilitaire pour nettoyer les URLs d'images
-// const cleanImageUrl = (url, type = "profile") => {
-//   // IMPORTANT: Si url est null/undefined/vide, retourner null
-//   if (!url || url === 'null' || url === 'NULL' || url.trim() === '') {
-//     return null;
-//   }
-  
-//   // Si l'URL contient un double chemin (problème détecté)
-//   if (url.includes('//uploads/')) {
-//     const filename = url.split('/').pop();
-//     return `/uploads/${type}s/${filename}`;
-//   }
-  
-//   // Si c'est déjà une URL correcte
-//   if (url.startsWith('/uploads/')) {
-//     return url;
-//   }
-  
-//   // Si c'est juste un nom de fichier
-//   if (!url.startsWith('http') && !url.startsWith('/')) {
-//     return `/uploads/${type}s/${url}`;
-//   }
-  
-//   return url;
-// };
-// authController.js - Version CORRIGÉE (copie-colle ceci)
+// authController.js - FONCTION COMPLÈTE ET DÉFINITIVE
+// Remplace TOUTE la fonction cleanImageUrl et getSafeProfileImage par ça :
 
-// Fonction utilitaire pour nettoyer les URLs d'images
+// Fonction utilitaire pour nettoyer les URLs d'images - VERSION DÉFINITIVE
 const cleanImageUrl = (url, type = "profile") => {
-  // SI URL EST NULL OU VIDE, RETOURNER NULL (PAS DE GÉNÉRATION !)
-  if (!url || url === 'null' || url === 'NULL' || url.trim() === '' || url === 'undefined') {
+  // STRICT : Si c'est null/undefined/vide → RETOURNER NULL
+  if (!url) {
     return null;
   }
   
-  // NE JAMAIS GÉNÉRER D'URLS AUTOMATIQUEMENT !
-  // Seulement utiliser les URLs qui existent déjà
+  // Convertir en string et nettoyer
+  const strUrl = String(url).trim();
   
-  // Si c'est déjà une URL correcte
-  if (url.startsWith('/uploads/')) {
-    return url;
+  // Si vide après nettoyage → NULL
+  if (strUrl === '' || strUrl === 'null' || strUrl === 'NULL' || strUrl === 'undefined') {
+    return null;
   }
   
-  // Si c'est une URL complète (http/https)
-  if (url.startsWith('http')) {
-    return url;
+  // UNIQUEMENT 2 formats acceptés :
+  
+  // 1. URL HTTP/HTTPS complète
+  if (strUrl.startsWith('http://') || strUrl.startsWith('https://')) {
+    return strUrl;
   }
   
-  // Si c'est juste un nom de fichier sans chemin
-  // ET que ça ressemble à un nom de fichier uploadé (contient 'profile-')
-  if (url.includes('profile-')) {
-    return `/uploads/profiles/${url}`;
+  // 2. Chemin relatif qui commence PAR /uploads/profiles/ (pas juste /uploads/)
+  if (strUrl.startsWith('/uploads/profiles/')) {
+    // Vérifier que c'est un vrai fichier image
+    const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    const hasValidExtension = validExtensions.some(ext => 
+      strUrl.toLowerCase().endsWith(ext)
+    );
+    
+    if (hasValidExtension) {
+      return strUrl;
+    }
   }
   
-  // Sinon, c'est probablement une valeur invalide - retourner null
+  // TOUT AUTRE CAS → NULL (pas d'image)
   return null;
 };
 
-// Fonction pour obtenir une URL d'image sécurisée - SIMPLIFIÉE
+// Fonction pour obtenir une URL d'image sécurisée - VERSION DÉFINITIVE
 const getSafeProfileImage = (imageUrl) => {
-  // Si pas d'image, retourner null (PAS DE GÉNÉRATION !)
-  if (!imageUrl || imageUrl === 'null' || imageUrl === 'NULL' || imageUrl.trim() === '') {
+  // Si pas d'image → NULL (c'est normal, c'est optionnel)
+  if (!imageUrl) {
     return null;
   }
   
-  // Nettoyer l'URL simplement
-  return cleanImageUrl(imageUrl, "profile");
+  // Convertir en string
+  const strImageUrl = String(imageUrl).trim();
+  
+  // Si c'est une string "null", "NULL", etc. → NULL
+  if (!strImageUrl || strImageUrl === 'null' || strImageUrl === 'NULL' || strImageUrl === 'undefined') {
+    return null;
+  }
+  
+  // Nettoyer avec la fonction stricte
+  return cleanImageUrl(strImageUrl, "profile");
 };
+
+// // Fonction pour obtenir une URL d'image sécurisée - SIMPLIFIÉE
+// const getSafeProfileImage = (imageUrl) => {
+//   // Si pas d'image, retourner null (PAS DE GÉNÉRATION !)
+//   if (!imageUrl || imageUrl === 'null' || imageUrl === 'NULL' || imageUrl.trim() === '') {
+//     return null;
+//   }
+  
+//   // Nettoyer l'URL simplement
+//   return cleanImageUrl(imageUrl, "profile");
+// };
 // Fonction pour obtenir une URL d'image sécurisée - SIMPLIFIÉE
 // const getSafeProfileImage = (imageUrl) => {
 //   // Si pas d'image, retourner null (optionnel)

@@ -1173,28 +1173,32 @@ export default function Profile() {
                 <FiCamera className="text-sm" />
               </button>
             </div>*/}
-            <div className="relative">
+            // Profile.jsx - SECTION DE L'IMAGE SEULEMENT (remplace juste cette partie)
+
+<div className="relative">
   <div className="w-32 h-32 bg-white rounded-full border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
-    {/* Solution SÛRE : vérifier si l'URL existe VRAIMENT avant d'afficher l'image */}
-    {profileData?.photo_profil ? (
-      <img
-        src={profileData.photo_profil}
-        alt={`Photo de ${profileData?.nom || 'profil'}`}
-        className="w-full h-full object-cover"
-        onError={(e) => {
-          // Si l'image échoue, on la cache simplement
-          e.target.style.display = 'none';
-        }}
-      />
-    ) : null}
-    
-    {/* Avatar par défaut TOUJOURS présent (au cas où l'image échoue ou n'existe pas) */}
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100 absolute inset-0">
+    {/* TOUJOURS afficher l'avatar par défaut EN PREMIER */}
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
       <span className="text-4xl font-bold text-blue-600">
         {profileData?.nom?.charAt(0)?.toUpperCase() || 'U'}
       </span>
     </div>
+    
+    {/* UNIQUEMENT si photo_profil existe VRAIMENT, on superpose l'image */}
+    {profileData?.photo_profil && profileData.photo_profil !== 'null' && profileData.photo_profil !== 'undefined' && (
+      <img
+        src={profileData.photo_profil}
+        alt={`Photo de ${profileData?.nom || 'profil'}`}
+        className="w-full h-full object-cover absolute inset-0"
+        // Si l'image échoue, elle sera simplement cachée (position absolute)
+        onError={(e) => {
+          console.log("🚫 Image non trouvée:", e.target.src);
+          e.target.style.display = 'none';
+        }}
+      />
+    )}
   </div>
+  
   <button
     onClick={handleEditClick}
     className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
