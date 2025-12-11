@@ -53,6 +53,14 @@
 //       price,
 //     } = req.body;
 
+//     // Validation des champs requis
+//     if (!title || !event_date || !location) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "Les champs titre, date et lieu sont obligatoires",
+//       });
+//     }
+
 //     const result = await pool.query(
 //       `
 //       INSERT INTO events (title, description, event_date, location, max_participants, image_url, price, status)
@@ -189,6 +197,13 @@
 
 //     const result = await pool.query(query, updateValues);
 
+//     if (result.rows.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         error: "Événement non trouvé",
+//       });
+//     }
+
 //     res.json({
 //       success: true,
 //       event: result.rows[0],
@@ -206,17 +221,46 @@
 //   try {
 //     const { id } = req.params;
 
-//     await pool.query("DELETE FROM events WHERE id = $1", [id]);
+//     console.log(`🗑️ Tentative de suppression de l'événement ${id}`);
+
+//     // Vérifier d'abord si l'événement existe
+//     const eventCheck = await pool.query(
+//       "SELECT * FROM events WHERE id = $1",
+//       [id]
+//     );
+
+//     if (eventCheck.rows.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         error: "Événement non trouvé",
+//       });
+//     }
+
+//     // Supprimer d'abord les inscriptions associées
+//     await pool.query(
+//       "DELETE FROM event_registrations WHERE event_id = $1",
+//       [id]
+//     );
+
+//     // Puis supprimer l'événement
+//     const result = await pool.query(
+//       "DELETE FROM events WHERE id = $1 RETURNING *",
+//       [id]
+//     );
+
+//     console.log(`✅ Événement ${id} supprimé avec succès`);
 
 //     res.json({
 //       success: true,
-//       message: "Événement supprimé",
+//       message: "Événement supprimé avec succès",
+//       deletedEvent: result.rows[0],
 //     });
 //   } catch (error) {
-//     console.error("Erreur suppression événement:", error);
+//     console.error("❌ Erreur suppression événement:", error);
 //     res.status(500).json({
 //       success: false,
-//       error: "Erreur suppression événement",
+//       error: "Erreur lors de la suppression de l'événement",
+//       details: process.env.NODE_ENV === "development" ? error.message : undefined,
 //     });
 //   }
 // };
@@ -225,6 +269,13 @@
 //   try {
 //     const { id } = req.params;
 //     const user_id = req.user?.id;
+
+//     if (!user_id) {
+//       return res.status(401).json({
+//         success: false,
+//         error: "Utilisateur non authentifié",
+//       });
+//     }
 
 //     // Vérifier si l'événement existe et a des places disponibles
 //     const eventResult = await pool.query(
@@ -295,7 +346,6 @@
 //   }
 // };
 
-// //Det
 // export const getDetailById = async (req, res) => {
 //   try {
 //     const { id } = req.params;
@@ -319,7 +369,6 @@
 //       WHERE id = $1 AND status = 'active'
 //     `;
     
-//     // CORRECTION : Utilisez pool.query() au lieu de db.query()
 //     const result = await pool.query(query, [id]);
     
 //     console.log('📊 Query result:', result.rows);
@@ -403,7 +452,7 @@
 //         FROM event_registrations
 //         GROUP BY event_id
 //       ) reg ON e.id = reg.event_id
-//       ORDER BY e.event_date DESC
+//       ORDER BY e.created_at DESC
 //     `);
 
 //     console.log("✅ Événements admin récupérés:", result.rows.length);
@@ -580,77 +629,6 @@
 
 //     const topEventsResult = await pool.query(topEventsQuery);
 
-//     // Répartition par type (vous devrez ajouter un champ 'type' à votre table events)
-//     const eventTypesQuery = `
-//       SELECT 
-//         'Conférence' as name,
-//         COUNT(*) as count,
-//         ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM events ${dateFilter}), 2) as percentage
-//       FROM events e
-//       ${dateFilter}
-//       WHERE e.title ILIKE '%conférence%' OR e.title ILIKE '%conférence%'
-      
-//       UNION ALL
-      
-//       SELECT 
-//         'Atelier' as name,
-//         COUNT(*) as count,
-//         ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM events ${dateFilter}), 2) as percentage
-//       FROM events e
-//       ${dateFilter}
-//       WHERE e.title ILIKE '%atelier%' OR e.title ILIKE '%workshop%'
-      
-//       UNION ALL
-      
-//       SELECT 
-//         'Autre' as name,
-//         COUNT(*) as count,
-//         ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM events ${dateFilter}), 2) as percentage
-//       FROM events e
-//       ${dateFilter}
-//       WHERE e.title NOT ILIKE '%conférence%' 
-//         AND e.title NOT ILIKE '%conférence%'
-//         AND e.title NOT ILIKE '%atelier%' 
-//         AND e.title NOT ILIKE '%workshop%'
-//     `;
-
-//     const eventTypesResult = await pool.query(eventTypesQuery);
-
-//     // Inscriptions récentes
-//     const recentRegistrationsQuery = `
-//       SELECT 
-//         er.created_at as registered_at,
-//         u.first_name || ' ' || u.last_name as user_name,
-//         e.title as event_title
-//       FROM event_registrations er
-//       JOIN users u ON er.user_id = u.id
-//       JOIN events e ON er.event_id = e.id
-//       ORDER BY er.created_at DESC
-//       LIMIT 10
-//     `;
-
-//     const recentRegistrationsResult = await pool.query(recentRegistrationsQuery);
-
-//     // Évolution mensuelle
-//     const monthlyTrendsQuery = `
-//       SELECT 
-//         TO_CHAR(e.created_at, 'YYYY-MM') as month,
-//         COUNT(*) as events,
-//         COALESCE(SUM(reg.registered_count), 0) as participants
-//       FROM events e
-//       LEFT JOIN (
-//         SELECT event_id, COUNT(*) as registered_count
-//         FROM event_registrations
-//         GROUP BY event_id
-//       ) reg ON e.id = reg.event_id
-//       WHERE e.created_at >= NOW() - INTERVAL '6 months'
-//       GROUP BY TO_CHAR(e.created_at, 'YYYY-MM')
-//       ORDER BY month DESC
-//       LIMIT 6
-//     `;
-
-//     const monthlyTrendsResult = await pool.query(monthlyTrendsQuery);
-
 //     res.json({
 //       success: true,
 //       analytics: {
@@ -658,17 +636,8 @@
 //         totalParticipants: parseInt(stats.totalparticipants) || 0,
 //         activeEvents: parseInt(stats.activeevents) || 0,
 //         upcomingEvents: parseInt(stats.upcomingevents) || 0,
-//         participationRate: stats.max_participants ? 
-//           Math.round((parseInt(stats.totalparticipants) / parseInt(stats.max_participants)) * 100) : 0,
-//         eventsGrowth: 12, // Valeur fictive pour l'exemple
-//         participantsGrowth: 8, // Valeur fictive pour l'exemple
+//         pastEvents: parseInt(stats.pastevents) || 0,
 //         topEvents: topEventsResult.rows,
-//         eventTypes: eventTypesResult.rows,
-//         recentRegistrations: recentRegistrationsResult.rows,
-//         monthlyTrends: monthlyTrendsResult.rows.map(month => ({
-//           ...month,
-//           month: new Date(month.month + '-01').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
-//         }))
 //       }
 //     });
 
@@ -680,7 +649,42 @@
 //     });
 //   }
 // };
+
 import pool from "../config/db.js";
+
+// CORRIGÉ : Fonction utilitaire pour nettoyer les URLs d'images
+const cleanImageUrl = (url, type = "event") => {
+  if (!url) return null;
+  
+  // Si l'URL contient un double chemin (problème détecté)
+  if (url.includes('//uploads/')) {
+    // Extraire juste le nom de fichier
+    const filename = url.split('/').pop();
+    return `/uploads/${type}s/${filename}`;
+  }
+  
+  // Si c'est déjà une URL correcte
+  if (url.startsWith('/uploads/')) {
+    return url;
+  }
+  
+  // Si c'est juste un nom de fichier
+  if (!url.startsWith('http') && !url.startsWith('/')) {
+    return `/uploads/${type}s/${url}`;
+  }
+  
+  return url;
+};
+
+// CORRIGÉ : Fonction pour formater les URLs d'images dans les événements
+const formatEventImageUrl = (event) => {
+  if (!event) return event;
+  
+  return {
+    ...event,
+    image_url: event.image_url ? cleanImageUrl(event.image_url, "event") : null
+  };
+};
 
 export const getEvents = async (req, res) => {
   try {
@@ -701,9 +705,12 @@ export const getEvents = async (req, res) => {
 
     console.log("✅ Événements récupérés:", result.rows.length);
 
+    // CORRIGÉ : Nettoyer les URLs d'images
+    const events = result.rows.map(event => formatEventImageUrl(event));
+
     res.json({
       success: true,
-      events: result.rows,
+      events: events,
     });
   } catch (error) {
     console.error("❌ ERREUR DÉTAILLÉE récupération événements:", {
@@ -743,6 +750,9 @@ export const createEvent = async (req, res) => {
       });
     }
 
+    // CORRIGÉ : Nettoyer l'URL de l'image
+    const cleanImageUrlValue = cleanImageUrl(image_url, "event");
+
     const result = await pool.query(
       `
       INSERT INTO events (title, description, event_date, location, max_participants, image_url, price, status)
@@ -755,10 +765,12 @@ export const createEvent = async (req, res) => {
         event_date,
         location,
         max_participants,
-        image_url,
+        cleanImageUrlValue,
         price || 0,
       ],
     );
+
+    const event = formatEventImageUrl(result.rows[0]);
 
     // Create notifications for new events
     await pool.query(
@@ -768,7 +780,7 @@ export const createEvent = async (req, res) => {
       [
         "Nouvel événement littéraire",
         `Découvrez "${title}" - ${new Date(event_date).toLocaleDateString('fr-FR')}`,
-        `/events/${result.rows[0].id}`,
+        `/events/${event.id}`,
       ],
     );
 
@@ -781,14 +793,14 @@ export const createEvent = async (req, res) => {
         [
           "Session live disponible",
           `Rejoignez "${title}" en direct - ${new Date(event_date).toLocaleDateString('fr-FR')}`,
-          `/events/${result.rows[0].id}`,
+          `/events/${event.id}`,
         ],
       );
     }
 
     res.status(201).json({
       success: true,
-      event: result.rows[0],
+      event: event,
     });
   } catch (error) {
     console.error("Erreur création événement:", error);
@@ -822,9 +834,12 @@ export const getEventById = async (req, res) => {
       });
     }
 
+    // CORRIGÉ : Nettoyer l'URL de l'image
+    const event = formatEventImageUrl(result.rows[0]);
+
     res.json({
       success: true,
-      event: result.rows[0],
+      event: event,
     });
   } catch (error) {
     console.error("Erreur récupération événement:", error);
@@ -856,8 +871,13 @@ export const updateEvent = async (req, res) => {
 
     allowedFields.forEach((field) => {
       if (updates[field] !== undefined) {
+        // CORRIGÉ : Nettoyer l'URL si c'est le champ image_url
+        const value = field === "image_url" 
+          ? cleanImageUrl(updates[field], "event")
+          : updates[field];
+        
         updateFields.push(`${field} = $${paramCount}`);
-        updateValues.push(updates[field]);
+        updateValues.push(value);
         paramCount++;
       }
     });
@@ -886,9 +906,12 @@ export const updateEvent = async (req, res) => {
       });
     }
 
+    // CORRIGÉ : Nettoyer l'URL de l'image
+    const event = formatEventImageUrl(result.rows[0]);
+
     res.json({
       success: true,
-      event: result.rows[0],
+      event: event,
     });
   } catch (error) {
     console.error("Erreur mise à jour événement:", error);
@@ -1062,7 +1085,8 @@ export const getDetailById = async (req, res) => {
       });
     }
     
-    const event = result.rows[0];
+    // CORRIGÉ : Nettoyer l'URL de l'image
+    const event = formatEventImageUrl(result.rows[0]);
     
     console.log('✅ Event found:', event);
     
@@ -1139,9 +1163,12 @@ export const getAdminEvents = async (req, res) => {
 
     console.log("✅ Événements admin récupérés:", result.rows.length);
 
+    // CORRIGÉ : Nettoyer les URLs d'images
+    const events = result.rows.map(event => formatEventImageUrl(event));
+
     res.json({
       success: true,
-      events: result.rows,
+      events: events,
     });
   } catch (error) {
     console.error("❌ ERREUR récupération événements admin:", error);
@@ -1169,9 +1196,12 @@ export const approveEvent = async (req, res) => {
       });
     }
 
+    // CORRIGÉ : Nettoyer l'URL de l'image
+    const event = formatEventImageUrl(result.rows[0]);
+
     res.json({
       success: true,
-      event: result.rows[0],
+      event: event,
       message: "Événement approuvé avec succès",
     });
   } catch (error) {
@@ -1235,9 +1265,12 @@ export const featureEvent = async (req, res) => {
       });
     }
 
+    // CORRIGÉ : Nettoyer l'URL de l'image
+    const event = formatEventImageUrl(result.rows[0]);
+
     res.json({
       success: true,
-      event: result.rows[0],
+      event: event,
       message: featured ? "Événement mis en avant" : "Événement retiré des mises en avant",
     });
   } catch (error) {
@@ -1331,3 +1364,6 @@ export const getEventAnalytics = async (req, res) => {
     });
   }
 };
+
+// Export des fonctions utilitaires
+export { cleanImageUrl, formatEventImageUrl };

@@ -1,6 +1,21 @@
+
 // import pool from "../config/db.js";
 
-// // GET /api/books - Liste des livres publiés (pour tous les utilisateurs)
+// // Fonction utilitaire pour générer les chemins d'images de livres
+// const getBookCoverPath = (bookTitle, genre = 'roman') => {
+//   if (!bookTitle) return "/assets/images/books/default-book.png";
+  
+//   // Nettoyer le titre pour créer un chemin de fichier
+//   const cleanTitle = bookTitle
+//     .toLowerCase()
+//     .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+//     .replace(/\s+/g, '-')
+//     .replace(/[^a-z0-9-]/g, '');
+  
+//   return `/assets/images/books/${cleanTitle}.png`;
+// };
+
+// // GET /api/books - Liste des livres publiés
 // const getBooks = async (req, res) => {
 //   try {
 //     const query = `
@@ -11,7 +26,19 @@
 //       ORDER BY l.created_at DESC
 //     `;
 //     const result = await pool.query(query);
-//     res.json(result.rows);
+    
+//     // CORRIGÉ : Formater avec images locales
+//     const formattedBooks = result.rows.map(book => ({
+//       ...book,
+//       // Image locale pour les couvertures
+//       couverture_url: book.couverture_url 
+//         ? (book.couverture_url.startsWith('http') 
+//             ? book.couverture_url 
+//             : `/uploads/books/${book.couverture_url}`)
+//         : getBookCoverPath(book.titre, book.genre)
+//     }));
+    
+//     res.json(formattedBooks);
 //   } catch (error) {
 //     console.error("❌ Erreur récupération livres:", error);
 //     res.status(500).json({ 
@@ -21,7 +48,7 @@
 //   }
 // };
 
-// // GET /api/books/mes-livres - Mes livres (pour l'auteur connecté)
+// // GET /api/books/mes-livres - Mes livres
 // const getMyBooks = async (req, res) => {
 //   try {
 //     const auteur_id = req.user.id;
@@ -35,9 +62,19 @@
 //     `;
 //     const result = await pool.query(query, [auteur_id]);
 
+//     // CORRIGÉ : Formater avec images locales
+//     const formattedBooks = result.rows.map(book => ({
+//       ...book,
+//       couverture_url: book.couverture_url 
+//         ? (book.couverture_url.startsWith('http') 
+//             ? book.couverture_url 
+//             : `/uploads/books/${book.couverture_url}`)
+//         : getBookCoverPath(book.titre, book.genre)
+//     }));
+
 //     res.json({
 //       success: true,
-//       books: result.rows,
+//       books: formattedBooks,
 //     });
 //   } catch (error) {
 //     console.error("❌ Erreur récupération mes livres:", error);
@@ -48,7 +85,7 @@
 //   }
 // };
 
-// // GET /api/books/:id - Récupérer un livre spécifique par ID
+// // GET /api/books/:id - Récupérer un livre spécifique
 // const getBook = async (req, res) => {
 //   try {
 //     const { id } = req.params;
@@ -67,9 +104,20 @@
 //       });
 //     }
 
+//     const book = result.rows[0];
+//     // CORRIGÉ : Ajouter le chemin d'image local
+//     const bookWithLocalImage = {
+//       ...book,
+//       couverture_url: book.couverture_url 
+//         ? (book.couverture_url.startsWith('http') 
+//             ? book.couverture_url 
+//             : `/uploads/books/${book.couverture_url}`)
+//         : getBookCoverPath(book.titre, book.genre)
+//     };
+
 //     res.json({
 //       success: true,
-//       book: result.rows[0],
+//       book: bookWithLocalImage,
 //     });
 //   } catch (error) {
 //     console.error("❌ Erreur récupération livre:", error);
@@ -93,13 +141,15 @@
 //     } = req.body;
 //     const auteur_id = req.user.id;
 
-//     // Validation
 //     if (!titre) {
 //       return res.status(400).json({
 //         success: false,
 //         error: "Le titre est obligatoire"
 //       });
 //     }
+
+//     // CORRIGÉ : Si pas d'image fournie, utiliser l'image locale par défaut
+//     const finalCoverUrl = couverture_url || getBookCoverPath(titre, genre);
 
 //     const query = `
 //       INSERT INTO livres (titre, auteur_id, description, couverture_url, genre, isbn, statut)
@@ -111,7 +161,7 @@
 //       titre,
 //       auteur_id,
 //       description || null,
-//       couverture_url || null,
+//       finalCoverUrl, // CORRIGÉ : Utiliser l'image locale par défaut
 //       genre || null,
 //       isbn || null,
 //       statut,
@@ -157,7 +207,7 @@
 //     const auteur_id = req.user.id;
 
 //     // Vérifier que l'utilisateur est l'auteur
-//     const checkQuery = "SELECT auteur_id, titre as ancien_titre FROM livres WHERE id = $1";
+//     const checkQuery = "SELECT auteur_id, titre as ancien_titre, couverture_url as ancienne_couverture FROM livres WHERE id = $1";
 //     const checkResult = await pool.query(checkQuery, [id]);
 
 //     if (checkResult.rows.length === 0) {
@@ -168,12 +218,21 @@
 //     }
 
 //     const ancienTitre = checkResult.rows[0].ancien_titre;
+//     const ancienneCouverture = checkResult.rows[0].ancienne_couverture;
     
 //     if (checkResult.rows[0].auteur_id !== auteur_id) {
 //       return res.status(403).json({ 
 //         success: false,
 //         error: "Non autorisé à modifier ce livre" 
 //       });
+//     }
+
+//     // CORRIGÉ : Si pas d'image fournie, garder l'ancienne ou utiliser l'image locale
+//     let finalCoverUrl = couverture_url;
+//     if (!finalCoverUrl && ancienneCouverture) {
+//       finalCoverUrl = ancienneCouverture;
+//     } else if (!finalCoverUrl) {
+//       finalCoverUrl = getBookCoverPath(titre || ancienTitre, genre);
 //     }
 
 //     const query = `
@@ -187,7 +246,7 @@
 //     const values = [
 //       titre,
 //       description,
-//       couverture_url,
+//       finalCoverUrl, // CORRIGÉ : Image locale par défaut
 //       genre,
 //       isbn,
 //       statut,
@@ -263,44 +322,20 @@
 //   }
 // };
 
-// // GET /api/books/recent - Récupérer les livres récents
-// // const getRecent = async (req, res) => {
-// //   try {
-// //     const limit = parseInt(req.query.limit) || 5;
-// //     const result = await pool.query(
-// //       `SELECT l.*, u.nom as auteur_nom
-// //        FROM livres l 
-// //        LEFT JOIN utilisateur u ON l.auteur_id = u.id
-// //        WHERE l.statut = 'publié'
-// //        ORDER BY l.created_at DESC
-// //        LIMIT $1`,
-// //       [limit]
-// //     );
-
-// //     res.json({
-// //       success: true,
-// //       books: result.rows,
-// //     });
-// //   } catch (error) {
-// //     console.error('❌ Erreur récupération livres récents:', error);
-// //     res.status(500).json({ 
-// //       success: false,
-// //       error: 'Erreur serveur' 
-// //     });
-// //   }
-// // };
+// // GET /api/books/recent - Récupérer les livres récents - COMPLÈTEMENT CORRIGÉ
 // const getRecent = async (req, res) => {
 //   console.log('📚 Controller: getRecent appelé');
   
 //   try {
-//     // DONNÉES MOCKÉES POUR LA DÉMO
+//     // DONNÉES AVEC IMAGES LOCALES - CORRIGÉ
 //     const recentBooks = [
 //       {
 //         id: 1,
 //         title: "Ny Onja",
 //         author: "Johary Ravaloson",
 //         description: "Roman poétique sur la vie à Madagascar",
-//         cover: "https://via.placeholder.com/300x400/4A5568/FFFFFF?text=Ny+Onja",
+//         // CORRIGÉ : Image locale au lieu de via.placeholder.com
+//         cover: "/assets/images/books/ny-onja.png",
 //         price: 15000,
 //         rating: 4.5,
 //         category: "Roman",
@@ -316,7 +351,8 @@
 //         title: "Dernier Crépuscule",
 //         author: "Michèle Rakotoson",
 //         description: "Histoire contemporaine malgache",
-//         cover: "https://via.placeholder.com/300x400/2D3748/FFFFFF?text=Crépuscule",
+//         // CORRIGÉ : Image locale au lieu de via.placeholder.com
+//         cover: "/assets/images/books/dernier-crepuscule.png",
 //         price: 12000,
 //         rating: 4.2,
 //         category: "Roman",
@@ -332,7 +368,8 @@
 //         title: "Contes de la Nuit Malgache",
 //         author: "Collectif d'Auteurs",
 //         description: "Recueil de contes traditionnels malgaches",
-//         cover: "https://via.placeholder.com/300x400/ED8936/FFFFFF?text=Contes",
+//         // CORRIGÉ : Image locale au lieu de via.placeholder.com
+//         cover: "/assets/images/books/contes-nuit-malgache.png",
 //         price: 8000,
 //         rating: 4.7,
 //         category: "Contes",
@@ -357,7 +394,7 @@
 //   } catch (error) {
 //     console.error('❌ Erreur dans getRecent:', error);
     
-//     // FALLBACK ULTIME
+//     // FALLBACK AVEC IMAGE LOCALE - CORRIGÉ
 //     res.status(200).json({
 //       success: true,
 //       message: "Livres récents - Données de secours",
@@ -366,7 +403,8 @@
 //           id: 999,
 //           title: "Livre de Test",
 //           author: "Auteur Test",
-//           cover: "https://via.placeholder.com/300x400/718096/FFFFFF?text=Livre+Test",
+//           // CORRIGÉ : Image locale au lieu de via.placeholder.com
+//           cover: "/assets/images/books/livre-test.png",
 //           price: 10000,
 //           category: "Test"
 //         }
@@ -425,9 +463,19 @@
 
 //     const result = await pool.query(query, values);
 
+//     // CORRIGÉ : Ajouter les chemins d'images locaux
+//     const formattedBooks = result.rows.map(book => ({
+//       ...book,
+//       couverture_url: book.couverture_url 
+//         ? (book.couverture_url.startsWith('http') 
+//             ? book.couverture_url 
+//             : `/uploads/books/${book.couverture_url}`)
+//         : getBookCoverPath(book.titre, book.genre)
+//     }));
+
 //     res.json({
 //       success: true,
-//       books: result.rows,
+//       books: formattedBooks,
 //       pagination: {
 //         page: parseInt(page),
 //         limit: parseInt(limit),
@@ -444,7 +492,7 @@
 //   }
 // };
 
-// // PUT /api/admin/books/:id/approve - Approuver un livre
+// // Les autres fonctions admin que vous avez dans votre fichier original
 // const approveBook = async (req, res) => {
 //   try {
 //     const { id } = req.params;
@@ -503,7 +551,6 @@
 //   }
 // };
 
-// // PUT /api/admin/books/:id/reject - Rejeter un livre
 // const rejectBook = async (req, res) => {
 //   try {
 //     const { id } = req.params;
@@ -556,7 +603,6 @@
 //   }
 // };
 
-// // PUT /api/admin/books/:id/feature - Mettre en avant un livre
 // const featureBook = async (req, res) => {
 //   try {
 //     const { id } = req.params;
@@ -606,7 +652,6 @@
 //   }
 // };
 
-// // GET /api/admin/books/featured - Livres en avant
 // const getFeaturedBooks = async (req, res) => {
 //   try {
 //     const result = await pool.query(
@@ -617,9 +662,19 @@
 //        ORDER BY l.created_at DESC`,
 //     );
 
+//     // CORRIGÉ : Formater avec images locales
+//     const formattedBooks = result.rows.map(book => ({
+//       ...book,
+//       couverture_url: book.couverture_url 
+//         ? (book.couverture_url.startsWith('http') 
+//             ? book.couverture_url 
+//             : `/uploads/books/${book.couverture_url}`)
+//         : getBookCoverPath(book.titre, book.genre)
+//     }));
+
 //     res.json({
 //       success: true,
-//       books: result.rows,
+//       books: formattedBooks,
 //     });
 //   } catch (error) {
 //     console.error("❌ Erreur récupération livres en avant:", error);
@@ -630,7 +685,6 @@
 //   }
 // };
 
-// // GET /api/admin/books/analytics - Analytics des livres
 // const getBookAnalytics = async (req, res) => {
 //   try {
 //     const { range = '30d' } = req.query;
@@ -699,7 +753,15 @@
 //        LIMIT 5`
 //     );
 
-//     const recentBooks = recentBooksResult.rows;
+//     // CORRIGÉ : Formater avec images locales
+//     const recentBooks = recentBooksResult.rows.map(book => ({
+//       ...book,
+//       couverture_url: book.couverture_url 
+//         ? (book.couverture_url.startsWith('http') 
+//             ? book.couverture_url 
+//             : `/uploads/books/${book.couverture_url}`)
+//         : getBookCoverPath(book.titre, book.genre)
+//     }));
 
 //     // Get author with most books
 //     const authorResult = await pool.query(`
@@ -739,7 +801,6 @@
 //   }
 // };
 
-// // GET /api/admin/books/genres - Récupérer tous les genres
 // const getGenres = async (req, res) => {
 //   try {
 //     // Récupérer les genres uniques depuis la base de données
@@ -770,7 +831,6 @@
 //   }
 // };
 
-// // POST /api/admin/books/genres - Créer un nouveau genre
 // const createGenre = async (req, res) => {
 //   try {
 //     const { name } = req.body;
@@ -796,7 +856,6 @@
 //   }
 // };
 
-// // PUT /api/admin/books/genres - Mettre à jour un genre
 // const updateGenre = async (req, res) => {
 //   try {
 //     const { oldName, newName } = req.body;
@@ -830,7 +889,6 @@
 //   }
 // };
 
-// // DELETE /api/admin/books/genres - Supprimer un genre
 // const deleteGenre = async (req, res) => {
 //   try {
 //     const { genreName } = req.body;
@@ -864,7 +922,6 @@
 //   }
 // };
 
-// // GET /api/admin/books/collections - Récupérer toutes les collections
 // const getCollections = async (req, res) => {
 //   try {
 //     // Dans une vraie application, vous auriez une table `collections`
@@ -889,7 +946,6 @@
 //   }
 // };
 
-// // POST /api/admin/books/collections - Créer une nouvelle collection
 // const createCollection = async (req, res) => {
 //   try {
 //     const { name, description, is_active = true } = req.body;
@@ -924,7 +980,6 @@
 //   }
 // };
 
-// // PUT /api/admin/books/collections/:id - Mettre à jour une collection
 // const updateCollection = async (req, res) => {
 //   try {
 //     const { id } = req.params;
@@ -953,7 +1008,6 @@
 //   }
 // };
 
-// // DELETE /api/admin/books/collections/:id - Supprimer une collection
 // const deleteCollection = async (req, res) => {
 //   try {
 //     const { id } = req.params;
@@ -974,7 +1028,7 @@
 // export default {
 //   getBooks,
 //   getRecent,
-//   getMyBooks,  // Renommé de getBookById à getMyBooks
+//   getMyBooks,
 //   getBook,
 //   createBook,
 //   updateBook,
@@ -996,7 +1050,31 @@
 // };
 import pool from "../config/db.js";
 
-// Fonction utilitaire pour générer les chemins d'images de livres
+// CORRIGÉ : Fonction utilitaire pour nettoyer les URLs d'images
+const cleanImageUrl = (url, type = "book") => {
+  if (!url) return null;
+  
+  // Si l'URL contient un double chemin (problème détecté)
+  if (url.includes('//uploads/')) {
+    // Extraire juste le nom de fichier
+    const filename = url.split('/').pop();
+    return `/uploads/${type}s/${filename}`;
+  }
+  
+  // Si c'est déjà une URL correcte
+  if (url.startsWith('/uploads/')) {
+    return url;
+  }
+  
+  // Si c'est juste un nom de fichier
+  if (!url.startsWith('http') && !url.startsWith('/')) {
+    return `/uploads/${type}s/${url}`;
+  }
+  
+  return url;
+};
+
+// CORRIGÉ : Fonction utilitaire pour générer les chemins d'images de livres
 const getBookCoverPath = (bookTitle, genre = 'roman') => {
   if (!bookTitle) return "/assets/images/books/default-book.png";
   
@@ -1022,14 +1100,11 @@ const getBooks = async (req, res) => {
     `;
     const result = await pool.query(query);
     
-    // CORRIGÉ : Formater avec images locales
+    // CORRIGÉ : Formater avec URLs nettoyées
     const formattedBooks = result.rows.map(book => ({
       ...book,
-      // Image locale pour les couvertures
       couverture_url: book.couverture_url 
-        ? (book.couverture_url.startsWith('http') 
-            ? book.couverture_url 
-            : `/uploads/books/${book.couverture_url}`)
+        ? cleanImageUrl(book.couverture_url, "book")
         : getBookCoverPath(book.titre, book.genre)
     }));
     
@@ -1057,14 +1132,11 @@ const getMyBooks = async (req, res) => {
     `;
     const result = await pool.query(query, [auteur_id]);
 
-    // CORRIGÉ : Formater avec images locales
+    // CORRIGÉ : Formater avec URLs nettoyées
     const formattedBooks = result.rows.map(book => ({
       ...book,
-      couverture_url: book.couverture_url 
-        ? (book.couverture_url.startsWith('http') 
-            ? book.couverture_url 
-            : `/uploads/books/${book.couverture_url}`)
-        : getBookCoverPath(book.titre, book.genre)
+      couverture_url: cleanImageUrl(book.couverture_url, "book") || 
+                    getBookCoverPath(book.titre, book.genre)
     }));
 
     res.json({
@@ -1100,14 +1172,11 @@ const getBook = async (req, res) => {
     }
 
     const book = result.rows[0];
-    // CORRIGÉ : Ajouter le chemin d'image local
+    // CORRIGÉ : Nettoyer l'URL de l'image
     const bookWithLocalImage = {
       ...book,
-      couverture_url: book.couverture_url 
-        ? (book.couverture_url.startsWith('http') 
-            ? book.couverture_url 
-            : `/uploads/books/${book.couverture_url}`)
-        : getBookCoverPath(book.titre, book.genre)
+      couverture_url: cleanImageUrl(book.couverture_url, "book") || 
+                     getBookCoverPath(book.titre, book.genre)
     };
 
     res.json({
@@ -1143,8 +1212,10 @@ const createBook = async (req, res) => {
       });
     }
 
-    // CORRIGÉ : Si pas d'image fournie, utiliser l'image locale par défaut
-    const finalCoverUrl = couverture_url || getBookCoverPath(titre, genre);
+    // CORRIGÉ : Nettoyer l'URL de l'image
+    const finalCoverUrl = couverture_url 
+      ? cleanImageUrl(couverture_url, "book")
+      : getBookCoverPath(titre, genre);
 
     const query = `
       INSERT INTO livres (titre, auteur_id, description, couverture_url, genre, isbn, statut)
@@ -1156,7 +1227,7 @@ const createBook = async (req, res) => {
       titre,
       auteur_id,
       description || null,
-      finalCoverUrl, // CORRIGÉ : Utiliser l'image locale par défaut
+      finalCoverUrl,
       genre || null,
       isbn || null,
       statut,
@@ -1222,13 +1293,10 @@ const updateBook = async (req, res) => {
       });
     }
 
-    // CORRIGÉ : Si pas d'image fournie, garder l'ancienne ou utiliser l'image locale
-    let finalCoverUrl = couverture_url;
-    if (!finalCoverUrl && ancienneCouverture) {
-      finalCoverUrl = ancienneCouverture;
-    } else if (!finalCoverUrl) {
-      finalCoverUrl = getBookCoverPath(titre || ancienTitre, genre);
-    }
+    // CORRIGÉ : Nettoyer l'URL de l'image
+    let finalCoverUrl = couverture_url 
+      ? cleanImageUrl(couverture_url, "book")
+      : ancienneCouverture || getBookCoverPath(titre || ancienTitre, genre);
 
     const query = `
       UPDATE livres 
@@ -1241,7 +1309,7 @@ const updateBook = async (req, res) => {
     const values = [
       titre,
       description,
-      finalCoverUrl, // CORRIGÉ : Image locale par défaut
+      finalCoverUrl,
       genre,
       isbn,
       statut,
@@ -1458,14 +1526,11 @@ const getAllBooksAdmin = async (req, res) => {
 
     const result = await pool.query(query, values);
 
-    // CORRIGÉ : Ajouter les chemins d'images locaux
+    // CORRIGÉ : Formater avec URLs nettoyées
     const formattedBooks = result.rows.map(book => ({
       ...book,
-      couverture_url: book.couverture_url 
-        ? (book.couverture_url.startsWith('http') 
-            ? book.couverture_url 
-            : `/uploads/books/${book.couverture_url}`)
-        : getBookCoverPath(book.titre, book.genre)
+      couverture_url: cleanImageUrl(book.couverture_url, "book") || 
+                    getBookCoverPath(book.titre, book.genre)
     }));
 
     res.json({
@@ -1657,14 +1722,11 @@ const getFeaturedBooks = async (req, res) => {
        ORDER BY l.created_at DESC`,
     );
 
-    // CORRIGÉ : Formater avec images locales
+    // CORRIGÉ : Formater avec URLs nettoyées
     const formattedBooks = result.rows.map(book => ({
       ...book,
-      couverture_url: book.couverture_url 
-        ? (book.couverture_url.startsWith('http') 
-            ? book.couverture_url 
-            : `/uploads/books/${book.couverture_url}`)
-        : getBookCoverPath(book.titre, book.genre)
+      couverture_url: cleanImageUrl(book.couverture_url, "book") || 
+                    getBookCoverPath(book.titre, book.genre)
     }));
 
     res.json({
@@ -1748,14 +1810,11 @@ const getBookAnalytics = async (req, res) => {
        LIMIT 5`
     );
 
-    // CORRIGÉ : Formater avec images locales
+    // CORRIGÉ : Formater avec URLs nettoyées
     const recentBooks = recentBooksResult.rows.map(book => ({
       ...book,
-      couverture_url: book.couverture_url 
-        ? (book.couverture_url.startsWith('http') 
-            ? book.couverture_url 
-            : `/uploads/books/${book.couverture_url}`)
-        : getBookCoverPath(book.titre, book.genre)
+      couverture_url: cleanImageUrl(book.couverture_url, "book") || 
+                    getBookCoverPath(book.titre, book.genre)
     }));
 
     // Get author with most books
@@ -2042,4 +2101,6 @@ export default {
   createCollection,
   updateCollection,
   deleteCollection,
+  cleanImageUrl,
+  getBookCoverPath
 };

@@ -268,13 +268,16 @@
 //       eventsRegisteredCount,
 //       booksPublishedCount,
 //       excerptsCreatedCount,
+//       booksReadCount,
+//       totalReadingTime,
+//       totalPagesRead,
 //     ] = await Promise.all([
 //       // Number of posts created
 //       safeQuery("SELECT COUNT(*) as count FROM posts WHERE auteur_id = $1", [userId]),
 
-//       // Number of likes received on posts
+//       // Number of likes received on posts - CORRIGÉ : utiliser user_id au lieu de auteur_id
 //       safeQuery(
-//         "SELECT COUNT(pl.id) as count FROM post_likes pl JOIN posts p ON pl.post_id = p.id WHERE p.auteur_id = $1",
+//         "SELECT COUNT(*) as count FROM post_likes WHERE user_id = $1",
 //         [userId]
 //       ),
 
@@ -295,6 +298,15 @@
 //         "SELECT COUNT(e.id) as count FROM extraits e JOIN livres l ON e.livre_id = l.id WHERE l.auteur_id = $1",
 //         [userId]
 //       ),
+
+//       // Number of books read (from reading_sessions)
+//       safeQuery("SELECT COUNT(DISTINCT book_id) as count FROM reading_sessions WHERE user_id = $1 AND end_time IS NOT NULL", [userId]),
+
+//       // Total reading time in minutes
+//       safeQuery("SELECT COALESCE(SUM(time_spent_minutes), 0) as count FROM reading_sessions WHERE user_id = $1 AND end_time IS NOT NULL", [userId]),
+
+//       // Total pages read
+//       safeQuery("SELECT COALESCE(SUM(pages_read), 0) as count FROM reading_sessions WHERE user_id = $1 AND end_time IS NOT NULL", [userId]),
 //     ]);
 
 //     const statistics = {
@@ -305,6 +317,9 @@
 //       eventsRegisteredCount,
 //       booksPublishedCount,
 //       excerptsCreatedCount,
+//       booksReadCount,
+//       totalReadingTime,
+//       totalPagesRead,
 //     };
 
 //     res.json({ statistics });
@@ -322,7 +337,6 @@
 //   deleteProfilePicture,
 //   getUserStatistics,
 // };
-
 import pool from "../config/db.js";
 import bcrypt from "bcryptjs";
 import multer from "multer";
@@ -475,7 +489,31 @@ export const upload = multer({
   },
 });
 
-// Upload de la photo de profil
+// CORRIGÉ : Fonction utilitaire pour nettoyer les URLs d'images
+const cleanImageUrl = (url) => {
+  if (!url) return null;
+  
+  // Si l'URL contient un double chemin (problème détecté)
+  if (url.includes('//uploads/')) {
+    // Extraire juste le nom de fichier
+    const filename = url.split('/').pop();
+    return `/uploads/profiles/${filename}`;
+  }
+  
+  // Si c'est déjà une URL correcte
+  if (url.startsWith('/uploads/')) {
+    return url;
+  }
+  
+  // Si c'est juste un nom de fichier
+  if (!url.startsWith('http') && !url.startsWith('/')) {
+    return `/uploads/profiles/${url}`;
+  }
+  
+  return url;
+};
+
+// CORRIGÉ : Upload de la photo de profil
 const uploadProfilePicture = async (req, res) => {
   try {
     if (!req.file) {
@@ -483,9 +521,10 @@ const uploadProfilePicture = async (req, res) => {
     }
 
     const userId = req.user.id;
+    // CORRIGÉ : Ne pas ajouter de chemin supplémentaire, Multer gère déjà le chemin
     const photoUrl = `/uploads/profiles/${req.file.filename}`;
 
-    console.log(` Upload photo pour user ${userId}: ${photoUrl}`);
+    console.log(`✅ Upload photo pour user ${userId}: ${photoUrl}`);
 
     // Mettre à jour dans la base de données
     const result = await pool.query(
@@ -502,10 +541,14 @@ const uploadProfilePicture = async (req, res) => {
       return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
 
+    const user = result.rows[0];
+    // CORRIGÉ : Nettoyer l'URL avant de la retourner
+    user.photo_profil = cleanImageUrl(user.photo_profil);
+
     res.json({
       message: "Photo de profil mise à jour avec succès",
-      user: result.rows[0],
-      photoUrl: photoUrl,
+      user: user,
+      photoUrl: user.photo_profil,
     });
   } catch (error) {
     console.error("Erreur uploadProfilePicture:", error);
@@ -519,7 +562,7 @@ const uploadProfilePicture = async (req, res) => {
   }
 };
 
-// Supprimer la photo de profil
+// CORRIGÉ : Supprimer la photo de profil
 const deleteProfilePicture = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -534,7 +577,14 @@ const deleteProfilePicture = async (req, res) => {
       return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
 
-    const oldPhotoPath = userResult.rows[0].photo_profil;
+    const oldPhoto = userResult.rows[0].photo_profil;
+    let oldPhotoPath = null;
+
+    // Nettoyer l'URL pour obtenir le chemin correct
+    if (oldPhoto) {
+      const cleanUrl = cleanImageUrl(oldPhoto);
+      oldPhotoPath = path.join(process.cwd(), cleanUrl);
+    }
 
     // Mettre à jour la base de données
     const result = await pool.query(
@@ -546,15 +596,9 @@ const deleteProfilePicture = async (req, res) => {
     );
 
     // Supprimer l'ancien fichier physique
-    if (oldPhotoPath) {
-      const fullPath = path.join(
-        "uploads/profiles/",
-        path.basename(oldPhotoPath),
-      );
-      if (fs.existsSync(fullPath)) {
-        fs.unlinkSync(fullPath);
-        console.log(`🗑️ Photo supprimée: ${fullPath}`);
-      }
+    if (oldPhotoPath && fs.existsSync(oldPhotoPath)) {
+      fs.unlinkSync(oldPhotoPath);
+      console.log(`🗑️ Photo supprimée: ${oldPhotoPath}`);
     }
 
     res.json({
@@ -654,6 +698,16 @@ const getUserStatistics = async (req, res) => {
   }
 };
 
+// CORRIGÉ : Fonction pour formater les URLs d'images dans les réponses
+export const formatUserResponse = (user) => {
+  if (!user) return user;
+  
+  return {
+    ...user,
+    photo_profil: cleanImageUrl(user.photo_profil)
+  };
+};
+
 export {
   getProfile,
   updateProfile,
@@ -661,4 +715,6 @@ export {
   uploadProfilePicture,
   deleteProfilePicture,
   getUserStatistics,
+  cleanImageUrl,
+  formatUserResponse
 };

@@ -43,36 +43,74 @@ export default function Home() {
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
 
   // Fonction pour gérer les URLs d'images avec fallback LOCAL
-  const getImageUrl = (url, fallbackType = "book") => {
-    if (!url || url.includes("via.placeholder.com") || url.includes("placeholder.com")) {
-      // Retourner des images locales selon le type (format PNG)
-      switch(fallbackType) {
-        case "book":
-          return "/assets/images/books/book-default.png";
-        case "author":
-          return "/assets/images/authors/author-default.png";
-        case "event":
-          return "/assets/images/events/event-default.png";
-        case "profile":
-          return "/assets/images/profiles/profile-default.png";
-        default:
-          return "/assets/images/default-image.png";
-      }
-    }
+  // const getImageUrl = (url, fallbackType = "book") => {
+  //   if (!url || url.includes("via.placeholder.com") || url.includes("placeholder.com")) {
+  //     // Retourner des images locales selon le type (format PNG)
+  //     switch(fallbackType) {
+  //       case "book":
+  //         return "/assets/images/books/book-default.png";
+  //       case "author":
+  //         return "/assets/images/authors/author-default.png";
+  //       case "event":
+  //         return "/assets/images/events/event-default.png";
+  //       case "profile":
+  //         return "/assets/images/profiles/profile-default.png";
+  //       default:
+  //         return "/assets/images/default-image.png";
+  //     }
+  //   }
     
-    // Si c'est une URL absolue du backend
-    if (url.startsWith('http') && !url.startsWith(window.location.origin)) {
-      return url;
-    }
+  //   // Si c'est une URL absolue du backend
+  //   if (url.startsWith('http') && !url.startsWith(window.location.origin)) {
+  //     return url;
+  //   }
     
-    // Si c'est une URL relative
-    if (url.startsWith('/uploads/')) {
-      return url;
-    }
+  //   // Si c'est une URL relative
+  //   if (url.startsWith('/uploads/')) {
+  //     return url;
+  //   }
     
+  //   return url;
+  // };
+const getImageUrl = (url, fallbackType = "book") => {
+  // Si pas d'URL ou placeholder, retourner image par défaut
+  if (!url || url.includes("via.placeholder.com") || url.includes("placeholder.com")) {
+    // Retourner des images locales selon le type (format PNG)
+    switch(fallbackType) {
+      case "book":
+        return "/assets/images/books/book-default.png";
+      case "author":
+        return "/assets/images/authors/author-default.png";
+      case "event":
+        return "/assets/images/events/event-default.png";
+      case "profile":
+        return "/assets/images/profiles/profile-default.png";
+      default:
+        return "/assets/images/default-image.png";
+    }
+  }
+  
+  // CORRECTION SPÉCIFIQUE POUR LE BUG DU BACKEND
+  // Si l'URL contient le double chemin "/uploads/profiles//uploads/profiles/"
+  if (url.includes("//uploads/profiles/")) {
+    // Extraire juste le nom de fichier
+    const filename = url.split('/').pop(); // "profile-1-1765403913262-560889623.png"
+    // Retourner le chemin correct
+    return `/uploads/profiles/${filename}`;
+  }
+  
+  // Si c'est une URL absolue du backend
+  if (url.startsWith('http') && !url.startsWith(window.location.origin)) {
     return url;
-  };
-
+  }
+  
+  // Si c'est une URL relative normale
+  if (url.startsWith('/uploads/')) {
+    return url;
+  }
+  
+  return url;
+};
   // 1. Récupération des livres récents
   useEffect(() => {
     const fetchLivres = async () => {
