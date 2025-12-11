@@ -10,17 +10,11 @@ export function usePosts() {
   const token = auth.user?.token;
   const user = auth.user?.user;
 
-  console.log("🔐 [usePosts] Token:", token);
-  console.log("🔐 [usePosts] User:", user);
-
   /**
    * Récupère tous les posts depuis l'API
    */
   const fetchPosts = async () => {
-    console.log(" [usePosts] Début fetchPosts, token:", token);
-
     if (!token) {
-      console.log(" [usePosts] Pas de token disponible");
       setError("Veuillez vous reconnecter");
       return;
     }
@@ -29,8 +23,6 @@ export function usePosts() {
       setLoading(true);
       setError(null);
 
-      console.log(" [usePosts] Envoi requête avec token...");
-
       const response = await fetch("https://vakio-boky-backend.onrender.com/api/posts", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -38,24 +30,18 @@ export function usePosts() {
         },
       });
 
-      console.log(" [usePosts] Réponse status:", response.status);
-
       const data = await response.json();
-      console.log(" [usePosts] Données reçues:", data);
 
       if (data.posts) {
         setPosts(data.posts);
-        console.log(" [usePosts] Posts chargés:", data.posts.length);
       } else {
         setError(data.error || "Erreur inconnue du serveur");
-        console.log(" [usePosts] Erreur API:", data.error);
       }
     } catch (err) {
-      console.error(" [usePosts] Erreur fetch:", err);
+      console.error("Erreur chargement posts:", err);
       setError("Impossible de se connecter au serveur");
     } finally {
       setLoading(false);
-      console.log(" [usePosts] Fetch terminé");
     }
   };
 
@@ -63,8 +49,6 @@ export function usePosts() {
    * Crée un nouveau post
    */
   const createPost = async (postData) => {
-    console.log("[usePosts] Création post:", postData);
-
     if (!token) {
       return { success: false, error: "Non authentifié" };
     }
@@ -80,7 +64,6 @@ export function usePosts() {
       });
 
       const data = await response.json();
-      console.log(" [usePosts] Réponse création:", data);
 
       if (data.post) {
         // Ajoute le nouveau post au début de la liste
@@ -90,15 +73,13 @@ export function usePosts() {
         return { success: false, error: data.error };
       }
     } catch (err) {
-      console.error(" [usePosts] Erreur création post:", err);
+      console.error("Erreur création post:", err);
       return { success: false, error: "Erreur de connexion" };
     }
   };
 
   //  Like ou unlike un post
   const toggleLike = async (postId) => {
-    console.log("❤️ [usePosts] Toggle like post:", postId);
-
     if (!token) return { success: false, error: "Non authentifié" };
 
     try {
@@ -114,7 +95,6 @@ export function usePosts() {
       );
 
       const data = await response.json();
-      console.log("📡 [usePosts] Réponse like:", data);
 
       if (data.liked !== undefined) {
         setPosts((prev) =>
@@ -135,7 +115,7 @@ export function usePosts() {
         return { success: false, error: data.error };
       }
     } catch (err) {
-      console.error("❌ [usePosts] Erreur like:", err);
+      console.error("Erreur like post:", err);
       return { success: false, error: "Erreur de connexion" };
     }
   };
@@ -181,8 +161,6 @@ export function usePosts() {
    * Partage un post
    */
   const sharePost = async (postId) => {
-    console.log("🔄 [usePosts] Partage post:", postId);
-
     if (!token) {
       return { success: false, error: "Non authentifié" };
     }
@@ -200,7 +178,6 @@ export function usePosts() {
       );
 
       const data = await response.json();
-      console.log("📡 [usePosts] Réponse partage:", data);
 
       if (data.message) {
         return { success: true, message: data.message };
@@ -208,7 +185,7 @@ export function usePosts() {
         return { success: false, error: data.error };
       }
     } catch (err) {
-      console.error("❌ [usePosts] Erreur partage:", err);
+      console.error("Erreur partage post:", err);
       return { success: false, error: "Erreur de connexion" };
     }
   };
@@ -216,12 +193,8 @@ export function usePosts() {
   // Chargement initial des posts
   useEffect(() => {
     if (token) {
-      console.log(
-        "🎯 [usePosts] useEffect - Token présent, chargement des posts"
-      );
       fetchPosts();
     } else {
-      console.log("🎯 [usePosts] useEffect - Pas de token, arrêt");
       setLoading(false);
     }
   }, [token]);

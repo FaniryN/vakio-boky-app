@@ -1187,7 +1187,7 @@ export default function Profile() {
     {/* UNIQUEMENT si photo_profil existe VRAIMENT, on superpose l'image */}
     {profileData?.photo_profil && profileData.photo_profil !== 'null' && profileData.photo_profil !== 'undefined' && (
       <img
-        src={profileData.photo_profil}
+        src={`https://vakio-boky-backend.onrender.com${profileData.photo_profil}`}
         alt={`Photo de ${profileData?.nom || 'profil'}`}
         className="w-full h-full object-cover absolute inset-0"
         // Si l'image échoue, elle sera simplement cachée (position absolute)

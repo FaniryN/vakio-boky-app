@@ -342,17 +342,14 @@ export function useProfileStatistics() {
 
   const validateAuth = useCallback(() => {
     if (!isAuthenticated || !token) {
-      console.log("🔒 [useProfileStatistics] Utilisateur non authentifié");
       return false;
     }
 
     if (!userId || typeof userId !== 'number' || userId < 1) {
-      console.log("⚠️ [useProfileStatistics] ID utilisateur invalide:", userId);
       return false;
     }
 
     if (typeof token !== 'string' || token.split('.').length !== 3) {
-      console.log("⚠️ [useProfileStatistics] Format de token invalide");
       return false;
     }
 
@@ -360,7 +357,6 @@ export function useProfileStatistics() {
   }, [isAuthenticated, token, userId]);
 
   const fetchStatistics = useCallback(async () => {
-    console.log("📊 [useProfileStatistics] Début fetchStatistics");
 
     if (!validateAuth()) {
       setError("Session invalide. Veuillez vous reconnecter.");
@@ -372,7 +368,6 @@ export function useProfileStatistics() {
       setLoading(true);
       setError(null);
       
-      console.log(`📊 [useProfileStatistics] Chargement stats pour user ID: ${userId}`);
 
       // CORRECTION : Utiliser AbortController correctement
       const controller = new AbortController();
@@ -388,7 +383,6 @@ export function useProfileStatistics() {
 
       clearTimeout(timeoutId);
 
-      console.log("📊 [useProfileStatistics] Réponse status:", response.status);
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -401,15 +395,12 @@ export function useProfileStatistics() {
       }
 
       const data = await response.json();
-      console.log("📊 [useProfileStatistics] Données reçues:", data);
 
       if (data.success && data.statistics) {
         setStatistics(data.statistics);
         setLastFetchTime(new Date());
-        console.log("✅ [useProfileStatistics] Statistiques chargées avec succès");
       } else {
         setError(data.error || "Format de réponse invalide du serveur");
-        console.log("❌ [useProfileStatistics] Erreur dans la réponse:", data.error);
       }
     } catch (err) {
       console.error("❌ [useProfileStatistics] Erreur fetch:", err);
@@ -436,7 +427,6 @@ export function useProfileStatistics() {
       });
     } finally {
       setLoading(false);
-      console.log("📊 [useProfileStatistics] Fetch terminé");
     }
   }, [validateAuth, token, userId]);
 
@@ -462,7 +452,6 @@ export function useProfileStatistics() {
   }, [statistics]);
 
   const resetStatistics = useCallback(() => {
-    console.log("🔄 [useProfileStatistics] Réinitialisation des statistiques");
     setStatistics({
       postsCount: 0,
       likesReceivedCount: 0,
@@ -487,17 +476,14 @@ export function useProfileStatistics() {
       if (!isMounted) return;
 
       if (validateAuth()) {
-        console.log("🎯 [useProfileStatistics] Chargement initial des statistiques");
-        
+
         if (lastFetchTime && (new Date() - lastFetchTime) < 30000) {
-          console.log("⚡ [useProfileStatistics] Utilisation du cache (moins de 30s)");
           setLoading(false);
           return;
         }
 
         await fetchStatistics();
       } else {
-        console.log("⏸️ [useProfileStatistics] Pas d'authentification valide, arrêt");
         setLoading(false);
       }
     };
@@ -507,11 +493,10 @@ export function useProfileStatistics() {
     return () => {
       isMounted = false;
     };
-  }, [validateAuth, fetchStatistics, lastFetchTime]);
+  }, [validateAuth, fetchStatistics]);
 
   useEffect(() => {
     if (!isAuthenticated || !userId) {
-      console.log("👋 [useProfileStatistics] Utilisateur déconnecté, réinitialisation");
       resetStatistics();
     }
   }, [isAuthenticated, userId, resetStatistics]);
