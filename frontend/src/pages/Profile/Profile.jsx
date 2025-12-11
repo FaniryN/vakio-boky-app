@@ -1136,16 +1136,15 @@ export default function Profile() {
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 h-32"></div>
         <div className="px-6 sm:px-8 pb-8">
           <div className="flex flex-col md:flex-row items-center md:items-end -mt-16 mb-6">
-            <div className="relative">
+            {/* <div className="relative">
               <div className="w-32 h-32 bg-white rounded-full border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
-                {/* Gestion améliorée de l'image de profil */}
                 {profileData?.photo_profil ? (
                   <img
                     src={profileData.photo_profil}
                     alt="Photo de profil"
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      // Si l'image ne peut pas être chargée, afficher un fallback
+                      
                       e.target.onerror = null;
                       e.target.style.display = 'none';
                       e.target.parentElement.innerHTML = `
@@ -1158,14 +1157,14 @@ export default function Profile() {
                     }}
                   />
                 ) : (
-                  // Si pas de photo_profil, afficher un avatar avec l'initiale
+                  
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
                     <span className="text-4xl font-bold text-blue-600">
                       {profileData?.nom?.charAt(0)?.toUpperCase() || 'U'}
                     </span>
                   </div>
                 )}
-              </div>
+              </div> 
               <button
                 onClick={handleEditClick}
                 className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
@@ -1173,7 +1172,36 @@ export default function Profile() {
               >
                 <FiCamera className="text-sm" />
               </button>
-            </div>
+            </div>*/}
+            <div className="relative">
+  <div className="w-32 h-32 bg-white rounded-full border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
+    {/* Solution SÛRE : vérifier si l'URL existe VRAIMENT avant d'afficher l'image */}
+    {profileData?.photo_profil ? (
+      <img
+        src={profileData.photo_profil}
+        alt={`Photo de ${profileData?.nom || 'profil'}`}
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          // Si l'image échoue, on la cache simplement
+          e.target.style.display = 'none';
+        }}
+      />
+    ) : null}
+    
+    {/* Avatar par défaut TOUJOURS présent (au cas où l'image échoue ou n'existe pas) */}
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100 absolute inset-0">
+      <span className="text-4xl font-bold text-blue-600">
+        {profileData?.nom?.charAt(0)?.toUpperCase() || 'U'}
+      </span>
+    </div>
+  </div>
+  <button
+    onClick={handleEditClick}
+    className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+  >
+    <FiCamera className="text-sm" />
+  </button>
+</div>
             <div className="md:ml-6 mt-4 md:mt-0 text-center md:text-left">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 {profileData?.nom || "Utilisateur"}

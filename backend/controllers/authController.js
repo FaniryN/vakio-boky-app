@@ -1278,34 +1278,65 @@ import generateToken from "../utils/generateToken.js";
 import { sendEmail } from "../utils/emailService.js";
 
 // Fonction utilitaire pour nettoyer les URLs d'images
+// const cleanImageUrl = (url, type = "profile") => {
+//   // IMPORTANT: Si url est null/undefined/vide, retourner null
+//   if (!url || url === 'null' || url === 'NULL' || url.trim() === '') {
+//     return null;
+//   }
+  
+//   // Si l'URL contient un double chemin (problème détecté)
+//   if (url.includes('//uploads/')) {
+//     const filename = url.split('/').pop();
+//     return `/uploads/${type}s/${filename}`;
+//   }
+  
+//   // Si c'est déjà une URL correcte
+//   if (url.startsWith('/uploads/')) {
+//     return url;
+//   }
+  
+//   // Si c'est juste un nom de fichier
+//   if (!url.startsWith('http') && !url.startsWith('/')) {
+//     return `/uploads/${type}s/${url}`;
+//   }
+  
+//   return url;
+// };
+// authController.js - Version CORRIGÉE (copie-colle ceci)
+
+// Fonction utilitaire pour nettoyer les URLs d'images
 const cleanImageUrl = (url, type = "profile") => {
-  // IMPORTANT: Si url est null/undefined/vide, retourner null
-  if (!url || url === 'null' || url === 'NULL' || url.trim() === '') {
+  // SI URL EST NULL OU VIDE, RETOURNER NULL (PAS DE GÉNÉRATION !)
+  if (!url || url === 'null' || url === 'NULL' || url.trim() === '' || url === 'undefined') {
     return null;
   }
   
-  // Si l'URL contient un double chemin (problème détecté)
-  if (url.includes('//uploads/')) {
-    const filename = url.split('/').pop();
-    return `/uploads/${type}s/${filename}`;
-  }
+  // NE JAMAIS GÉNÉRER D'URLS AUTOMATIQUEMENT !
+  // Seulement utiliser les URLs qui existent déjà
   
   // Si c'est déjà une URL correcte
   if (url.startsWith('/uploads/')) {
     return url;
   }
   
-  // Si c'est juste un nom de fichier
-  if (!url.startsWith('http') && !url.startsWith('/')) {
-    return `/uploads/${type}s/${url}`;
+  // Si c'est une URL complète (http/https)
+  if (url.startsWith('http')) {
+    return url;
   }
   
-  return url;
+  // Si c'est juste un nom de fichier sans chemin
+  // ET que ça ressemble à un nom de fichier uploadé (contient 'profile-')
+  if (url.includes('profile-')) {
+    return `/uploads/profiles/${url}`;
+  }
+  
+  // Sinon, c'est probablement une valeur invalide - retourner null
+  return null;
 };
 
 // Fonction pour obtenir une URL d'image sécurisée - SIMPLIFIÉE
 const getSafeProfileImage = (imageUrl) => {
-  // Si pas d'image, retourner null (optionnel)
+  // Si pas d'image, retourner null (PAS DE GÉNÉRATION !)
   if (!imageUrl || imageUrl === 'null' || imageUrl === 'NULL' || imageUrl.trim() === '') {
     return null;
   }
@@ -1313,6 +1344,16 @@ const getSafeProfileImage = (imageUrl) => {
   // Nettoyer l'URL simplement
   return cleanImageUrl(imageUrl, "profile");
 };
+// Fonction pour obtenir une URL d'image sécurisée - SIMPLIFIÉE
+// const getSafeProfileImage = (imageUrl) => {
+//   // Si pas d'image, retourner null (optionnel)
+//   if (!imageUrl || imageUrl === 'null' || imageUrl === 'NULL' || imageUrl.trim() === '') {
+//     return null;
+//   }
+  
+//   // Nettoyer l'URL simplement
+//   return cleanImageUrl(imageUrl, "profile");
+// };
 
 // Stockage temporaire des codes
 const resetCodes = new Map();

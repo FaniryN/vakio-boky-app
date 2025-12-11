@@ -1263,6 +1263,21 @@ const changePassword = async (req, res) => {
 // ==================== UPLOAD PHOTO DE PROFIL ====================
 
 // Configuration Multer pour l'upload
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     const uploadDir = "uploads/profiles/";
+//     if (!fs.existsSync(uploadDir)) {
+//       fs.mkdirSync(uploadDir, { recursive: true });
+//     }
+//     cb(null, uploadDir);
+//   },
+//   filename: (req, file, cb) => {
+//     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+//     const ext = path.extname(file.originalname);
+//     cb(null, "profile-" + req.user.id + "-" + uniqueSuffix + ext);
+//   },
+// });
+// Configuration Multer pour l'upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = "uploads/profiles/";
@@ -1272,12 +1287,13 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
+    // CE CODE GÉNÈRE LES NOMS : "profile-2-timestamp-random.ext"
+    // C'est NORMAL si un upload est fait
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname);
     cb(null, "profile-" + req.user.id + "-" + uniqueSuffix + ext);
   },
 });
-
 // Filtre pour n'accepter que les images
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith("image/")) {
@@ -1297,6 +1313,65 @@ export const upload = multer({
 });
 
 // Upload de la photo de profil
+// const uploadProfilePicture = async (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).json({ 
+//         success: false,
+//         error: "Aucun fichier uploadé" 
+//       });
+//     }
+
+//     const userId = req.user.id;
+//     const photoUrl = `/uploads/profiles/${req.file.filename}`;
+
+//     console.log(`✅ Upload photo pour user ${userId}: ${photoUrl}`);
+
+//     // Mettre à jour dans la base de données
+//     const result = await pool.query(
+//       `UPDATE utilisateur 
+//        SET photo_profil = $1, updated_at = NOW()
+//        WHERE id = $2 
+//        RETURNING id, nom, email, photo_profil, role, telephone, genre_prefere, bio`,
+//       [photoUrl, userId],
+//     );
+
+//     if (result.rows.length === 0) {
+//       // Supprimer le fichier si l'utilisateur n'existe pas
+//       fs.unlinkSync(req.file.path);
+//       return res.status(404).json({ 
+//         success: false,
+//         error: "Utilisateur non trouvé" 
+//       });
+//     }
+
+//     const user = result.rows[0];
+//     // Retourner l'URL directement (pas de nettoyage supplémentaire)
+//     user.photo_profil = photoUrl;
+
+//     res.json({
+//       success: true,
+//       message: "Photo de profil mise à jour avec succès",
+//       user: user,
+//       photoUrl: photoUrl,
+//     });
+//   } catch (error) {
+//     console.error("Erreur uploadProfilePicture:", error);
+
+//     // Supprimer le fichier uploadé en cas d'erreur
+//     if (req.file && fs.existsSync(req.file.path)) {
+//       fs.unlinkSync(req.file.path);
+//     }
+
+//     res.status(500).json({ 
+//       success: false,
+//       error: "Erreur lors de l'upload de la photo" 
+//     });
+//   }
+// };
+// profileController.js - Dans uploadProfilePicture, VOIR CE QUI GÉNÈRE LES NOMS DE FICHIERS
+
+// Upload de la photo de profil - VÉRIFIER CE QUI GÉNÈRE LES URLS
 const uploadProfilePicture = async (req, res) => {
   try {
     if (!req.file) {
@@ -1307,6 +1382,9 @@ const uploadProfilePicture = async (req, res) => {
     }
 
     const userId = req.user.id;
+    
+    // ICI : req.file.filename est généré par Multer !
+    // Il crée des noms comme "profile-2-1765452238311-472637228.png"
     const photoUrl = `/uploads/profiles/${req.file.filename}`;
 
     console.log(`✅ Upload photo pour user ${userId}: ${photoUrl}`);
@@ -1317,7 +1395,7 @@ const uploadProfilePicture = async (req, res) => {
        SET photo_profil = $1, updated_at = NOW()
        WHERE id = $2 
        RETURNING id, nom, email, photo_profil, role, telephone, genre_prefere, bio`,
-      [photoUrl, userId],
+      [photoUrl, userId], // ICI : photoUrl est stockée en base !
     );
 
     if (result.rows.length === 0) {
@@ -1330,7 +1408,7 @@ const uploadProfilePicture = async (req, res) => {
     }
 
     const user = result.rows[0];
-    // Retourner l'URL directement (pas de nettoyage supplémentaire)
+    // Retourner l'URL directement
     user.photo_profil = photoUrl;
 
     res.json({
@@ -1353,7 +1431,6 @@ const uploadProfilePicture = async (req, res) => {
     });
   }
 };
-
 // Supprimer la photo de profil
 const deleteProfilePicture = async (req, res) => {
   try {
