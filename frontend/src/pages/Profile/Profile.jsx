@@ -873,21 +873,21 @@ import {
   FiAward,
 } from "react-icons/fi";
 
-// Fonction utilitaire pour obtenir l'URL sécurisée de l'image de profil
+// Fonction utilitaire SIMPLIFIÉE pour obtenir l'URL de l'image de profil
 const getProfileImageUrl = (imageUrl) => {
-  // Si pas d'image, retourner une image par défaut
-  if (!imageUrl) {
-    return "/assets/images/profiles/profile-default.png";
+  // Si pas d'image ou image null, retourner null pour que le frontend puisse gérer
+  if (!imageUrl || imageUrl === 'null' || imageUrl === 'NULL' || imageUrl.trim() === '') {
+    return null;
   }
   
-  // Si c'est déjà une URL complète
+  // Si c'est déjà une URL complète (http/https)
   if (imageUrl.startsWith('http')) {
     return imageUrl;
   }
   
-  // Si c'est un chemin relatif
-  if (imageUrl.startsWith('/')) {
-    // Corriger les chemins avec double slash
+  // Si c'est un chemin relatif qui commence par /uploads/
+  if (imageUrl.startsWith('/uploads/')) {
+    // Si le chemin contient un double slash, le corriger
     if (imageUrl.includes('//uploads/')) {
       const filename = imageUrl.split('/').pop();
       return `/uploads/profiles/${filename}`;
@@ -895,8 +895,15 @@ const getProfileImageUrl = (imageUrl) => {
     return imageUrl;
   }
   
-  // Si c'est juste un nom de fichier
+  // Si c'est juste un nom de fichier sans chemin
   return `/uploads/profiles/${imageUrl}`;
+};
+
+// Fonction pour obtenir une URL d'image sécurisée avec fallback
+const getSafeProfileImage = (imageUrl) => {
+  const url = getProfileImageUrl(imageUrl);
+  // Si url est null, retourner null (optionnel - le frontend gère le fallback)
+  return url;
 };
 
 export default function Profile() {
@@ -912,10 +919,14 @@ export default function Profile() {
     const fetchProfile = async () => {
       if (!isAuthenticated || !user?.token) {
         setLoading(false);
+        setError("Non authentifié");
         return;
       }
 
       try {
+        setLoading(true);
+        setError(null);
+        
         const response = await fetch("https://vakio-boky-backend.onrender.com/api/profile", {
           headers: {
             Authorization: `Bearer ${user.token}`,
@@ -923,13 +934,18 @@ export default function Profile() {
           },
         });
 
+        // Vérifier si la réponse est OK
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+
         const data = await response.json();
 
-        if (data.user) {
-          // Nettoyer l'URL de l'image de profil
+        if (data.success && data.user) {
+          // Nettoyer l'URL de l'image de profil - peut être null
           const cleanedUser = {
             ...data.user,
-            photo_profil: getProfileImageUrl(data.user.photo_profil)
+            photo_profil: getSafeProfileImage(data.user.photo_profil)
           };
           setProfileData(cleanedUser);
         } else {
@@ -937,7 +953,7 @@ export default function Profile() {
         }
       } catch (err) {
         console.error("Erreur chargement profil:", err);
-        setError("Impossible de se connecter au serveur");
+        setError(err.message || "Impossible de se connecter au serveur");
       } finally {
         setLoading(false);
       }
@@ -948,10 +964,10 @@ export default function Profile() {
 
   // Handle profile update
   const handleProfileUpdate = (updatedProfile) => {
-    // Nettoyer l'URL de l'image
+    // Nettoyer l'URL de l'image - peut être null
     const cleanedProfile = {
       ...updatedProfile,
-      photo_profil: getProfileImageUrl(updatedProfile.photo_profil)
+      photo_profil: getSafeProfileImage(updatedProfile.photo_profil)
     };
     setProfileData(cleanedProfile);
   };
@@ -959,6 +975,21 @@ export default function Profile() {
   // Handle edit button click
   const handleEditClick = () => {
     setIsEditModalOpen(true);
+  };
+
+  // Formatage de la date - rendu sécurisé
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      // Vérifier si la date est valide
+      if (isNaN(date.getTime())) {
+        return 'N/A';
+      }
+      return date.getFullYear();
+    } catch {
+      return 'N/A';
+    }
   };
 
   const statCards = [
@@ -1062,8 +1093,33 @@ export default function Profile() {
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
             Erreur de chargement
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
             {error || statsError}
+          </p>
+          <div className="space-x-4">
+            <Button variant="primary" onClick={() => window.location.reload()}>
+              Réessayer
+            </Button>
+            <Button variant="outline" onClick={() => window.location.href = "/"}>
+              Retour à l'accueil
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Si pas de profileData mais pas d'erreur non plus (cas limite)
+  if (!profileData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <FiUser className="text-6xl text-gray-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Profil non disponible
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Impossible de charger les données de votre profil.
           </p>
           <Button variant="primary" onClick={() => window.location.reload()}>
             Réessayer
@@ -1072,17 +1128,6 @@ export default function Profile() {
       </div>
     );
   }
-
-  // Formatage de la date
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    try {
-      const date = new Date(dateString);
-      return date.getFullYear();
-    } catch {
-      return 'N/A';
-    }
-  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 px-4 py-8">
@@ -1093,25 +1138,38 @@ export default function Profile() {
           <div className="flex flex-col md:flex-row items-center md:items-end -mt-16 mb-6">
             <div className="relative">
               <div className="w-32 h-32 bg-white rounded-full border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
+                {/* Gestion améliorée de l'image de profil */}
                 {profileData?.photo_profil ? (
                   <img
                     src={profileData.photo_profil}
                     alt="Photo de profil"
                     className="w-full h-full object-cover"
                     onError={(e) => {
+                      // Si l'image ne peut pas être chargée, afficher un fallback
                       e.target.onerror = null;
-                      e.target.src = "/assets/images/profiles/profile-default.png";
+                      e.target.style.display = 'none';
+                      e.target.parentElement.innerHTML = `
+                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                          <span class="text-3xl font-bold text-gray-400">
+                            ${profileData?.nom?.charAt(0)?.toUpperCase() || 'U'}
+                          </span>
+                        </div>
+                      `;
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                    <FiUser className="text-4xl text-gray-400" />
+                  // Si pas de photo_profil, afficher un avatar avec l'initiale
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
+                    <span className="text-4xl font-bold text-blue-600">
+                      {profileData?.nom?.charAt(0)?.toUpperCase() || 'U'}
+                    </span>
                   </div>
                 )}
               </div>
               <button
                 onClick={handleEditClick}
-                className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+                className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                aria-label="Modifier la photo de profil"
               >
                 <FiCamera className="text-sm" />
               </button>
@@ -1140,42 +1198,59 @@ export default function Profile() {
           </div>
 
           {/* Profile Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <FiMail className="text-blue-600" />
-              <div>
-                <p className="text-sm text-gray-500">Email</p>
-                <p className="font-medium">{profileData?.email || "Non renseigné"}</p>
+              <FiMail className="text-blue-600 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm text-gray-500 truncate">Email</p>
+                <p className="font-medium truncate">{profileData?.email || "Non renseigné"}</p>
               </div>
             </div>
+            
             {profileData?.telephone && (
               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <FiPhone className="text-green-600" />
-                <div>
-                  <p className="text-sm text-gray-500">Téléphone</p>
-                  <p className="font-medium">{profileData.telephone}</p>
+                <FiPhone className="text-green-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-500 truncate">Téléphone</p>
+                  <p className="font-medium truncate">{profileData.telephone}</p>
                 </div>
               </div>
             )}
+            
             {profileData?.genre_prefere && (
               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <FiBook className="text-purple-600" />
-                <div>
-                  <p className="text-sm text-gray-500">Genre préféré</p>
-                  <p className="font-medium">{profileData.genre_prefere}</p>
+                <FiBook className="text-purple-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-500 truncate">Genre préféré</p>
+                  <p className="font-medium truncate">{profileData.genre_prefere}</p>
                 </div>
               </div>
             )}
-            {profileData?.role && (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg md:col-span-1">
-                <FiUser className="text-orange-600" />
-                <div>
-                  <p className="text-sm text-gray-500">Rôle</p>
-                  <p className="font-medium capitalize">{profileData.role}</p>
+            
+            {profileData?.role && profileData.role !== 'user' && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <FiUser className="text-orange-600 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-500 truncate">Rôle</p>
+                  <p className="font-medium truncate capitalize">{profileData.role}</p>
                 </div>
               </div>
             )}
           </div>
+          
+          {/* Newsletter subscription */}
+          {profileData?.accepte_newsletter !== undefined && (
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${profileData.accepte_newsletter ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                <span className="text-sm text-gray-700">
+                  {profileData.accepte_newsletter 
+                    ? "✓ Abonné à la newsletter" 
+                    : "✗ Non abonné à la newsletter"}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1186,7 +1261,7 @@ export default function Profile() {
           <h2 className="text-2xl font-bold text-gray-900">Vos statistiques</h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
           {statCards.map((stat, index) => (
             <div
               key={index}
@@ -1195,7 +1270,7 @@ export default function Profile() {
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <div className="text-xl sm:text-2xl">{stat.icon}</div>
                 <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-                  {stat.value}
+                  {stat.value.toLocaleString()}
                 </div>
               </div>
               <h3 className="text-sm font-medium text-gray-600">
@@ -1205,10 +1280,34 @@ export default function Profile() {
           ))}
         </div>
 
+        {/* Summary statistics */}
+        {statistics && (
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500">Activité totale</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {((statistics.postsCount || 0) + (statistics.commentsMadeCount || 0) + (statistics.booksPublishedCount || 0)).toLocaleString()}
+              </p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500">Engagement</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {((statistics.clubsJoinedCount || 0) + (statistics.eventsRegisteredCount || 0)).toLocaleString()}
+              </p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-500">Lecture</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {statistics.booksReadCount || 0} livres
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Achievement Message */}
         <div className="mt-8 p-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-200">
-          <div className="flex items-center gap-3">
-            <FiAward className="text-yellow-600 text-2xl" />
+          <div className="flex items-start gap-3">
+            <FiAward className="text-yellow-600 text-2xl flex-shrink-0 mt-1" />
             <div>
               <h3 className="font-bold text-gray-900 mb-1">
                 Félicitations pour votre engagement !
@@ -1223,12 +1322,14 @@ export default function Profile() {
       </div>
 
       {/* Profile Edit Modal */}
-      <ProfileEditModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        profileData={profileData}
-        onProfileUpdate={handleProfileUpdate}
-      />
+      {profileData && (
+        <ProfileEditModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          profileData={profileData}
+          onProfileUpdate={handleProfileUpdate}
+        />
+      )}
     </div>
   );
 }
