@@ -1,5 +1,5 @@
+// import nodemailer from "nodemailer";
 import nodemailer from "nodemailer";
-
 const Contact = async (req, res) => {
   const { nom, email, message } = req.body;
 
