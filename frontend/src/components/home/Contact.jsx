@@ -27,7 +27,7 @@ const ContactForm = () => {
     setError('');
     setSuccess(false);
 
-    // Validation basique
+    // Validation
     if (!formData.name || !formData.email || !formData.message) {
       setError('Tous les champs sont requis.');
       setLoading(false);
@@ -41,49 +41,53 @@ const ContactForm = () => {
     }
 
     try {
-      console.log('📤 Envoi email via EmailJS...');
+      console.log('📤 Envoi email de contact...');
       
-      // TES CLÉS EMAILJS ICI :
+      // TES CLÉS EMAILJS - CORRIGÉ :
       const serviceID = 'service_z677nyy';
-      const templateID = 'template_br9wwbb';
+      const templateID = 'template_psskkv7'; // ⬅️ CHANGE ICI !!!
       const publicKey = 'WBgfZB8Vl4vTsHiUZ';
 
+      // VÉRIFIE les variables de ton template contact_to_admin
+      // Regarde dans EmailJS quels {{variables}} sont utilisés
       const templateParams = {
-  from_name: formData.name,     // Devient {{from_name}} dans le template
-  from_email: formData.email,   // Devient {{from_email}}
-  message: formData.message,    // Devient {{message}}
-  date: new Date().toLocaleString('fr-FR') // Devient {{date}}
-  // Note : 'to_email' et 'reply_to' ne sont plus nécessaires ici,
-  // car ils sont déjà définis dans le template EmailJS.
-};
+        // Variables PROBABLES (à vérifier dans ton template) :
+        from_name: formData.name,     // Probablement {{from_name}}
+        from_email: formData.email,   // Probablement {{from_email}}  
+        message: formData.message,    // Probablement {{message}}
+        subject: 'Nouveau message Vakio Boky', // Peut-être {{subject}}
+        date: new Date().toLocaleString('fr-FR'), // Peut-être {{date}}
+        
+        // AJOUTE AUSSI (si tu veux) :
+        to_email: 'fanirynomena11@gmail.com' // Si tu veux spécifier
+      };
 
       console.log('🔧 Configuration:', { serviceID, templateID, publicKey });
       console.log('📝 Données:', templateParams);
 
       const result = await emailjs.send(
         serviceID,
-        templateID,
+        templateID, // ⬅️ Utilise template_psskkv7 maintenant
         templateParams,
         publicKey
       );
 
-      console.log('✅ Email envoyé avec succès:', result);
+      console.log('✅ Email de contact envoyé:', result);
       
-      // Réinitialiser le formulaire
+      // Réinitialiser
       setFormData({ name: '', email: '', message: '' });
       setSuccess(true);
       
-      // Cacher le message de succès après 5 secondes
       setTimeout(() => setSuccess(false), 5000);
       
     } catch (error) {
       console.error('❌ Erreur EmailJS:', error);
       
-      // Messages d'erreur plus clairs
+      // Messages d'erreur spécifiques
       if (error.text?.includes('Invalid template ID')) {
-        setError('Erreur de configuration du template email.');
-      } else if (error.text?.includes('Invalid user ID')) {
-        setError('Clé API incorrecte.');
+        setError('Erreur: Mauvais template ID. Utilise template_psskkv7 pour le contact.');
+      } else if (error.text?.includes('recipients address is empty')) {
+        setError('Erreur: Champ "To Email" vide dans le template. Vérifie EmailJS dashboard.');
       } else {
         setError(`Erreur d'envoi: ${error.message || 'Veuillez réessayer.'}`);
       }
@@ -227,11 +231,43 @@ const ContactForm = () => {
         </p>
       </form>
 
+      {/* Section debug/test */}
       <div className="mt-8 pt-6 border-t border-gray-200">
-        <p className="text-gray-600 text-sm">
-          <strong>💡 Fonctionnalité :</strong> Ce formulaire utilise EmailJS pour envoyer 
-          directement les messages depuis votre navigateur. Aucun serveur backend n'est nécessaire.
-        </p>
+        <div className="flex flex-col gap-3">
+          <button 
+            onClick={async () => {
+              console.log("🧪 Test template contact...");
+              try {
+                const result = await emailjs.send(
+                  'service_z677nyy',
+                  'template_psskkv7',
+                  {
+                    from_name: 'Test Nom',
+                    from_email: 'test@email.com',
+                    message: 'Ceci est un test',
+                    subject: 'Test technique',
+                    date: new Date().toLocaleString('fr-FR'),
+                    to_email: 'fanirynomena11@gmail.com'
+                  },
+                  'WBgfZB8Vl4vTsHiUZ'
+                );
+                console.log('✅ Test réussi:', result);
+                alert('Test réussi ! Vérifie ton email fanirynomena11@gmail.com');
+              } catch (err) {
+                console.error('❌ Test échoué:', err);
+                alert(`Erreur: ${err.text || err.message}`);
+              }
+            }}
+            className="text-sm text-blue-600 underline text-center"
+          >
+            Tester le template contact_to_admin
+          </button>
+          
+          <p className="text-gray-600 text-sm">
+            <strong>💡 Fonctionnalité :</strong> Ce formulaire utilise EmailJS pour envoyer 
+            directement les messages depuis votre navigateur. Aucun serveur backend n'est nécessaire.
+          </p>
+        </div>
       </div>
     </motion.div>
   );
