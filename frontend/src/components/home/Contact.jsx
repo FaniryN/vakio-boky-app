@@ -49,13 +49,13 @@ const ContactForm = () => {
       const publicKey = 'WBgfZB8Vl4vTsHiUZ';
 
       const templateParams = {
-        from_name: formData.name,
-        from_email: formData.email,
-        message: formData.message,
-        to_email: 'fanirynomena11@gmail.com',
-        reply_to: formData.email,
-        date: new Date().toLocaleString('fr-FR')
-      };
+  from_name: formData.name,     // Devient {{from_name}} dans le template
+  from_email: formData.email,   // Devient {{from_email}}
+  message: formData.message,    // Devient {{message}}
+  date: new Date().toLocaleString('fr-FR') // Devient {{date}}
+  // Note : 'to_email' et 'reply_to' ne sont plus nécessaires ici,
+  // car ils sont déjà définis dans le template EmailJS.
+};
 
       console.log('🔧 Configuration:', { serviceID, templateID, publicKey });
       console.log('📝 Données:', templateParams);
