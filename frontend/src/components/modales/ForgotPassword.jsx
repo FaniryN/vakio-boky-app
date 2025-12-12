@@ -1,47 +1,74 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FiMail, FiArrowLeft } from "react-icons/fi";
+import { FiMail, FiArrowLeft, FiCheckCircle } from "react-icons/fi";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useNavigate } from "react-router-dom";
+import emailjs from "@emailjs/browser";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
 
   const navigate = useNavigate();
+
+  const EMAILJS_CONFIG = {
+    serviceId: "service_z677nyy",
+    templateId: "template_br9wwbb",
+    publicKey: "WBgfZB8Vl4vTsHiUZ"
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+    setMessageType("");
 
     try {
       const response = await fetch(
         "https://vakio-boky-backend.onrender.com/api/auth/forgot-password",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
         }
       );
 
       const data = await response.json();
 
-      if (response.ok) {
-        setMessage("📧 Un code de vérification a été envoyé à votre email");
+      if (response.ok && data.emailData) {
+        const emailResult = await emailjs.send(
+          EMAILJS_CONFIG.serviceId,
+          EMAILJS_CONFIG.templateId,
+          {
+            to_email: data.emailData.user_email,
+            from_name: "Vakio Boky",
+            from_email: "noreply@vakioboky.com",
+            user_name: data.emailData.user_name,
+            reset_code: data.emailData.reset_code,
+            expiration_time: `${data.emailData.expiration_minutes} minutes`,
+            date: new Date().toLocaleDateString('fr-FR')
+          },
+          EMAILJS_CONFIG.publicKey
+        );
+
+        setMessageType("success");
+        setMessage(`✅ Code envoyé à ${email}`);
         localStorage.setItem("resetEmail", email);
+        
         setTimeout(() => {
           navigate("/verify-code");
         }, 2000);
+        
       } else {
-        setMessage(data.error || "Erreur lors de l'envoi du code");
+        setMessageType("error");
+        setMessage(data.error || "Erreur lors de la génération du code");
       }
     } catch (error) {
       console.error("Erreur:", error);
+      setMessageType("error");
       setMessage("Erreur de connexion au serveur");
     } finally {
       setLoading(false);
@@ -74,9 +101,7 @@ export default function ForgotPassword() {
             className="bg-blue-800 text-white rounded-lg px-4 py-3 inline-block mb-4"
           >
             <span className="block font-bold text-lg">#Vakio_Boky</span>
-            <span className="block text-sm font-light">
-              Communauté Littéraire
-            </span>
+            <span className="block text-sm font-light">Communauté Littéraire</span>
           </motion.div>
 
           <motion.h1
@@ -119,6 +144,7 @@ export default function ForgotPassword() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
               />
             </motion.div>
           </div>
@@ -127,13 +153,16 @@ export default function ForgotPassword() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className={`p-3 rounded-lg text-sm ${
-                message.includes("code")
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
+              className={`p-4 rounded-xl ${
+                messageType === "success" 
+                  ? "bg-green-50 border border-green-200 text-green-800" 
+                  : "bg-red-50 border border-red-200 text-red-800"
               }`}
             >
-              {message}
+              <div className="flex items-center gap-3">
+                {messageType === "success" && <FiCheckCircle className="text-green-600 text-lg" />}
+                <p className="font-medium">{message}</p>
+              </div>
             </motion.div>
           )}
 
@@ -145,9 +174,14 @@ export default function ForgotPassword() {
               disabled={loading}
               className="w-full"
             >
-              {loading
-                ? "Envoi en cours..."
-                : "Envoyer le code de vérification"}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Envoi en cours...
+                </span>
+              ) : (
+                "Envoyer le code de vérification"
+              )}
             </Button>
           </motion.div>
 
