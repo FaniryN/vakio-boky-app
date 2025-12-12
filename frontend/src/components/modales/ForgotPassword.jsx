@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FiMail, FiArrowLeft, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import {
+  FiMail,
+  FiArrowLeft,
+  FiCheckCircle,
+  FiAlertCircle,
+} from "react-icons/fi";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useNavigate } from "react-router-dom";
@@ -17,18 +22,127 @@ export default function ForgotPassword() {
   const EMAILJS_CONFIG = {
     serviceId: "service_z677nyy",
     templateId: "template_br9wwbb",
-    publicKey: "WBgfZB8Vl4vTsHiUZ"
+    publicKey: "WBgfZB8Vl4vTsHiUZ",
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setMessage("");
+  //   setMessageType("");
+
+  //   try {
+  //     console.log("📤 Envoi de la demande pour:", email);
+
+  //     const response = await fetch(
+  //       "https://vakio-boky-backend.onrender.com/api/auth/forgot-password",
+  //       {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({ email }),
+  //       }
+  //     );
+
+  //     const data = await response.json();
+  //     console.log("📦 RÉPONSE BACKEND:", data);
+
+  //     if (response.ok) {
+  //       // VÉRIFICATION 1 : Le backend retourne-t-il emailData ?
+  //       if (data.emailData) {
+  //         console.log("✅ emailData trouvé:", data.emailData);
+
+  //         // Option 1: Structure emailData
+  //         const templateParams = {
+  //           user_email: data.emailData.user_email || email,
+  //           user_name: data.emailData.user_name || "Utilisateur",
+  //           reset_code: data.emailData.reset_code,
+  //           expiration_time: data.emailData.expiration_minutes ?
+  //             `${data.emailData.expiration_minutes} minutes` : "15 minutes",
+  //           date: new Date().toLocaleDateString('fr-FR')
+  //         };
+
+  //         console.log("📝 Envoi email avec:", templateParams);
+
+  //         try {
+  //           // Envoyer via EmailJS
+  //           await emailjs.send(
+  //             EMAILJS_CONFIG.serviceId,
+  //             EMAILJS_CONFIG.templateId,
+  //             templateParams,
+  //             EMAILJS_CONFIG.publicKey
+  //           );
+
+  //           console.log("✅ Email envoyé avec succès");
+
+  //         } catch (emailError) {
+  //           console.warn("⚠️ Erreur EmailJS (mode DEV):", emailError);
+  //           // En développement, on continue même sans email
+  //         }
+
+  //       }
+  //       // VÉRIFICATION 2: Le backend retourne-t-il directement le code ?
+  //       else if (data.resetCode) {
+  //         console.log("✅ Code reçu directement:", data.resetCode);
+
+  //         // Stocker le code pour la page de vérification
+  //         localStorage.setItem("devResetCode", data.resetCode);
+
+  //         // Essayer d'envoyer un email quand même
+  //         try {
+  //           await emailjs.send(
+  //             EMAILJS_CONFIG.serviceId,
+  //             EMAILJS_CONFIG.templateId,
+  //             {
+  //               user_email: email,
+  //               user_name: "Utilisateur",
+  //               reset_code: data.resetCode,
+  //               expiration_time: "15 minutes",
+  //               date: new Date().toLocaleDateString('fr-FR')
+  //             },
+  //             EMAILJS_CONFIG.publicKey
+  //           );
+  //         } catch (emailError) {
+  //           console.warn("⚠️ Email non envoyé (OK en DEV)");
+  //         }
+  //       }
+
+  //       // SUCCÈS dans tous les cas
+  //       console.log("🎯 Redirection vers verify-code");
+  //       setMessageType("success");
+  //       setMessage(`✅ Code généré et envoyé à ${email}`);
+
+  //       // Stocker l'email pour les pages suivantes
+  //       localStorage.setItem("resetEmail", email);
+
+  //       // Attendre 2 secondes puis rediriger
+  //       setTimeout(() => {
+  //         navigate("/verify-code");
+  //       }, 2000);
+
+  //     } else {
+  //       // ERREUR du backend
+  //       console.error("❌ Erreur backend:", data);
+  //       setMessageType("error");
+  //       setMessage(data.error || "Erreur lors de la demande");
+  //     }
+
+  //   } catch (error) {
+  //     console.error("❌ Erreur réseau:", error);
+  //     setMessageType("error");
+  //     setMessage("Erreur de connexion au serveur");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
-    setMessageType("");
 
     try {
-      console.log("📤 Envoi de la demande pour:", email);
-      
+      console.log("📤 Demande pour:", email);
+
+      // 1. Demander le code au backend
       const response = await fetch(
         "https://vakio-boky-backend.onrender.com/api/auth/forgot-password",
         {
@@ -39,97 +153,65 @@ export default function ForgotPassword() {
       );
 
       const data = await response.json();
-      console.log("📦 RÉPONSE BACKEND:", data);
+      console.log("📦 Réponse:", data);
 
       if (response.ok) {
-        // VÉRIFICATION 1 : Le backend retourne-t-il emailData ?
-        if (data.emailData) {
-          console.log("✅ emailData trouvé:", data.emailData);
-          
-          // Option 1: Structure emailData
-          const templateParams = {
-            user_email: data.emailData.user_email || email,
-            user_name: data.emailData.user_name || "Utilisateur",
-            reset_code: data.emailData.reset_code,
-            expiration_time: data.emailData.expiration_minutes ? 
-              `${data.emailData.expiration_minutes} minutes` : "15 minutes",
-            date: new Date().toLocaleDateString('fr-FR')
-          };
-          
-          console.log("📝 Envoi email avec:", templateParams);
-          
-          try {
-            // Envoyer via EmailJS
-            await emailjs.send(
-              EMAILJS_CONFIG.serviceId,
-              EMAILJS_CONFIG.templateId,
-              templateParams,
-              EMAILJS_CONFIG.publicKey
-            );
-            
-            console.log("✅ Email envoyé avec succès");
-            
-          } catch (emailError) {
-            console.warn("⚠️ Erreur EmailJS (mode DEV):", emailError);
-            // En développement, on continue même sans email
-          }
-          
-        } 
-        // VÉRIFICATION 2: Le backend retourne-t-il directement le code ?
-        else if (data.resetCode) {
-          console.log("✅ Code reçu directement:", data.resetCode);
-          
-          // Stocker le code pour la page de vérification
-          localStorage.setItem("devResetCode", data.resetCode);
-          
-          // Essayer d'envoyer un email quand même
-          try {
-            await emailjs.send(
-              EMAILJS_CONFIG.serviceId,
-              EMAILJS_CONFIG.templateId,
-              {
-                user_email: email,
-                user_name: "Utilisateur",
-                reset_code: data.resetCode,
-                expiration_time: "15 minutes",
-                date: new Date().toLocaleDateString('fr-FR')
-              },
-              EMAILJS_CONFIG.publicKey
-            );
-          } catch (emailError) {
-            console.warn("⚠️ Email non envoyé (OK en DEV)");
-          }
+        // 2. Récupérer le code du backend
+        let resetCode = "";
+
+        if (data.emailData && data.emailData.reset_code) {
+          resetCode = data.emailData.reset_code;
+        } else if (data.resetCode) {
+          resetCode = data.resetCode;
+        } else {
+          // Fallback: générer un code simple
+          resetCode = Math.floor(100000 + Math.random() * 900000).toString();
         }
-        
-        // SUCCÈS dans tous les cas
-        console.log("🎯 Redirection vers verify-code");
-        setMessageType("success");
-        setMessage(`✅ Code généré et envoyé à ${email}`);
-        
-        // Stocker l'email pour les pages suivantes
-        localStorage.setItem("resetEmail", email);
-        
-        // Attendre 2 secondes puis rediriger
-        setTimeout(() => {
-          navigate("/verify-code");
-        }, 2000);
-        
+
+        console.log("🔑 Code à envoyer:", resetCode);
+
+        // 3. Envoyer l'email via EmailJS
+        try {
+          await emailjs.send(
+            "service_z677nyy", // Ton service ID
+            "template_br9wwbb", // Ton template ID
+            {
+              user_email: email, // À QUI envoyer
+              user_name: "Utilisateur Vakio Boky", // Nom par défaut
+              reset_code: resetCode, // Le code
+              expiration_time: "15 minutes",
+              date: new Date().toLocaleDateString("fr-FR"),
+            },
+            "WBgfZB8Vl4vTsHiUZ" // Ta clé publique
+          );
+
+          console.log("✅ Email envoyé à:", email);
+          setMessage(`✅ Code envoyé à ${email}`);
+
+          // Stocker pour la vérification
+          localStorage.setItem("resetEmail", email);
+          localStorage.setItem("devResetCode", resetCode); // Pour debug
+
+          setTimeout(() => navigate("/verify-code"), 2000);
+        } catch (emailError) {
+          console.warn("⚠️ Email non envoyé, mais code généré:", resetCode);
+          // Mode DEV : montrer le code directement
+          setMessage(`🔑 Code de test: ${resetCode} (email désactivé)`);
+          localStorage.setItem("resetEmail", email);
+          localStorage.setItem("devResetCode", resetCode);
+
+          setTimeout(() => navigate("/verify-code"), 3000);
+        }
       } else {
-        // ERREUR du backend
-        console.error("❌ Erreur backend:", data);
-        setMessageType("error");
-        setMessage(data.error || "Erreur lors de la demande");
+        setMessage(data.error || "Erreur");
       }
-      
     } catch (error) {
-      console.error("❌ Erreur réseau:", error);
-      setMessageType("error");
-      setMessage("Erreur de connexion au serveur");
+      console.error("❌ Erreur:", error);
+      setMessage("Erreur de connexion");
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
       <motion.div
@@ -156,7 +238,9 @@ export default function ForgotPassword() {
             className="bg-blue-800 text-white rounded-lg px-4 py-3 inline-block mb-4"
           >
             <span className="block font-bold text-lg">#Vakio_Boky</span>
-            <span className="block text-sm font-light">Communauté Littéraire</span>
+            <span className="block text-sm font-light">
+              Communauté Littéraire
+            </span>
           </motion.div>
 
           <motion.h1
@@ -209,8 +293,8 @@ export default function ForgotPassword() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className={`p-4 rounded-xl flex items-start gap-3 ${
-                messageType === "success" 
-                  ? "bg-green-50 border border-green-200 text-green-800" 
+                messageType === "success"
+                  ? "bg-green-50 border border-green-200 text-green-800"
                   : "bg-red-50 border border-red-200 text-red-800"
               }`}
             >
@@ -250,7 +334,12 @@ export default function ForgotPassword() {
           </motion.div>
 
           <div className="text-center text-sm text-blue-600">
-            <p>Utilisez : <span className="font-mono bg-blue-100 px-2 py-1 rounded">fanirynomena11@gmail.com</span></p>
+            <p>
+              Utilisez :{" "}
+              <span className="font-mono bg-blue-100 px-2 py-1 rounded">
+                fanirynomena11@gmail.com
+              </span>
+            </p>
           </div>
 
           <motion.div
