@@ -26,10 +26,9 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     rollupOptions: {
-      input: {
-        main: './index.html'
-      }
+      input: './index.html'
     }
+  
   },
   server: {
     historyApiFallback: true
