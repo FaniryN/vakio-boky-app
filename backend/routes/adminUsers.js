@@ -33,7 +33,7 @@ router.get("/", authenticateToken, requireAdmin, async (req, res) => {
 
 // GET un utilisateur spécifique
 // router.get("/:id", adminGuard, async (req, res) => {
- router.get("/id", authenticateToken, requireAdmin, async (req, res) => {
+ router.get("/:id", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -67,7 +67,7 @@ router.get("/", authenticateToken, requireAdmin, async (req, res) => {
 
 // PUT modifier un utilisateur
 // router.put("/:id", adminGuard, async (req, res) => {
-router.put("/id", authenticateToken, requireAdmin, async (req, res) => {
+router.put("/:id", authenticateToken, requireAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -130,7 +130,7 @@ router.put("/id", authenticateToken, requireAdmin, async (req, res) => {
 
 // PUT modifier le rôle d'un utilisateur
 // router.put("/:id/promote", adminGuard, async (req, res) => {
-  router.put("/id/promote", authenticateToken, requireAdmin, async (req, res) => {
+  router.put("/:id/promote", authenticateToken, requireAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -200,7 +200,7 @@ router.put("/id", authenticateToken, requireAdmin, async (req, res) => {
 
 // PUT bloquer/débloquer un utilisateur
 // router.put("/:id/block", adminGuard, async (req, res) => {
-  router.put("/id/block", authenticateToken, requireAdmin, async (req, res) => {
+  router.put("/:id/block", authenticateToken, requireAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {
@@ -289,7 +289,7 @@ router.put("/id", authenticateToken, requireAdmin, async (req, res) => {
 
 // DELETE supprimer un utilisateur - VERSION FINALE ADAPTÉE À VOTRE SCHÉMA
 // router.delete("/:id", adminGuard, async (req, res) => {
-  router.delete("/id", authenticateToken, requireAdmin, async (req, res) => {
+  router.delete("/:id", authenticateToken, requireAdmin, async (req, res) => {
   const client = await pool.connect();
   
   try {
