@@ -427,55 +427,50 @@ const getAllUsers = async (req, res) => {
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        error: "Email requis",
-      });
+    
+    // 1. Vérifier l'utilisateur
+    const user = await db.oneOrNone('SELECT * FROM users WHERE email = $1', [email]);
+    
+    if (!user) {
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
     }
-
-    const result = await pool.query(
-      "SELECT id, nom FROM utilisateur WHERE email = $1",
-      [email]
-    );
-
-    if (result.rows.length === 0) {
-      return res.json({
-        success: true,
-        message: "Si l'email existe, un code de réinitialisation a été envoyé",
-      });
-    }
-
-    const user = result.rows[0];
+    
+    // 2. Générer un code
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const expirationTime =
-      Date.now() + (parseInt(process.env.RESET_CODE_EXPIRES) || 15) * 60 * 1000;
-
-    resetCodes.set(email, {
-      code: resetCode,
-      expires: expirationTime,
-      userId: user.id,
-    });
-
-    console.log(`🔑 Code généré pour ${email}: ${resetCode}`);
-
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    
+    // 3. Sauvegarder dans la base
+    await db.none(
+      'INSERT INTO password_resets (user_id, reset_code, expires_at) VALUES ($1, $2, $3)',
+      [user.id, resetCode, expiresAt]
+    );
+    
+    // 4. Envoyer l'email via SendGrid
+    const msg = {
+      to: email,  // Email de l'utilisateur
+      from: 'fanirynomena11@gmail.com',  // Ton email vérifié
+      templateId: 'd-xxxxxxxxxxxxxxxxxxxx',  // Ton template ID
+      dynamicTemplateData: {
+        user_name: user.nom || "Utilisateur Vakio Boky",
+        user_email: email,
+        reset_code: resetCode
+      }
+    };
+    
+    await sgMail.send(msg);
+    
+    console.log(`📧 Email envoyé à ${email}, code: ${resetCode}`);
+    
+    // 5. Répondre au frontend
     res.json({
       success: true,
-      message: "Code généré avec succès",
-      emailData: {
-        user_email: email,
-        user_name: user.nom,
-        reset_code: resetCode,
-        expiration_minutes: process.env.RESET_CODE_EXPIRES || 15,
-      },
+      message: "Email envoyé avec succès",
+      resetCode: resetCode  // Pour le mode DEV
     });
+    
   } catch (error) {
-    console.error("Erreur forgotPassword:", error);
-    res.status(500).json({
-      success: false,
-      error: "Erreur serveur",
-    });
+    console.error("❌ Erreur forgotPassword:", error);
+    res.status(500).json({ error: "Erreur lors de l'envoi de l'email" });
   }
 };
 // Vérification du code

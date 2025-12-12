@@ -1,15 +1,9 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  FiMail,
-  FiArrowLeft,
-  FiCheckCircle,
-  FiAlertCircle,
-} from "react-icons/fi";
+import { FiMail, FiArrowLeft, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useNavigate } from "react-router-dom";
-import emailjs from "@emailjs/browser";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -19,130 +13,16 @@ export default function ForgotPassword() {
 
   const navigate = useNavigate();
 
-  const EMAILJS_CONFIG = {
-    serviceId: "service_z677nyy",
-    templateId: "template_br9wwbb",
-    publicKey: "WBgfZB8Vl4vTsHiUZ",
-  };
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setLoading(true);
-  //   setMessage("");
-  //   setMessageType("");
-
-  //   try {
-  //     console.log("📤 Envoi de la demande pour:", email);
-
-  //     const response = await fetch(
-  //       "https://vakio-boky-backend.onrender.com/api/auth/forgot-password",
-  //       {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({ email }),
-  //       }
-  //     );
-
-  //     const data = await response.json();
-  //     console.log("📦 RÉPONSE BACKEND:", data);
-
-  //     if (response.ok) {
-  //       // VÉRIFICATION 1 : Le backend retourne-t-il emailData ?
-  //       if (data.emailData) {
-  //         console.log("✅ emailData trouvé:", data.emailData);
-
-  //         // Option 1: Structure emailData
-  //         const templateParams = {
-  //           user_email: data.emailData.user_email || email,
-  //           user_name: data.emailData.user_name || "Utilisateur",
-  //           reset_code: data.emailData.reset_code,
-  //           expiration_time: data.emailData.expiration_minutes ?
-  //             `${data.emailData.expiration_minutes} minutes` : "15 minutes",
-  //           date: new Date().toLocaleDateString('fr-FR')
-  //         };
-
-  //         console.log("📝 Envoi email avec:", templateParams);
-
-  //         try {
-  //           // Envoyer via EmailJS
-  //           await emailjs.send(
-  //             EMAILJS_CONFIG.serviceId,
-  //             EMAILJS_CONFIG.templateId,
-  //             templateParams,
-  //             EMAILJS_CONFIG.publicKey
-  //           );
-
-  //           console.log("✅ Email envoyé avec succès");
-
-  //         } catch (emailError) {
-  //           console.warn("⚠️ Erreur EmailJS (mode DEV):", emailError);
-  //           // En développement, on continue même sans email
-  //         }
-
-  //       }
-  //       // VÉRIFICATION 2: Le backend retourne-t-il directement le code ?
-  //       else if (data.resetCode) {
-  //         console.log("✅ Code reçu directement:", data.resetCode);
-
-  //         // Stocker le code pour la page de vérification
-  //         localStorage.setItem("devResetCode", data.resetCode);
-
-  //         // Essayer d'envoyer un email quand même
-  //         try {
-  //           await emailjs.send(
-  //             EMAILJS_CONFIG.serviceId,
-  //             EMAILJS_CONFIG.templateId,
-  //             {
-  //               user_email: email,
-  //               user_name: "Utilisateur",
-  //               reset_code: data.resetCode,
-  //               expiration_time: "15 minutes",
-  //               date: new Date().toLocaleDateString('fr-FR')
-  //             },
-  //             EMAILJS_CONFIG.publicKey
-  //           );
-  //         } catch (emailError) {
-  //           console.warn("⚠️ Email non envoyé (OK en DEV)");
-  //         }
-  //       }
-
-  //       // SUCCÈS dans tous les cas
-  //       console.log("🎯 Redirection vers verify-code");
-  //       setMessageType("success");
-  //       setMessage(`✅ Code généré et envoyé à ${email}`);
-
-  //       // Stocker l'email pour les pages suivantes
-  //       localStorage.setItem("resetEmail", email);
-
-  //       // Attendre 2 secondes puis rediriger
-  //       setTimeout(() => {
-  //         navigate("/verify-code");
-  //       }, 2000);
-
-  //     } else {
-  //       // ERREUR du backend
-  //       console.error("❌ Erreur backend:", data);
-  //       setMessageType("error");
-  //       setMessage(data.error || "Erreur lors de la demande");
-  //     }
-
-  //   } catch (error) {
-  //     console.error("❌ Erreur réseau:", error);
-  //     setMessageType("error");
-  //     setMessage("Erreur de connexion au serveur");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+    setMessageType("");
 
     try {
       console.log("📤 Demande pour:", email);
 
-      // 1. Demander le code au backend
+      // 1. Appeler le backend qui va utiliser SendGrid
       const response = await fetch(
         "https://vakio-boky-backend.onrender.com/api/auth/forgot-password",
         {
@@ -153,65 +33,54 @@ export default function ForgotPassword() {
       );
 
       const data = await response.json();
-      console.log("📦 Réponse:", data);
+      console.log("📦 Réponse backend:", data);
 
       if (response.ok) {
-        // 2. Récupérer le code du backend
-        let resetCode = "";
-
-        if (data.emailData && data.emailData.reset_code) {
-          resetCode = data.emailData.reset_code;
-        } else if (data.resetCode) {
-          resetCode = data.resetCode;
+        // SUCCÈS - Le backend a envoyé l'email via SendGrid
+        console.log("✅ Email envoyé via SendGrid");
+        
+        // Stocker l'email pour les pages suivantes
+        localStorage.setItem("resetEmail", email);
+        
+        // Si le backend retourne le code (pour debug en développement)
+        if (data.resetCode) {
+          localStorage.setItem("devResetCode", data.resetCode);
+          console.log("🔑 Code (pour DEV):", data.resetCode);
+          
+          // Afficher un message spécial en mode DEV
+          if (process.env.NODE_ENV === "development") {
+            setMessageType("warning");
+            setMessage(`🔑 Mode DEV - Code: ${data.resetCode}`);
+          } else {
+            setMessageType("success");
+            setMessage(`✅ Code envoyé à ${email}`);
+          }
         } else {
-          // Fallback: générer un code simple
-          resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+          setMessageType("success");
+          setMessage(`✅ Code envoyé à ${email}. Vérifiez votre boîte de réception.`);
         }
 
-        console.log("🔑 Code à envoyer:", resetCode);
+        // Redirection après 2 secondes
+        setTimeout(() => {
+          navigate("/verify-code");
+        }, 2000);
 
-        // 3. Envoyer l'email via EmailJS
-        try {
-          await emailjs.send(
-            "service_z677nyy", // Ton service ID
-            "template_br9wwbb", // Ton template ID
-            {
-              user_email: email, // À QUI envoyer
-              user_name: "Utilisateur Vakio Boky", // Nom par défaut
-              reset_code: resetCode, // Le code
-              expiration_time: "15 minutes",
-              date: new Date().toLocaleDateString("fr-FR"),
-            },
-            "WBgfZB8Vl4vTsHiUZ" // Ta clé publique
-          );
-
-          console.log("✅ Email envoyé à:", email);
-          setMessage(`✅ Code envoyé à ${email}`);
-
-          // Stocker pour la vérification
-          localStorage.setItem("resetEmail", email);
-          localStorage.setItem("devResetCode", resetCode); // Pour debug
-
-          setTimeout(() => navigate("/verify-code"), 2000);
-        } catch (emailError) {
-          console.warn("⚠️ Email non envoyé, mais code généré:", resetCode);
-          // Mode DEV : montrer le code directement
-          setMessage(`🔑 Code de test: ${resetCode} (email désactivé)`);
-          localStorage.setItem("resetEmail", email);
-          localStorage.setItem("devResetCode", resetCode);
-
-          setTimeout(() => navigate("/verify-code"), 3000);
-        }
       } else {
-        setMessage(data.error || "Erreur");
+        // ERREUR du backend
+        console.error("❌ Erreur backend:", data);
+        setMessageType("error");
+        setMessage(data.error || "Erreur lors de l'envoi du code");
       }
+
     } catch (error) {
-      console.error("❌ Erreur:", error);
-      setMessage("Erreur de connexion");
+      console.error("❌ Erreur réseau:", error);
+      setMessageType("error");
+      setMessage("Erreur de connexion au serveur");
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
       <motion.div
@@ -220,6 +89,7 @@ export default function ForgotPassword() {
         transition={{ duration: 0.5 }}
         className="bg-white rounded-2xl shadow-xl border border-blue-200 p-8 w-full max-w-md"
       >
+        {/* Bouton retour */}
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -230,6 +100,7 @@ export default function ForgotPassword() {
           Retour
         </motion.button>
 
+        {/* En-tête */}
         <div className="text-center mb-8">
           <motion.div
             initial={{ scale: 0 }}
@@ -238,9 +109,7 @@ export default function ForgotPassword() {
             className="bg-blue-800 text-white rounded-lg px-4 py-3 inline-block mb-4"
           >
             <span className="block font-bold text-lg">#Vakio_Boky</span>
-            <span className="block text-sm font-light">
-              Communauté Littéraire
-            </span>
+            <span className="block text-sm font-light">Communauté Littéraire</span>
           </motion.div>
 
           <motion.h1
@@ -262,6 +131,7 @@ export default function ForgotPassword() {
           </motion.p>
         </div>
 
+        {/* Formulaire */}
         <motion.form
           onSubmit={handleSubmit}
           initial={{ opacity: 0 }}
@@ -269,6 +139,7 @@ export default function ForgotPassword() {
           transition={{ delay: 0.5 }}
           className="space-y-6"
         >
+          {/* Champ email */}
           <div className="space-y-2">
             <label className="text-blue-900 text-sm font-medium block">
               Adresse email
@@ -288,21 +159,22 @@ export default function ForgotPassword() {
             </motion.div>
           </div>
 
+          {/* Messages */}
           {message && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className={`p-4 rounded-xl flex items-start gap-3 ${
-                messageType === "success"
-                  ? "bg-green-50 border border-green-200 text-green-800"
+                messageType === "success" 
+                  ? "bg-green-50 border border-green-200 text-green-800" 
+                  : messageType === "warning"
+                  ? "bg-yellow-50 border border-yellow-200 text-yellow-800"
                   : "bg-red-50 border border-red-200 text-red-800"
               }`}
             >
-              {messageType === "success" ? (
-                <FiCheckCircle className="text-green-600 text-lg mt-0.5" />
-              ) : (
-                <FiAlertCircle className="text-red-600 text-lg mt-0.5" />
-              )}
+              {messageType === "success" && <FiCheckCircle className="text-green-600 text-lg mt-0.5" />}
+              {messageType === "warning" && <FiAlertCircle className="text-yellow-600 text-lg mt-0.5" />}
+              {messageType === "error" && <FiAlertCircle className="text-red-600 text-lg mt-0.5" />}
               <div>
                 <p className="font-medium">{message}</p>
                 {messageType === "success" && (
@@ -310,10 +182,16 @@ export default function ForgotPassword() {
                     Redirection vers la page de vérification...
                   </p>
                 )}
+                {messageType === "warning" && (
+                  <p className="text-sm mt-1 text-yellow-700">
+                    En production, un email serait envoyé automatiquement.
+                  </p>
+                )}
               </div>
             </motion.div>
           )}
 
+          {/* Bouton d'envoi */}
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
               variant="primary"
@@ -325,7 +203,7 @@ export default function ForgotPassword() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Traitement en cours...
+                  Envoi en cours...
                 </span>
               ) : (
                 "Envoyer le code de vérification"
@@ -333,15 +211,7 @@ export default function ForgotPassword() {
             </Button>
           </motion.div>
 
-          <div className="text-center text-sm text-blue-600">
-            <p>
-              Utilisez :{" "}
-              <span className="font-mono bg-blue-100 px-2 py-1 rounded">
-                fanirynomena11@gmail.com
-              </span>
-            </p>
-          </div>
-
+          {/* Lien vers la connexion */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -362,13 +232,15 @@ export default function ForgotPassword() {
           </motion.div>
         </motion.form>
 
-        {/* Section debug
-        <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-sm font-medium text-gray-700 mb-1">🔧 Mode Développement</p>
-          <p className="text-xs text-gray-600">
-            Vérifiez la console (F12) pour voir le code généré
+        {/* Section information */}
+        <div className="mt-8 pt-6 border-t border-blue-100">
+          <p className="text-blue-400 text-xs text-center">
+            📧 L'email est envoyé via notre service sécurisé
           </p>
-        </div> */}
+          <p className="text-gray-400 text-xs text-center mt-1">
+            Vérifiez aussi vos spams si vous ne voyez pas l'email
+          </p>
+        </div>
       </motion.div>
     </div>
   );
