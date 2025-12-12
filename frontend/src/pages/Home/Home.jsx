@@ -463,7 +463,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 blur-lg opacity-20 animate-pulse"></div>
           </div>
           <p className="text-gray-600 font-medium">
-            Chargement de votre sanctuaire littéraire...ca change
+            Chargement de votre sanctuaire littéraire...
           </p>
         </div>
       </div>
