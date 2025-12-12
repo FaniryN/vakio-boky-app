@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 // Configuration
 dotenv.config();
@@ -45,6 +46,28 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Créer les dossiers uploads s'ils n'existent pas
+const createUploadsFolders = () => {
+  const folders = [
+    'uploads',
+    'uploads/profiles',
+    'uploads/books',
+    'uploads/posts',
+    'uploads/events',
+    'uploads/campaigns'
+  ];
+  
+  folders.forEach(folder => {
+    const folderPath = path.join(__dirname, folder);
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath, { recursive: true });
+      console.log(`📁 Dossier créé: ${folderPath}`);
+    }
+  });
+};
+
+createUploadsFolders();
+
 // CORS configuration
 const corsOptions = {
   origin: [
@@ -65,8 +88,36 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// Static file server
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Static file server - CORRECTION ICI
+app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
+  setHeaders: (res, filePath) => {
+    // Ajouter des en-têtes de cache pour les images
+    if (filePath.endsWith('.png') || filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 24h cache
+    }
+  }
+}));
+
+// Middleware pour servir des images par défaut si non trouvées
+app.use((req, res, next) => {
+  if (req.url.startsWith('/uploads/')) {
+    const filePath = path.join(__dirname, req.url);
+    
+    // Si le fichier n'existe pas, servir une image par défaut
+    if (!fs.existsSync(filePath)) {
+      console.log(`⚠️ Fichier non trouvé: ${req.url}`);
+      
+      // Image par défaut selon le type
+      if (req.url.includes('/profiles/')) {
+        const defaultImage = path.join(__dirname, 'uploads', 'default-profile.png');
+        if (fs.existsSync(defaultImage)) {
+          return res.sendFile(defaultImage);
+        }
+      }
+    }
+  }
+  next();
+});
 
 // Database connection test
 const initializeDatabase = async () => {
@@ -261,6 +312,7 @@ const startServer = async () => {
     console.log(`🔗 URL: http://localhost:${PORT}`);
     console.log(`📊 Health: http://localhost:${PORT}/api/health`);
     console.log(`📁 Files: http://localhost:${PORT}/uploads`);
+    console.log("📂 Dossiers uploads créés avec succès");
     console.log("=".repeat(50) + "\n");
   });
 };

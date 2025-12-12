@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticateToken } from "../middleware/auth.js";
+import { authenticateToken, requireAdmin } from "../middleware/auth.js";
 import {
   getPlatformSettings,
   updatePlatformSettings,
@@ -15,21 +15,18 @@ import {
 
 const router = express.Router();
 
-// All settings routes require authentication
+// All settings routes require authentication AND admin role
 router.use(authenticateToken);
+router.use(requireAdmin); // Ajoutez cette ligne
 
-// Platform settings
+// Routes restent les mêmes...
 router.get("/platform", getPlatformSettings);
 router.put("/platform", updatePlatformSettings);
-
-// Email templates
 router.get("/email/templates", getEmailTemplates);
 router.post("/email/templates", createEmailTemplate);
 router.put("/email/templates/:id", updateEmailTemplate);
 router.delete("/email/templates/:id", deleteEmailTemplate);
 router.post("/email/test", sendTestEmail);
-
-// System configuration
 router.get("/system", getSystemConfig);
 router.put("/system", updateSystemConfig);
 router.get("/system/test/:service", testConnection);

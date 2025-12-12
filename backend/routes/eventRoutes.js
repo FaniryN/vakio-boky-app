@@ -1,102 +1,3 @@
-// // // import express from "express";
-// // // import {
-// // //   getEvents,
-// // //   createEvent,
-// // //   getEventById,
-// // //   updateEvent,
-// // //   deleteEvent,
-// // //   registerForEvent,
-// // //   getEventRegistrations,
-// // //   getDetailById,
-// // // } from "../controllers/evenementController.js";
-
-// // // const router = express.Router();
-
-// // // router.get("/", getEvents);
-// // // router.post("/", createEvent);
-// // // router.get("/:id", getEventById);
-// // // router.put("/:id", updateEvent);
-// // // router.delete("/:id", deleteEvent);
-// // // router.post("/:id/register", registerForEvent);
-// // // router.get("/:id/registrations", getEventRegistrations);
-// // // router.get("/:id/detail", getDetailById);
-
-
-// // // export default router;
-// // import express from "express";
-// // import {
-// //   getEvents,
-// //   createEvent,
-// //   getEventById,
-// //   updateEvent,
-// //   deleteEvent,
-// //   registerForEvent,
-// //   getEventRegistrations,
-// //   getDetailById,
-// //   getAdminEvents,
-// //   approveEvent,
-// //   rejectEvent,
-// //   featureEvent,
-// //   getEventAnalytics
-// // } from "../controllers/evenementController.js";
-
-// // const router = express.Router();
-
-// // // Routes publiques
-// // router.get("/", getEvents);
-// // router.post("/", createEvent);
-// // router.get("/:id", getEventById);
-// // router.put("/:id", updateEvent);
-// // router.delete("/:id", deleteEvent);
-// // router.post("/:id/register", registerForEvent);
-// // router.get("/:id/registrations", getEventRegistrations);
-// // router.get("/:id/detail", getDetailById);
-
-// // // Routes d'administration
-// // router.get("/admin/events", getAdminEvents);
-// // router.put("/admin/:id/approve", approveEvent);
-// // router.put("/admin/:id/reject", rejectEvent);
-// // router.put("/admin/:id/feature", featureEvent);
-// // router.get("/admin/analytics", getEventAnalytics);
-
-// // export default router;
-// import express from "express";
-// import {
-//   getEvents,
-//   createEvent,
-//   getEventById,
-//   updateEvent,
-//   deleteEvent,
-//   registerForEvent,
-//   getEventRegistrations,
-//   getDetailById,
-//   getAdminEvents,
-//   approveEvent,
-//   rejectEvent,
-//   featureEvent,
-//   getEventAnalytics
-// } from "../controllers/evenementController.js";
-
-// const router = express.Router();
-
-// // Routes publiques
-// router.get("/", getEvents);
-// router.post("/", createEvent);
-// router.get("/:id", getEventById);
-// router.put("/:id", updateEvent);
-// router.delete("/:id", deleteEvent);
-// router.post("/:id/register", registerForEvent);
-// router.get("/:id/registrations", getEventRegistrations);
-// router.get("/:id/detail", getDetailById);
-
-// // Routes d'administration
-// router.get("/admin/events", getAdminEvents);
-// router.put("/admin/:id/approve", approveEvent);
-// router.put("/admin/:id/reject", rejectEvent);
-// router.put("/admin/:id/feature", featureEvent);
-// router.get("/admin/analytics", getEventAnalytics);
-
-// export default router;
 import express from "express";
 import {
   getEvents,
@@ -107,30 +8,33 @@ import {
   registerForEvent,
   getEventRegistrations,
   getDetailById,
-  getAllEventsAdmin,  // IMPORTANT: doit correspondre au nom dans le contrôleur
+  getAllEventsAdmin,
   approveEvent,
   rejectEvent,
   featureEvent,
-  getEventAnalytics
+  getEventAnalytics,
+  getFeaturedEvents
 } from "../controllers/evenementController.js";
+import { authenticateToken, requireAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 
 // Routes publiques
 router.get("/", getEvents);
-router.post("/", createEvent);
+router.get("/featured", getFeaturedEvents);
+router.post("/", authenticateToken, createEvent);
 router.get("/:id", getEventById);
-router.put("/:id", updateEvent);
-router.delete("/:id", deleteEvent);
-router.post("/:id/register", registerForEvent);
-router.get("/:id/registrations", getEventRegistrations);
-router.get("/detail/:id", getDetailById);  // Note: format correct
+router.put("/:id", authenticateToken, updateEvent);
+router.delete("/:id", authenticateToken, deleteEvent);
+router.post("/:id/register", authenticateToken, registerForEvent);
+router.get("/:id/registrations", authenticateToken, getEventRegistrations);
+router.get("/detail/:id", getDetailById);
 
-// Routes d'administration
-router.get("/admin/all", getAllEventsAdmin);  // IMPORTANT: utilisez "/admin/all"
-router.put("/admin/:id/approve", approveEvent);
-router.put("/admin/:id/reject", rejectEvent);
-router.put("/admin/:id/feature", featureEvent);
-router.get("/admin/analytics", getEventAnalytics);
+// Routes d'administration - CORRIGÉ ICI
+router.get("/admin/events", authenticateToken, requireAdmin, getAllEventsAdmin);  // Changé de "/admin/all"
+router.put("/admin/:id/approve", authenticateToken, requireAdmin, approveEvent);
+router.put("/admin/:id/reject", authenticateToken, requireAdmin, rejectEvent);
+router.put("/admin/:id/feature", authenticateToken, requireAdmin, featureEvent);
+router.get("/admin/analytics", authenticateToken, requireAdmin, getEventAnalytics);
 
 export default router;

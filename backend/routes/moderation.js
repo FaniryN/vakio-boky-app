@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticateToken } from "../middleware/auth.js";
+import { authenticateToken, requireAdmin } from "../middleware/auth.js";
 import {
   getModerationQueue,
   takeModerationAction,
@@ -12,19 +12,16 @@ import {
 
 const router = express.Router();
 
-// All moderation routes require authentication
+// All moderation routes require authentication AND admin role
 router.use(authenticateToken);
+router.use(requireAdmin); // Ajoutez cette ligne
 
-// Moderation queue
+// Routes restent les mêmes...
 router.get("/queue", getModerationQueue);
 router.post("/queue/:id/action", takeModerationAction);
-
-// Reports management
 router.get("/reports", getReports);
 router.post("/reports/:id/resolve", resolveReport);
 router.get("/reports/stats", getReportsStats);
-
-// Moderation actions history
 router.get("/actions", getModerationActions);
 router.get("/actions/stats", getModerationStats);
 
