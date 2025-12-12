@@ -5,6 +5,7 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
+    "preview": "vite preview",
     "lint": "eslint src --ext .js,.jsx --report-unused-disable-directives --max-warnings 30"
   },
   "dependencies": {
