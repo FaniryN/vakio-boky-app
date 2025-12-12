@@ -1,93 +1,77 @@
 import nodemailer from "nodemailer";
 
-// Configuration du transporteur email
+// Configuration du transporteur SMTP
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: "gmail",
+    host: process.env.SMTP_HOST || process.env.EMAIL_HOST,
+    port: parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT || "587"),
+    secure: process.env.SMTP_SECURE === "true" || false,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    tls: {
+      rejectUnauthorized: false
+    }
   });
 };
 
-export const sendEmail = async ({ to, subject, html }) => {
-  let transporter;
-
+// Fonction pour envoyer un email
+const sendEmail = async (options) => {
   try {
-    // Vérification des variables d'environnement
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.warn("Configuration email manquante - mode développement activé");
-      return {
-        success: false,
-        devMode: true,
-        message: "Configuration email non définie",
-      };
-    }
-
-    transporter = createTransporter();
-
-    // Vérifier la connexion
+    const transporter = createTransporter();
+    
+    // Vérifier la connexion SMTP
     await transporter.verify();
-    console.log("Serveur email prêt à envoyer des messages");
+    console.log("✅ Connexion SMTP prête");
 
+    // Options par défaut
     const mailOptions = {
-      from: `"Vakio Boky" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html,
+      from: process.env.EMAIL_FROM || `"Vakio Boky" <${process.env.EMAIL_USER}>`,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      text: options.text || options.html.replace(/<[^>]*>/g, ''),
     };
 
-    const result = await transporter.sendMail(mailOptions);
-    console.log(` Email envoyé à: ${to} - Message ID: ${result.messageId}`);
-
-    return {
-      success: true,
-      messageId: result.messageId,
-    };
+    console.log(`📤 Envoi d'email à: ${options.to}`);
+    
+    const info = await transporter.sendMail(mailOptions);
+    
+    console.log(`✅ Email envoyé: ${info.messageId}`);
+    return info;
+    
   } catch (error) {
-    console.error(" Erreur envoi email:", error);
-
-    if (process.env.NODE_ENV === "development") {
-      console.log("Détails erreur email:", {
-        to,
-        subject,
-        errorCode: error.code,
-        errorMessage: error.message,
-      });
-    }
-
-    throw new Error(`Échec envoi email: ${error.message}`);
-  }
-};
-
-//Pour envoyer des emails de test
-export const testEmailConfig = async () => {
-  try {
-    console.log("🧪 Test configuration email...");
-
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      throw new Error(
-        "Variables EMAIL_USER ou EMAIL_PASS manquantes dans .env",
-      );
-    }
-
-    const result = await sendEmail({
-      to: process.env.EMAIL_USER,
-      subject: "Test Configuration Email - Vakio Boky",
-      html: `
-        <div style="font-family: Arial, sans-serif;">
-          <h2 style="color: #1e40af;"> Test Réussi !</h2>
-          <p>La configuration email de Vakio Boky fonctionne correctement.</p>
-          <p><strong>Date:</strong> ${new Date().toLocaleString("fr-FR")}</p>
-          <p><strong>Service:</strong> Gmail</p>
-        </div>
-      `,
-    });
-
-    return result;
-  } catch (error) {
-    console.error(" Test email échoué:", error.message);
+    console.error("❌ Erreur envoi email:", error);
     throw error;
   }
 };
+
+// Fonction pour tester la configuration SMTP
+const testSMTPConnection = async () => {
+  try {
+    const transporter = createTransporter();
+    await transporter.verify();
+    
+    console.log("✅ Connexion SMTP testée avec succès");
+    return { success: true, message: "Connexion SMTP établie" };
+    
+  } catch (error) {
+    console.error("❌ Échec test SMTP:", error);
+    
+    let errorMessage = "Erreur de connexion SMTP";
+    if (error.code === 'EAUTH') {
+      errorMessage = "Erreur d'authentification SMTP. Vérifiez EMAIL_USER et EMAIL_PASS.";
+    } else if (error.code === 'ECONNECTION') {
+      errorMessage = "Impossible de se connecter au serveur SMTP. Vérifiez SMTP_HOST et SMTP_PORT.";
+    }
+    
+    return { 
+      success: false, 
+      error: errorMessage,
+      details: error.message 
+    };
+  }
+};
+
+export { sendEmail, testSMTPConnection };
