@@ -4,6 +4,7 @@ import { FiMail, FiArrowLeft, FiCheckCircle, FiAlertCircle } from "react-icons/f
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useNavigate } from "react-router-dom";
+import emailjs from "@emailjs/browser";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -20,9 +21,9 @@ export default function ForgotPassword() {
     setMessageType("");
 
     try {
-      console.log("📤 Demande pour:", email);
+      console.log("📤 Demande de réinitialisation pour:", email);
 
-      // 1. Appeler le backend qui va utiliser SendGrid
+      // 1. Appeler le backend
       const response = await fetch(
         "https://vakio-boky-backend.onrender.com/api/auth/forgot-password",
         {
@@ -36,31 +37,53 @@ export default function ForgotPassword() {
       console.log("📦 Réponse backend:", data);
 
       if (response.ok) {
-        // SUCCÈS - Le backend a envoyé l'email via SendGrid
-        console.log("✅ Email envoyé via SendGrid");
-        
-        // Stocker l'email pour les pages suivantes
-        localStorage.setItem("resetEmail", email);
-        
-        // Si le backend retourne le code (pour debug en développement)
-        if (data.resetCode) {
-          localStorage.setItem("devResetCode", data.resetCode);
-          console.log("🔑 Code (pour DEV):", data.resetCode);
+        // CAS A: Backend retourne emailData pour EmailJS
+        if (data.emailData) {
+          console.log("📧 Données pour EmailJS:", data.emailData);
           
-          // Afficher un message spécial en mode DEV
-          if (process.env.NODE_ENV === "development") {
-            setMessageType("warning");
-            setMessage(`🔑 Mode DEV - Code: ${data.resetCode}`);
-          } else {
+          try {
+            // Envoyer via EmailJS
+            await emailjs.send(
+              "service_z677nyy",      // Service ID
+              "template_br9wwbb",     // Template ID
+              {
+                user_email: data.emailData.user_email,  // Doit correspondre à {{user_email}}
+                user_name: data.emailData.user_name,    // Doit correspondre à {{user_name}}
+                reset_code: data.emailData.reset_code,  // Doit correspondre à {{reset_code}}
+                expiration_time: `${data.emailData.expiration_minutes || 15} minutes`,
+                date: new Date().toLocaleDateString('fr-FR')
+              },
+              "WBgfZB8Vl4vTsHiUZ"     // Public Key
+            );
+            
+            console.log("✅ Email envoyé via EmailJS");
             setMessageType("success");
             setMessage(`✅ Code envoyé à ${email}`);
+            
+          } catch (emailError) {
+            console.error("❌ Erreur EmailJS:", emailError);
+            // Mode DEV : montrer le code
+            setMessageType("warning");
+            setMessage(`🔑 Mode développement - Code: ${data.emailData.reset_code}`);
+            localStorage.setItem("devResetCode", data.emailData.reset_code);
           }
-        } else {
-          setMessageType("success");
-          setMessage(`✅ Code envoyé à ${email}. Vérifiez votre boîte de réception.`);
         }
-
-        // Redirection après 2 secondes
+        // CAS B: Backend retourne juste le code
+        else if (data.resetCode) {
+          console.log("🔑 Code reçu:", data.resetCode);
+          setMessageType("warning");
+          setMessage(`🔑 Code de test: ${data.resetCode} (email désactivé)`);
+          localStorage.setItem("devResetCode", data.resetCode);
+        }
+        // CAS C: Succès sans détails
+        else {
+          setMessageType("success");
+          setMessage(`✅ Code envoyé à ${email}`);
+        }
+        
+        // Dans tous les cas, stocker et rediriger
+        localStorage.setItem("resetEmail", email);
+        
         setTimeout(() => {
           navigate("/verify-code");
         }, 2000);
@@ -149,7 +172,7 @@ export default function ForgotPassword() {
                 variant="primary"
                 size="lg"
                 type="email"
-                placeholder="votre@email.com"
+                placeholder="exemple@email.com"
                 icon={<FiMail className="text-blue-400" />}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -157,6 +180,9 @@ export default function ForgotPassword() {
                 disabled={loading}
               />
             </motion.div>
+            <p className="text-xs text-blue-500">
+              Nous vous enverrons un code de vérification à 6 chiffres
+            </p>
           </div>
 
           {/* Messages */}
@@ -172,19 +198,33 @@ export default function ForgotPassword() {
                   : "bg-red-50 border border-red-200 text-red-800"
               }`}
             >
-              {messageType === "success" && <FiCheckCircle className="text-green-600 text-lg mt-0.5" />}
-              {messageType === "warning" && <FiAlertCircle className="text-yellow-600 text-lg mt-0.5" />}
-              {messageType === "error" && <FiAlertCircle className="text-red-600 text-lg mt-0.5" />}
-              <div>
+              {messageType === "success" ? (
+                <FiCheckCircle className="text-green-600 text-lg mt-0.5" />
+              ) : messageType === "warning" ? (
+                <FiAlertCircle className="text-yellow-600 text-lg mt-0.5" />
+              ) : (
+                <FiAlertCircle className="text-red-600 text-lg mt-0.5" />
+              )}
+              <div className="flex-1">
                 <p className="font-medium">{message}</p>
                 {messageType === "success" && (
-                  <p className="text-sm mt-1 text-green-600">
-                    Redirection vers la page de vérification...
-                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-green-200 rounded-full overflow-hidden">
+                      <motion.div 
+                        initial={{ width: "0%" }}
+                        animate={{ width: "100%" }}
+                        transition={{ duration: 2, ease: "linear" }}
+                        className="h-full bg-green-500"
+                      />
+                    </div>
+                    <span className="text-xs text-green-600 font-medium">
+                      Redirection...
+                    </span>
+                  </div>
                 )}
                 {messageType === "warning" && (
-                  <p className="text-sm mt-1 text-yellow-700">
-                    En production, un email serait envoyé automatiquement.
+                  <p className="text-xs mt-1 text-yellow-700">
+                    En production, un email serait automatiquement envoyé.
                   </p>
                 )}
               </div>
@@ -203,7 +243,7 @@ export default function ForgotPassword() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Envoi en cours...
+                  Traitement en cours...
                 </span>
               ) : (
                 "Envoyer le code de vérification"
@@ -211,12 +251,23 @@ export default function ForgotPassword() {
             </Button>
           </motion.div>
 
+          {/* Information pour test */}
+          <div className="text-center text-sm text-blue-600 pt-4 border-t border-blue-100">
+            <p className="font-medium mb-1">💡 Pour tester :</p>
+            <p className="text-xs">
+              Utilisez une adresse email valide comme{" "}
+              <span className="font-mono bg-blue-100 px-2 py-0.5 rounded">
+                fanirynomena11@gmail.com
+              </span>
+            </p>
+          </div>
+
           {/* Lien vers la connexion */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
-            className="text-center"
+            className="text-center pt-4 border-t border-blue-100"
           >
             <p className="text-blue-900 text-sm">
               Vous vous souvenez ?{" "}
@@ -232,15 +283,31 @@ export default function ForgotPassword() {
           </motion.div>
         </motion.form>
 
-        {/* Section information */}
-        <div className="mt-8 pt-6 border-t border-blue-100">
-          <p className="text-blue-400 text-xs text-center">
-            📧 L'email est envoyé via notre service sécurisé
+        {/* Section information EmailJS */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200"
+        >
+          <p className="text-blue-800 text-sm font-medium flex items-center gap-2">
+            📧 Système d'envoi EmailJS
           </p>
-          <p className="text-gray-400 text-xs text-center mt-1">
-            Vérifiez aussi vos spams si vous ne voyez pas l'email
-          </p>
-        </div>
+          <ul className="text-xs text-blue-600 mt-2 space-y-1">
+            <li className="flex items-start gap-2">
+              <span className="text-blue-500 mt-0.5">•</span>
+              <span>Envoi sécurisé via EmailJS</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-500 mt-0.5">•</span>
+              <span>Code à 6 chiffres valable 15 minutes</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-blue-500 mt-0.5">•</span>
+              <span>Vérifiez votre boîte de réception et spams</span>
+            </li>
+          </ul>
+        </motion.div>
       </motion.div>
     </div>
   );
