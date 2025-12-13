@@ -2,18 +2,18 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   FiMail,
-  FiEdit,
   FiEye,
   FiSave,
   FiSend,
   FiCode,
   FiType,
-  FiImage,
   FiRefreshCw,
   FiCheckCircle,
   FiAlertTriangle,
+  FiEdit,
+  FiFileText,
 } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { apiService } from '../../utils/api'; // IMPORT CRITIQUE
 
 export default function AdminSettingsEmail() {
   const [templates, setTemplates] = useState([]);
@@ -24,70 +24,52 @@ export default function AdminSettingsEmail() {
   const [success, setSuccess] = useState(null);
   const [previewMode, setPreviewMode] = useState(false);
   const [testEmail, setTestEmail] = useState("");
-  const navigate = useNavigate();
+  const [filter, setFilter] = useState("all");
+  const [stats, setStats] = useState({});
 
   useEffect(() => {
     fetchTemplates();
-  }, []);
-
-  // Fonction pour nettoyer tous les tokens
-  const clearAllTokens = () => {
-    localStorage.removeItem('vakio_token');
-    localStorage.removeItem('vakio_user');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('vakio_token');
-    sessionStorage.removeItem('vakio_user');
-  };
-
-  // Fonction pour vérifier et gérer les erreurs 401
-  const handleUnauthorized = (response) => {
-    if (response.status === 401) {
-      clearAllTokens();
-      navigate('/login', { 
-        state: { 
-          message: 'Votre session a expiré. Veuillez vous reconnecter.',
-          type: 'error'
-        }
-      });
-      return true;
-    }
-    return false;
-  };
+    fetchEmailStats();
+  }, [filter]);
 
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("vakio_token");
-      const response = await fetch(
-        "https://vakio-boky-backend.onrender.com/api/admin/settings/email/templates",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Vérifier l'erreur 401
-      if (handleUnauthorized(response)) {
-        setError("Session expirée. Veuillez vous reconnecter.");
-        return;
-      }
-
-      const data = await response.json();
+      
+      // UTILISATION DE apiService POUR LA GESTION AUTOMATIQUE DU TOKEN
+      const response = await apiService.get(`/api/admin/settings/email/templates?filter=${filter}`);
+      
+      console.log('📊 [EmailSettings] Statut:', response.status);
+      
+      const data = response.data;
 
       if (data.success) {
         setTemplates(data.templates || []);
         if (!selectedTemplate && data.templates?.length > 0) {
           setSelectedTemplate(data.templates[0]);
         }
+        setError(null);
       } else {
         setError(data.error || "Erreur lors du chargement");
       }
     } catch (err) {
-      setError("Erreur lors du chargement des templates");
       console.error("❌ Erreur chargement templates:", err);
+      setError(err.message || "Erreur de connexion au serveur");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchEmailStats = async () => {
+    try {
+      const response = await apiService.get('/api/admin/settings/email/stats');
+      const data = response.data;
+
+      if (data.success) {
+        setStats(data.stats || {});
+      }
+    } catch (err) {
+      console.error("❌ Erreur chargement stats email:", err);
     }
   };
 
@@ -99,33 +81,20 @@ export default function AdminSettingsEmail() {
       setError(null);
       setSuccess(null);
 
-      const token = localStorage.getItem("vakio_token");
-      const response = await fetch(
-        `https://vakio-boky-backend.onrender.com/api/admin/settings/email/templates/${selectedTemplate.id}`,
+      // UTILISATION DE apiService
+      const response = await apiService.put(
+        `/api/admin/settings/email/templates/${selectedTemplate.id}`,
         {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: selectedTemplate.name,
-            category: selectedTemplate.category,
-            description: selectedTemplate.description,
-            subject: selectedTemplate.subject,
-            html_content: selectedTemplate.html_content,
-            text_content: selectedTemplate.text_content || "",
-          }),
+          name: selectedTemplate.name,
+          category: selectedTemplate.category,
+          description: selectedTemplate.description,
+          subject: selectedTemplate.subject,
+          html_content: selectedTemplate.html_content,
+          text_content: selectedTemplate.text_content || "",
         }
       );
 
-      // Vérifier l'erreur 401
-      if (handleUnauthorized(response)) {
-        setError("Session expirée. Veuillez vous reconnecter.");
-        return;
-      }
-
-      const data = await response.json();
+      const data = response.data;
 
       if (data.success) {
         setSuccess("Template sauvegardé avec succès");
@@ -146,29 +115,13 @@ export default function AdminSettingsEmail() {
     if (!selectedTemplate || !testEmail) return;
 
     try {
-      const token = localStorage.getItem("vakio_token");
-      const response = await fetch(
-        "https://vakio-boky-backend.onrender.com/api/admin/settings/email/test",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            templateId: selectedTemplate.id,
-            email: testEmail,
-          }),
-        }
-      );
+      // UTILISATION DE apiService
+      const response = await apiService.post('/api/admin/settings/email/test', {
+        templateId: selectedTemplate.id,
+        email: testEmail,
+      });
 
-      // Vérifier l'erreur 401
-      if (handleUnauthorized(response)) {
-        setError("Session expirée. Veuillez vous reconnecter.");
-        return;
-      }
-
-      const data = await response.json();
+      const data = response.data;
 
       if (data.success) {
         setSuccess("Email de test envoyé avec succès");
@@ -199,6 +152,26 @@ export default function AdminSettingsEmail() {
     { variable: "{{verification_link}}", description: "Lien de vérification" },
   ];
 
+  const getCategoryIcon = (category) => {
+    switch (category) {
+      case 'auth': return <FiMail className="text-blue-600" />;
+      case 'notifications': return <FiAlertTriangle className="text-yellow-600" />;
+      case 'marketing': return <FiSend className="text-green-600" />;
+      case 'system': return <FiFileText className="text-purple-600" />;
+      default: return <FiMail className="text-gray-600" />;
+    }
+  };
+
+  const getCategoryColor = (category) => {
+    switch (category) {
+      case 'auth': return 'bg-blue-100 text-blue-800';
+      case 'notifications': return 'bg-yellow-100 text-yellow-800';
+      case 'marketing': return 'bg-green-100 text-green-800';
+      case 'system': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 pt-20">
@@ -226,6 +199,81 @@ export default function AdminSettingsEmail() {
           <p className="text-gray-600 mt-2">
             Gérez les templates d'emails et de notifications de votre plateforme
           </p>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Templates Totaux</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total_templates || templates.length}
+                </p>
+                <div className="flex items-center mt-1">
+                  <FiFileText className="text-blue-500 text-sm mr-1" />
+                  <p className="text-sm text-blue-600">
+                    {stats.active_templates || 0} actifs
+                  </p>
+                </div>
+              </div>
+              <FiMail className="text-gray-600 text-2xl" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Emails d'Auth</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {stats.auth_templates || 0}
+                </p>
+                <div className="flex items-center mt-1">
+                  <FiMail className="text-blue-500 text-sm mr-1" />
+                  <p className="text-sm text-blue-600">
+                    Connexion, vérification
+                  </p>
+                </div>
+              </div>
+              <FiMail className="text-blue-600 text-2xl" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Notifications</p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {stats.notification_templates || 0}
+                </p>
+                <div className="flex items-center mt-1">
+                  <FiAlertTriangle className="text-yellow-500 text-sm mr-1" />
+                  <p className="text-sm text-yellow-600">
+                    Alertes système
+                  </p>
+                </div>
+              </div>
+              <FiAlertTriangle className="text-yellow-600 text-2xl" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Marketing</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.marketing_templates || 0}
+                </p>
+                <div className="flex items-center mt-1">
+                  <FiSend className="text-green-500 text-sm mr-1" />
+                  <p className="text-sm text-green-600">
+                    Newsletters, promotions
+                  </p>
+                </div>
+              </div>
+              <FiSend className="text-green-600 text-2xl" />
+            </div>
+          </div>
         </div>
 
         {/* Success/Error Messages */}
@@ -257,12 +305,26 @@ export default function AdminSettingsEmail() {
             <div className="bg-white rounded-lg shadow-sm p-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-gray-900">Templates</h3>
-                <button
-                  onClick={fetchTemplates}
-                  className="p-1 text-gray-400 hover:text-gray-600"
-                >
-                  <FiRefreshCw className="w-4 h-4" />
-                </button>
+                <div className="flex gap-2">
+                  <select
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Tous</option>
+                    <option value="auth">Authentification</option>
+                    <option value="notifications">Notifications</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="system">Système</option>
+                  </select>
+                  <button
+                    onClick={fetchTemplates}
+                    className="p-1 text-gray-400 hover:text-gray-600"
+                    title="Actualiser"
+                  >
+                    <FiRefreshCw className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -276,9 +338,19 @@ export default function AdminSettingsEmail() {
                         : "hover:bg-gray-100 text-gray-700"
                     }`}
                   >
-                    <div className="font-medium text-sm">{template.name}</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {template.category}
+                    <div className="flex items-center gap-2 mb-1">
+                      {getCategoryIcon(template.category)}
+                      <div className="font-medium text-sm">{template.name}</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-gray-500">
+                        {template.category}
+                      </div>
+                      {template.is_active && (
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
+                          Actif
+                        </span>
+                      )}
                     </div>
                   </button>
                 ))}
@@ -293,10 +365,15 @@ export default function AdminSettingsEmail() {
                 <div className="p-6 border-b border-gray-200">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-900">
-                        {selectedTemplate.name}
-                      </h2>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <h2 className="text-xl font-semibold text-gray-900">
+                          {selectedTemplate.name}
+                        </h2>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(selectedTemplate.category)}`}>
+                          {selectedTemplate.category}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600">
                         {selectedTemplate.description}
                       </p>
                     </div>
@@ -307,11 +384,16 @@ export default function AdminSettingsEmail() {
                         className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
                       >
                         {previewMode ? (
-                          <FiCode className="w-4 h-4" />
+                          <>
+                            <FiEdit className="w-4 h-4" />
+                            Éditer
+                          </>
                         ) : (
-                          <FiEye className="w-4 h-4" />
+                          <>
+                            <FiEye className="w-4 h-4" />
+                            Prévisualiser
+                          </>
                         )}
-                        {previewMode ? "Éditer" : "Prévisualiser"}
                       </button>
                       <button
                         onClick={saveTemplate}
@@ -338,10 +420,15 @@ export default function AdminSettingsEmail() {
                           Aperçu de l'email
                         </label>
                         <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
-                          <div className="bg-white border rounded p-4 shadow-sm">
-                            <h3 className="font-bold text-lg mb-4">
-                              {selectedTemplate.subject}
-                            </h3>
+                          <div className="bg-white border rounded p-6 shadow-sm">
+                            <div className="border-b border-gray-200 pb-4 mb-4">
+                              <h3 className="font-bold text-lg text-gray-900">
+                                {selectedTemplate.subject}
+                              </h3>
+                              <p className="text-sm text-gray-500 mt-1">
+                                Expéditeur: Vakio Boky &lt;noreply@vakioboky.com&gt;
+                              </p>
+                            </div>
                             <div
                               className="prose prose-sm max-w-none"
                               dangerouslySetInnerHTML={{
@@ -354,7 +441,8 @@ export default function AdminSettingsEmail() {
 
                       {/* Test Email */}
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="font-medium text-blue-900 mb-3">
+                        <h4 className="font-medium text-blue-900 mb-3 flex items-center gap-2">
+                          <FiSend className="w-4 h-4" />
                           Envoyer un email de test
                         </h4>
                         <div className="flex gap-3">
@@ -374,6 +462,9 @@ export default function AdminSettingsEmail() {
                             Tester
                           </button>
                         </div>
+                        <p className="text-xs text-blue-700 mt-2">
+                          Un email de test sera envoyé à cette adresse avec les variables remplacées.
+                        </p>
                       </div>
                     </div>
                   ) : (
@@ -450,7 +541,7 @@ export default function AdminSettingsEmail() {
                           onChange={(e) =>
                             updateTemplate("html_content", e.target.value)
                           }
-                          rows={15}
+                          rows={12}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                           placeholder="<html>...</html>"
                         />
@@ -465,7 +556,7 @@ export default function AdminSettingsEmail() {
                           onChange={(e) =>
                             updateTemplate("text_content", e.target.value)
                           }
-                          rows={8}
+                          rows={6}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                           placeholder="Version texte de l'email..."
                         />
@@ -496,7 +587,18 @@ export default function AdminSettingsEmail() {
               {availableVariables.map((variable) => (
                 <div
                   key={variable.variable}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                  onClick={() => {
+                    const textarea = document.querySelector('textarea');
+                    if (textarea) {
+                      const start = textarea.selectionStart;
+                      const end = textarea.selectionEnd;
+                      const newValue = textarea.value.substring(0, start) + 
+                                     variable.variable + 
+                                     textarea.value.substring(end);
+                      updateTemplate("html_content", newValue);
+                    }
+                  }}
                 >
                   <code className="text-sm font-mono text-blue-600 bg-blue-100 px-2 py-1 rounded">
                     {variable.variable}
@@ -513,9 +615,8 @@ export default function AdminSettingsEmail() {
                 <div>
                   <p className="text-sm font-medium text-yellow-800">Conseil</p>
                   <p className="text-sm text-yellow-700 mt-1">
-                    Cliquez sur une variable pour l'insérer dans votre contenu.
-                    Les variables seront automatiquement remplacées lors de
-                    l'envoi.
+                    Cliquez sur une variable pour l'insérer dans votre contenu HTML.
+                    Les variables seront automatiquement remplacées lors de l'envoi.
                   </p>
                 </div>
               </div>

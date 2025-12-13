@@ -12,8 +12,13 @@ import {
   FiCheckCircle,
   FiAlertTriangle,
   FiInfo,
+  FiActivity,
+  FiFileText,
+  FiLock,
+  FiBell,
+  FiMonitor,
 } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { apiService } from '../../utils/api'; // IMPORT CRITIQUE
 
 export default function AdminSettingsPlatform() {
   const [settings, setSettings] = useState({});
@@ -22,67 +27,48 @@ export default function AdminSettingsPlatform() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [activeTab, setActiveTab] = useState("general");
-  const navigate = useNavigate();
+  const [stats, setStats] = useState({});
 
   useEffect(() => {
     fetchSettings();
+    fetchPlatformStats();
   }, []);
-
-  // Fonction pour nettoyer tous les tokens
-  const clearAllTokens = () => {
-    localStorage.removeItem('vakio_token');
-    localStorage.removeItem('vakio_user');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('vakio_token');
-    sessionStorage.removeItem('vakio_user');
-  };
-
-  // Fonction pour vérifier et gérer les erreurs 401
-  const handleUnauthorized = (response) => {
-    if (response.status === 401) {
-      clearAllTokens();
-      navigate('/login', { 
-        state: { 
-          message: 'Votre session a expiré. Veuillez vous reconnecter.',
-          type: 'error'
-        }
-      });
-      return true;
-    }
-    return false;
-  };
 
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("vakio_token");
-      const response = await fetch(
-        "https://vakio-boky-backend.onrender.com/api/admin/settings/platform",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Vérifier l'erreur 401
-      if (handleUnauthorized(response)) {
-        setError("Session expirée. Veuillez vous reconnecter.");
-        return;
-      }
-
-      const data = await response.json();
+      
+      // UTILISATION DE apiService POUR LA GESTION AUTOMATIQUE DU TOKEN
+      const response = await apiService.get('/api/admin/settings/platform');
+      
+      console.log('📊 [PlatformSettings] Statut:', response.status);
+      
+      const data = response.data;
 
       if (data.success) {
         setSettings(data.settings || {});
+        setError(null);
       } else {
         setError(data.error || "Erreur lors du chargement");
       }
     } catch (err) {
-      setError("Erreur lors du chargement des paramètres");
       console.error("❌ Erreur chargement paramètres:", err);
+      setError(err.message || "Erreur de connexion au serveur");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPlatformStats = async () => {
+    try {
+      const response = await apiService.get('/api/admin/settings/platform/stats');
+      const data = response.data;
+
+      if (data.success) {
+        setStats(data.stats || {});
+      }
+    } catch (err) {
+      console.error("❌ Erreur chargement stats platform:", err);
     }
   };
 
@@ -92,26 +78,9 @@ export default function AdminSettingsPlatform() {
       setError(null);
       setSuccess(null);
 
-      const token = localStorage.getItem("vakio_token");
-      const response = await fetch(
-        "https://vakio-boky-backend.onrender.com/api/admin/settings/platform",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ settings }),
-        }
-      );
-
-      // Vérifier l'erreur 401
-      if (handleUnauthorized(response)) {
-        setError("Session expirée. Veuillez vous reconnecter.");
-        return;
-      }
-
-      const data = await response.json();
+      // UTILISATION DE apiService
+      const response = await apiService.put('/api/admin/settings/platform', { settings });
+      const data = response.data;
 
       if (data.success) {
         setSuccess("Paramètres sauvegardés avec succès");
@@ -139,22 +108,37 @@ export default function AdminSettingsPlatform() {
       id: "general",
       label: "Général",
       icon: <FiSettings className="w-5 h-5" />,
+      description: "Configuration générale de la plateforme",
     },
     {
       id: "users",
       label: "Utilisateurs",
       icon: <FiUsers className="w-5 h-5" />,
+      description: "Gestion des utilisateurs et permissions",
     },
-    { id: "content", label: "Contenu", icon: <FiGlobe className="w-5 h-5" /> },
+    { 
+      id: "content", 
+      label: "Contenu", 
+      icon: <FiFileText className="w-5 h-5" />,
+      description: "Paramètres de contenu et modération" 
+    },
     {
       id: "security",
       label: "Sécurité",
       icon: <FiShield className="w-5 h-5" />,
+      description: "Sécurité et authentification",
     },
     {
       id: "notifications",
       label: "Notifications",
-      icon: <FiMail className="w-5 h-5" />,
+      icon: <FiBell className="w-5 h-5" />,
+      description: "Système de notifications",
+    },
+    {
+      id: "performance",
+      label: "Performance",
+      icon: <FiActivity className="w-5 h-5" />,
+      description: "Optimisation et monitoring",
     },
   ];
 
@@ -185,6 +169,81 @@ export default function AdminSettingsPlatform() {
           <p className="text-gray-600 mt-2">
             Configurez les paramètres généraux de votre plateforme Vakio Boky
           </p>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Utilisateurs Actifs</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.active_users || "0"}
+                </p>
+                <div className="flex items-center mt-1">
+                  <FiUsers className="text-blue-500 text-sm mr-1" />
+                  <p className="text-sm text-blue-600">
+                    +{stats.new_users_today || "0"} aujourd'hui
+                  </p>
+                </div>
+              </div>
+              <FiUsers className="text-gray-600 text-2xl" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Publications</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.total_posts || "0"}
+                </p>
+                <div className="flex items-center mt-1">
+                  <FiFileText className="text-green-500 text-sm mr-1" />
+                  <p className="text-sm text-green-600">
+                    {stats.pending_posts || "0"} en attente
+                  </p>
+                </div>
+              </div>
+              <FiFileText className="text-green-600 text-2xl" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Performance</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {stats.uptime || "99.9"}%
+                </p>
+                <div className="flex items-center mt-1">
+                  <FiActivity className="text-purple-500 text-sm mr-1" />
+                  <p className="text-sm text-purple-600">
+                    {stats.response_time || "120"}ms avg
+                  </p>
+                </div>
+              </div>
+              <FiActivity className="text-purple-600 text-2xl" />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Sécurité</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {stats.security_events || "0"}
+                </p>
+                <div className="flex items-center mt-1">
+                  <FiShield className="text-red-500 text-sm mr-1" />
+                  <p className="text-sm text-red-600">
+                    {stats.blocked_attempts || "0"} bloqués
+                  </p>
+                </div>
+              </div>
+              <FiShield className="text-red-600 text-2xl" />
+            </div>
+          </div>
         </div>
 
         {/* Success/Error Messages */}
@@ -220,14 +279,19 @@ export default function AdminSettingsPlatform() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                    className={`w-full text-left p-3 rounded-lg transition-colors ${
                       activeTab === tab.id
-                        ? "bg-blue-100 text-blue-700"
-                        : "text-gray-600 hover:bg-gray-100"
+                        ? "bg-blue-100 text-blue-700 border border-blue-200"
+                        : "hover:bg-gray-100 text-gray-700"
                     }`}
                   >
-                    {tab.icon}
-                    <span className="text-sm font-medium">{tab.label}</span>
+                    <div className="flex items-center gap-3">
+                      {tab.icon}
+                      <div className="flex-1">
+                        <span className="text-sm font-medium block">{tab.label}</span>
+                        <span className="text-xs text-gray-500">{tab.description}</span>
+                      </div>
+                    </div>
                   </button>
                 ))}
               </nav>
@@ -239,9 +303,15 @@ export default function AdminSettingsPlatform() {
             <div className="bg-white rounded-lg shadow-sm">
               <div className="p-6 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {tabs.find((tab) => tab.id === activeTab)?.label}
-                  </h2>
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      {tabs.find((tab) => tab.id === activeTab)?.label}
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {tabs.find((tab) => tab.id === activeTab)?.description}
+                    </p>
+                  </div>
+                  
                   <div className="flex gap-3">
                     <button
                       onClick={fetchSettings}
@@ -355,7 +425,7 @@ export default function AdminSettingsPlatform() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <input
                         type="checkbox"
                         id="maintenance_mode"
@@ -363,11 +433,11 @@ export default function AdminSettingsPlatform() {
                         onChange={(e) =>
                           updateSetting("maintenance_mode", e.target.checked)
                         }
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500"
                       />
                       <label
                         htmlFor="maintenance_mode"
-                        className="text-sm font-medium text-gray-700"
+                        className="text-sm font-medium text-yellow-800"
                       >
                         Mode maintenance activé
                       </label>
@@ -379,7 +449,7 @@ export default function AdminSettingsPlatform() {
                 {activeTab === "users" && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
+                      <div className="p-4 bg-gray-50 rounded-lg">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Inscription ouverte
                         </label>
@@ -405,7 +475,7 @@ export default function AdminSettingsPlatform() {
                         </div>
                       </div>
 
-                      <div>
+                      <div className="p-4 bg-gray-50 rounded-lg">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Vérification email requise
                         </label>
@@ -488,6 +558,7 @@ export default function AdminSettingsPlatform() {
                         <option value="user">Utilisateur</option>
                         <option value="author">Auteur</option>
                         <option value="moderator">Modérateur</option>
+                        <option value="admin">Administrateur</option>
                       </select>
                     </div>
                   </div>
@@ -497,7 +568,7 @@ export default function AdminSettingsPlatform() {
                 {activeTab === "content" && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
+                      <div className="p-4 bg-gray-50 rounded-lg">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Modération automatique activée
                         </label>
@@ -520,7 +591,7 @@ export default function AdminSettingsPlatform() {
                         </div>
                       </div>
 
-                      <div>
+                      <div className="p-4 bg-gray-50 rounded-lg">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Approbation requise pour les publications
                         </label>
@@ -598,7 +669,7 @@ export default function AdminSettingsPlatform() {
                           updateSetting("forbidden_keywords", e.target.value)
                         }
                         rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                         placeholder="mot1,mot2,mot3"
                       />
                     </div>
@@ -649,8 +720,8 @@ export default function AdminSettingsPlatform() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <label className="block text-sm font-medium text-red-700 mb-2">
                           Forcer le changement de mot de passe
                         </label>
                         <div className="flex items-center gap-3">
@@ -664,11 +735,11 @@ export default function AdminSettingsPlatform() {
                                 e.target.checked
                               )
                             }
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
                           />
                           <label
                             htmlFor="force_password_change"
-                            className="text-sm text-gray-600"
+                            className="text-sm text-red-600"
                           >
                             Obliger le changement périodique
                           </label>
@@ -695,50 +766,44 @@ export default function AdminSettingsPlatform() {
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Politiques de sécurité
-                      </label>
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            id="two_factor_required"
-                            checked={settings.two_factor_required || false}
-                            onChange={(e) =>
-                              updateSetting(
-                                "two_factor_required",
-                                e.target.checked
-                              )
-                            }
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <label
-                            htmlFor="two_factor_required"
-                            className="text-sm text-gray-600"
-                          >
-                            Authentification à deux facteurs obligatoire pour
-                            les admins
-                          </label>
-                        </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <input
+                          type="checkbox"
+                          id="two_factor_required"
+                          checked={settings.two_factor_required || false}
+                          onChange={(e) =>
+                            updateSetting(
+                              "two_factor_required",
+                              e.target.checked
+                            )
+                          }
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <label
+                          htmlFor="two_factor_required"
+                          className="text-sm text-blue-700 font-medium"
+                        >
+                          Authentification à deux facteurs obligatoire pour les admins
+                        </label>
+                      </div>
 
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            id="session_timeout"
-                            checked={settings.session_timeout !== false}
-                            onChange={(e) =>
-                              updateSetting("session_timeout", e.target.checked)
-                            }
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <label
-                            htmlFor="session_timeout"
-                            className="text-sm text-gray-600"
-                          >
-                            Déconnexion automatique après inactivité
-                          </label>
-                        </div>
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <input
+                          type="checkbox"
+                          id="session_timeout"
+                          checked={settings.session_timeout !== false}
+                          onChange={(e) =>
+                            updateSetting("session_timeout", e.target.checked)
+                          }
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <label
+                          htmlFor="session_timeout"
+                          className="text-sm text-blue-700"
+                        >
+                          Déconnexion automatique après inactivité
+                        </label>
                       </div>
                     </div>
                   </div>
@@ -748,8 +813,8 @@ export default function AdminSettingsPlatform() {
                 {activeTab === "notifications" && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <label className="block text-sm font-medium text-blue-700 mb-2">
                           Notifications par email activées
                         </label>
                         <div className="flex items-center gap-3">
@@ -769,15 +834,15 @@ export default function AdminSettingsPlatform() {
                           />
                           <label
                             htmlFor="email_notifications_enabled"
-                            className="text-sm text-gray-600"
+                            className="text-sm text-blue-700"
                           >
                             Activer les notifications par email
                           </label>
                         </div>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <label className="block text-sm font-medium text-blue-700 mb-2">
                           Notifications push activées
                         </label>
                         <div className="flex items-center gap-3">
@@ -797,7 +862,7 @@ export default function AdminSettingsPlatform() {
                           />
                           <label
                             htmlFor="push_notifications_enabled"
-                            className="text-sm text-gray-600"
+                            className="text-sm text-blue-700"
                           >
                             Activer les notifications push
                           </label>
@@ -809,7 +874,7 @@ export default function AdminSettingsPlatform() {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Types de notifications
                       </label>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                         {[
                           {
                             key: "new_user_registration",
@@ -886,6 +951,131 @@ export default function AdminSettingsPlatform() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="Vakio Boky"
                         />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Performance Settings */}
+                {activeTab === "performance" && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Cache TTL (minutes)
+                        </label>
+                        <input
+                          type="number"
+                          value={settings.cache_ttl || 30}
+                          onChange={(e) =>
+                            updateSetting("cache_ttl", parseInt(e.target.value))
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          min="1"
+                          max="1440"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Taille max de la pagination
+                        </label>
+                        <input
+                          type="number"
+                          value={settings.pagination_size || 20}
+                          onChange={(e) =>
+                            updateSetting("pagination_size", parseInt(e.target.value))
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          min="10"
+                          max="100"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          GZIP Compression
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            id="gzip_compression"
+                            checked={settings.gzip_compression !== false}
+                            onChange={(e) =>
+                              updateSetting("gzip_compression", e.target.checked)
+                            }
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <label
+                            htmlFor="gzip_compression"
+                            className="text-sm text-gray-600"
+                          >
+                            Activer la compression GZIP
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Image Optimization
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            id="image_optimization"
+                            checked={settings.image_optimization !== false}
+                            onChange={(e) =>
+                              updateSetting("image_optimization", e.target.checked)
+                            }
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <label
+                            htmlFor="image_optimization"
+                            className="text-sm text-gray-600"
+                          >
+                            Optimiser automatiquement les images
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Monitoring
+                      </label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                        {[
+                          { key: "monitor_errors", label: "Surveiller les erreurs" },
+                          { key: "monitor_performance", label: "Surveiller les performances" },
+                          { key: "monitor_security", label: "Surveiller la sécurité" },
+                          { key: "alert_threshold", label: "Alertes de seuil" },
+                        ].map((monitor) => (
+                          <div
+                            key={monitor.key}
+                            className="flex items-center gap-3"
+                          >
+                            <input
+                              type="checkbox"
+                              id={monitor.key}
+                              checked={settings[monitor.key] !== false}
+                              onChange={(e) =>
+                                updateSetting(
+                                  monitor.key,
+                                  e.target.checked
+                                )
+                              }
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <label
+                              htmlFor={monitor.key}
+                              className="text-sm text-gray-600"
+                            >
+                              {monitor.label}
+                            </label>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
