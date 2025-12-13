@@ -10,9 +10,9 @@ const router = express.Router();
 
 // All analytics routes require authentication AND admin role
 router.use(authenticateToken);
-router.use(requireAdmin); // Ajoutez cette ligne
+router.use(requireAdmin);
 
-// Routes restent les mêmes...
+// Routes analytics
 router.get("/overview", getPlatformOverview);
 router.get("/users", getUserAnalytics);
 router.get("/content", getContentAnalytics);

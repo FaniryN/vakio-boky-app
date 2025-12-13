@@ -14,9 +14,9 @@ const router = express.Router();
 
 // All moderation routes require authentication AND admin role
 router.use(authenticateToken);
-router.use(requireAdmin); // Ajoutez cette ligne
+router.use(requireAdmin);
 
-// Routes restent les mêmes...
+// Routes de modération
 router.get("/queue", getModerationQueue);
 router.post("/queue/:id/action", takeModerationAction);
 router.get("/reports", getReports);

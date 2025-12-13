@@ -17,9 +17,9 @@ const router = express.Router();
 
 // All settings routes require authentication AND admin role
 router.use(authenticateToken);
-router.use(requireAdmin); // Ajoutez cette ligne
+router.use(requireAdmin);
 
-// Routes restent les mêmes...
+// Routes settings
 router.get("/platform", getPlatformSettings);
 router.put("/platform", updatePlatformSettings);
 router.get("/email/templates", getEmailTemplates);
