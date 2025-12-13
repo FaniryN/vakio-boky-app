@@ -2,13 +2,13 @@ import pool from "../config/db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import generateToken from "../utils/generateToken.js";
-import { sendEmail } from "../utils/emailService.js";
 
-// Fonction utilitaire pour nettoyer les URLs d'images - VERSION DÉFINITIVE
+// Stockage temporaire des codes
+const resetCodes = new Map();
+
+// Fonction utilitaire pour nettoyer les URLs d'images
 const cleanImageUrl = (url, type = "profile") => {
-  if (!url) {
-    return null;
-  }
+  if (!url) return null;
   
   const strUrl = String(url).trim();
   
@@ -16,11 +16,13 @@ const cleanImageUrl = (url, type = "profile") => {
     return null;
   }
   
+  // Si déjà une URL complète
   if (strUrl.startsWith('http://') || strUrl.startsWith('https://')) {
     return strUrl;
   }
   
-  if (strUrl.startsWith('/uploads/profiles/')) {
+  // Si c'est un chemin local
+  if (strUrl.startsWith('/uploads/')) {
     const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
     const hasValidExtension = validExtensions.some(ext => 
       strUrl.toLowerCase().endsWith(ext)
@@ -34,29 +36,12 @@ const cleanImageUrl = (url, type = "profile") => {
   return null;
 };
 
-// Fonction pour obtenir une URL d'image sécurisée
-const getSafeProfileImage = (imageUrl) => {
-  if (!imageUrl) {
-    return null;
-  }
-  
-  const strImageUrl = String(imageUrl).trim();
-  
-  if (!strImageUrl || strImageUrl === 'null' || strImageUrl === 'NULL' || strImageUrl === 'undefined') {
-    return null;
-  }
-  
-  return cleanImageUrl(strImageUrl, "profile");
-};
-
-// Stockage temporaire des codes
-const resetCodes = new Map();
-
-// Login utilisateur
-const login = async (req, res) => {
+// Login utilisateur - VERSION SIMPLIFIÉE ET SÉCURISÉE
+export const login = async (req, res) => {
   try {
     const { email, mot_de_passe } = req.body;
 
+    // Validation de base
     if (!email || !mot_de_passe) {
       return res.status(400).json({ 
         success: false,
@@ -64,69 +49,78 @@ const login = async (req, res) => {
       });
     }
 
+    // Normaliser l'email
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Récupérer l'utilisateur
     const result = await pool.query(
       "SELECT * FROM utilisateur WHERE email = $1",
-      [email],
+      [normalizedEmail],
     );
 
     if (result.rows.length === 0) {
+      // Ne pas révéler si l'email existe ou non
       return res.status(401).json({ 
         success: false,
-        error: "Email ou mot de passe incorrect" 
+        error: "Identifiants incorrects" 
       });
     }
 
     const user = result.rows[0];
     
+    // Vérifier si le compte est bloqué
     if (user.role === 'blocked') {
       return res.status(403).json({ 
         success: false,
-        error: "Votre compte a été bloqué. Contactez l'administrateur." 
+        error: "Compte désactivé. Contactez l'administrateur." 
       });
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      mot_de_passe,
-      user.mot_de_passe,
-    );
+    // Vérifier le mot de passe
+    const isPasswordValid = await bcrypt.compare(mot_de_passe, user.mot_de_passe);
 
     if (!isPasswordValid) {
       return res.status(401).json({ 
         success: false,
-        error: "Email ou mot de passe incorrect" 
+        error: "Identifiants incorrects" 
       });
     }
 
-    // CORRECTION : Utiliser generateToken qui utilise le même secret
+    // Générer le token
     const token = generateToken(user.id);
 
-    const safePhotoProfil = getSafeProfileImage(user.photo_profil);
+    // Préparer la réponse utilisateur
+    const safePhotoProfil = cleanImageUrl(user.photo_profil);
+
+    const userResponse = {
+      id: user.id,
+      nom: user.nom,
+      email: user.email,
+      role: user.role,
+      telephone: user.telephone,
+      genre_prefere: user.genre_prefere,
+      bio: user.bio,
+      photo_profil: safePhotoProfil,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
+    };
 
     res.json({
       success: true,
       token,
-      user: {
-        id: user.id,
-        nom: user.nom,
-        email: user.email,
-        role: user.role,
-        telephone: user.telephone,
-        genre_prefere: user.genre_prefere,
-        bio: user.bio,
-        photo_profil: safePhotoProfil,
-      },
+      user: userResponse,
     });
   } catch (error) {
-    console.error("Erreur login:", error);
+    console.error("🔥 Erreur login:", error.message);
     res.status(500).json({ 
       success: false,
-      error: "Erreur serveur lors de la connexion" 
+      error: "Erreur serveur" 
     });
   }
 };
 
 // Inscription utilisateur
-const register = async (req, res) => {
+export const register = async (req, res) => {
   try {
     const {
       nom,
@@ -137,6 +131,7 @@ const register = async (req, res) => {
       accepte_newsletter,
     } = req.body;
 
+    // Validation
     if (!nom || !email || !mot_de_passe) {
       return res.status(400).json({ 
         success: false,
@@ -144,6 +139,7 @@ const register = async (req, res) => {
       });
     }
 
+    // Validation email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ 
@@ -152,6 +148,7 @@ const register = async (req, res) => {
       });
     }
 
+    // Validation mot de passe
     if (mot_de_passe.length < 6) {
       return res.status(400).json({ 
         success: false,
@@ -159,9 +156,12 @@ const register = async (req, res) => {
       });
     }
 
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Vérifier si l'utilisateur existe
     const userExists = await pool.query(
       "SELECT id FROM utilisateur WHERE email = $1",
-      [email],
+      [normalizedEmail],
     );
 
     if (userExists.rows.length > 0) {
@@ -171,64 +171,76 @@ const register = async (req, res) => {
       });
     }
 
+    // Hasher le mot de passe
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(mot_de_passe, saltRounds);
 
+    // Créer l'utilisateur
     const result = await pool.query(
       `INSERT INTO utilisateur 
        (nom, email, mot_de_passe, telephone, genre_prefere, accepte_newsletter) 
        VALUES ($1, $2, $3, $4, $5, $6) 
        RETURNING id, nom, email, role, telephone, genre_prefere, bio, photo_profil, accepte_newsletter, created_at, updated_at`,
       [
-        nom,
-        email,
+        nom.trim(),
+        normalizedEmail,
         hashedPassword,
-        telephone || null,
-        genre_prefere || null,
+        telephone ? telephone.trim() : null,
+        genre_prefere ? genre_prefere.trim() : null,
         accepte_newsletter || false,
       ],
     );
 
     const newUser = result.rows[0];
     const token = generateToken(newUser.id);
-
-    const safePhotoProfil = getSafeProfileImage(newUser.photo_profil);
+    const safePhotoProfil = cleanImageUrl(newUser.photo_profil);
 
     res.status(201).json({
       success: true,
       message: "Utilisateur créé avec succès",
       token,
       user: {
-        id: newUser.id,
-        nom: newUser.nom,
-        email: newUser.email,
-        role: newUser.role,
-        telephone: newUser.telephone,
-        genre_prefere: newUser.genre_prefere,
-        bio: newUser.bio,
-        photo_profil: safePhotoProfil,
-        accepte_newsletter: newUser.accepte_newsletter,
-        created_at: newUser.created_at,
-        updated_at: newUser.updated_at,
+        ...newUser,
+        photo_profil: safePhotoProfil
       },
     });
   } catch (error) {
-    console.error("Erreur register:", error);
+    console.error("🔥 Erreur register:", error.message);
+    
+    // Gestion des erreurs PostgreSQL
+    if (error.code === '23505') {
+      return res.status(400).json({ 
+        success: false,
+        error: "Email déjà utilisé" 
+      });
+    }
+    
     res.status(500).json({ 
       success: false,
-      error: "Erreur serveur lors de l'inscription" 
+      error: "Erreur serveur" 
     });
   }
 };
 
 // Récupérer un utilisateur par ID
-const getUserById = async (req, res) => {
+export const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
     
+    // Valider l'ID
+    const userId = parseInt(id);
+    if (isNaN(userId) || userId <= 0) {
+      return res.status(400).json({ 
+        success: false,
+        error: "ID utilisateur invalide" 
+      });
+    }
+    
     const result = await pool.query(
-      "SELECT id, nom, email, role, telephone, genre_prefere, bio, photo_profil, created_at FROM utilisateur WHERE id = $1",
-      [id],
+      `SELECT id, nom, email, role, telephone, genre_prefere, bio, 
+              photo_profil, created_at, updated_at 
+       FROM utilisateur WHERE id = $1`,
+      [userId],
     );
 
     if (result.rows.length === 0) {
@@ -239,7 +251,7 @@ const getUserById = async (req, res) => {
     }
 
     const user = result.rows[0];
-    const safePhotoProfil = getSafeProfileImage(user.photo_profil);
+    const safePhotoProfil = cleanImageUrl(user.photo_profil);
     
     res.json({
       success: true,
@@ -249,7 +261,7 @@ const getUserById = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Erreur getUserById:", error);
+    console.error("🔥 Erreur getUserById:", error.message);
     res.status(500).json({ 
       success: false,
       error: "Erreur serveur" 
@@ -257,16 +269,19 @@ const getUserById = async (req, res) => {
   }
 };
 
-// Récupérer tous les utilisateurs (pour débogage)
-const getAllUsers = async (req, res) => {
+// Récupérer tous les utilisateurs (pour admin)
+export const getAllUsers = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, nom, email, role, photo_profil, created_at FROM utilisateur ORDER BY id"
+      `SELECT id, nom, email, role, telephone, genre_prefere, 
+              photo_profil, created_at, updated_at 
+       FROM utilisateur 
+       ORDER BY created_at DESC`
     );
 
     const users = result.rows.map(user => ({
       ...user,
-      photo_profil: getSafeProfileImage(user.photo_profil)
+      photo_profil: cleanImageUrl(user.photo_profil)
     }));
 
     res.json({
@@ -275,7 +290,7 @@ const getAllUsers = async (req, res) => {
       count: users.length
     });
   } catch (error) {
-    console.error("Erreur getAllUsers:", error);
+    console.error("🔥 Erreur getAllUsers:", error.message);
     res.status(500).json({ 
       success: false,
       error: "Erreur serveur" 
@@ -283,8 +298,8 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-// Mot de passe oublié
-const forgotPassword = async (req, res) => {
+// Mot de passe oublié - VERSION SIMPLIFIÉE
+export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -295,18 +310,18 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    console.log(`📧 Demande EmailJS pour: ${email}`);
+    const normalizedEmail = email.toLowerCase().trim();
 
-    // 1. Chercher l'utilisateur
+    // Chercher l'utilisateur
     const result = await pool.query(
       "SELECT id, nom FROM utilisateur WHERE email = $1",
-      [email],
+      [normalizedEmail],
     );
-
-    const responseMessage = "Si l'email existe, un code a été envoyé";
+    
+    // Toujours retourner la même réponse pour la sécurité
+    const responseMessage = "Si l'email existe, un code de réinitialisation a été envoyé";
     
     if (result.rows.length === 0) {
-      console.log(`❌ Email non trouvé: ${email}`);
       return res.json({
         success: true,
         message: responseMessage
@@ -315,45 +330,39 @@ const forgotPassword = async (req, res) => {
 
     const user = result.rows[0];
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const expirationTime = Date.now() + 15 * 60 * 1000;
+    const expirationTime = Date.now() + 15 * 60 * 1000; // 15 minutes
 
     // Stocker le code
-    resetCodes.set(email, {
+    resetCodes.set(normalizedEmail, {
       code: resetCode,
       expires: expirationTime,
       userId: user.id,
     });
 
-    console.log(`🔑 Code généré: ${resetCode}`);
-
-    // 2. RETOURNER LES DONNÉES POUR EMAILJS
+    // Retourner les données pour EmailJS
     res.json({
       success: true,
       message: responseMessage,
-      resetCode: resetCode, // Pour le mode DEV
-      
-      // DONNÉES POUR EMAILJS - IMPORTANT !
       emailData: {
-        user_email: email,        // Doit correspondre à {{user_email}} dans EmailJS
-        user_name: user.nom,      // Doit correspondre à {{user_name}}
-        reset_code: resetCode,    // Doit correspondre à {{reset_code}}
+        user_email: email,
+        user_name: user.nom,
+        reset_code: resetCode,
         expiration_minutes: 15,
         date: new Date().toLocaleDateString('fr-FR')
       }
     });
 
-    console.log(`✅ Données EmailJS envoyées pour: ${email}`);
-
   } catch (error) {
-    console.error("❌ Erreur forgotPassword:", error);
+    console.error("🔥 Erreur forgotPassword:", error.message);
     res.status(500).json({ 
       success: false,
       error: "Erreur serveur" 
     });
   }
 };
+
 // Vérification du code
-const verifyCode = async (req, res) => {
+export const verifyCode = async (req, res) => {
   try {
     const { email, code } = req.body;
 
@@ -364,7 +373,8 @@ const verifyCode = async (req, res) => {
       });
     }
 
-    const storedData = resetCodes.get(email);
+    const normalizedEmail = email.toLowerCase().trim();
+    const storedData = resetCodes.get(normalizedEmail);
 
     if (!storedData) {
       return res.status(400).json({ 
@@ -373,33 +383,36 @@ const verifyCode = async (req, res) => {
       });
     }
 
+    // Vérifier l'expiration
     if (Date.now() > storedData.expires) {
-      resetCodes.delete(email);
+      resetCodes.delete(normalizedEmail);
       return res.status(400).json({ 
         success: false,
         error: "Code expiré" 
       });
     }
 
-    if (storedData.code !== code) {
+    // Vérifier le code
+    if (storedData.code !== code.trim()) {
       return res.status(400).json({ 
         success: false,
         error: "Code incorrect" 
       });
     }
 
-    // CORRECTION : Utiliser le même JWT_SECRET
+    // Générer un token de réinitialisation
     const resetToken = jwt.sign(
       {
         userId: storedData.userId,
-        email: email,
+        email: normalizedEmail,
         purpose: "password_reset",
       },
       process.env.JWT_SECRET,
       { expiresIn: "15m" },
     );
 
-    resetCodes.delete(email);
+    // Supprimer le code utilisé
+    resetCodes.delete(normalizedEmail);
 
     res.json({
       success: true,
@@ -407,7 +420,7 @@ const verifyCode = async (req, res) => {
       resetToken,
     });
   } catch (error) {
-    console.error("Erreur verifyCode:", error);
+    console.error("🔥 Erreur verifyCode:", error.message);
     res.status(500).json({ 
       success: false,
       error: "Erreur serveur" 
@@ -416,7 +429,7 @@ const verifyCode = async (req, res) => {
 };
 
 // Réinitialisation du mot de passe
-const resetPassword = async (req, res) => {
+export const resetPassword = async (req, res) => {
   try {
     const { email, token, newPassword } = req.body;
 
@@ -434,6 +447,7 @@ const resetPassword = async (req, res) => {
       });
     }
 
+    // Vérifier le token
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -444,16 +458,19 @@ const resetPassword = async (req, res) => {
       });
     }
 
-    if (decoded.purpose !== "password_reset" || decoded.email !== email) {
+    // Vérifier le but du token
+    if (decoded.purpose !== "password_reset" || decoded.email !== email.toLowerCase()) {
       return res.status(400).json({ 
         success: false,
         error: "Token invalide" 
       });
     }
 
+    // Hasher le nouveau mot de passe
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
+    // Mettre à jour le mot de passe
     await pool.query(
       "UPDATE utilisateur SET mot_de_passe = $1, updated_at = NOW() WHERE id = $2",
       [hashedPassword, decoded.userId],
@@ -464,7 +481,7 @@ const resetPassword = async (req, res) => {
       message: "Mot de passe réinitialisé avec succès",
     });
   } catch (error) {
-    console.error("Erreur resetPassword:", error);
+    console.error("🔥 Erreur resetPassword:", error.message);
     res.status(500).json({ 
       success: false,
       error: "Erreur serveur" 
@@ -480,6 +497,5 @@ export {
   forgotPassword, 
   verifyCode, 
   resetPassword,
-  cleanImageUrl,
-  getSafeProfileImage 
+  cleanImageUrl
 };
