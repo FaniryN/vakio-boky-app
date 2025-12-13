@@ -964,14 +964,14 @@ export const resetPassword = async (req, res) => {
 
 // ==================== EXPORT FINAL ====================
 
-export { 
-  login, 
-  register, 
-  getUserById, 
-  getAllUsers,
-  forgotPassword, 
-  verifyCode, 
-  resetPassword,
-  // cleanImageUrl,           // ← Déjà exporté avec "export const"
-  // getSafeProfileImage      // ← Déjà exporté avec "export const"
-};
+// export { 
+//   login, 
+//   register, 
+//   getUserById, 
+//   getAllUsers,
+//   forgotPassword, 
+//   verifyCode, 
+//   resetPassword,
+//   // cleanImageUrl,           // ← Déjà exporté avec "export const"
+//   // getSafeProfileImage      // ← Déjà exporté avec "export const"
+// };
