@@ -38,9 +38,34 @@ export default function AdminChallengesManagement() {
     status: 'draft',
   });
 
+  // FONCTION POUR RÉCUPÉRER LE TOKEN
+  const getToken = () => {
+    const vakioUser = localStorage.getItem('vakio_user');
+    if (vakioUser) {
+      try {
+        const parsed = JSON.parse(vakioUser);
+        return parsed?.token;
+      } catch (e) {
+        console.error('❌ Erreur parsing vakio_user:', e);
+      }
+    }
+    
+    const user = localStorage.getItem('user');
+    if (user) {
+      try {
+        const parsed = JSON.parse(user);
+        return parsed?.token;
+      } catch (e) {
+        console.error('❌ Erreur parsing user:', e);
+      }
+    }
+    
+    return localStorage.getItem('vakio_token');
+  };
+
   useEffect(() => {
     // Vérifier si connecté
-    const token = localStorage.getItem('vakio_token');
+    const token = getToken();
     console.log("🔑 Token trouvé:", token ? "OUI" : "NON");
     
     if (!token) {
@@ -56,10 +81,10 @@ export default function AdminChallengesManagement() {
   const fetchChallenges = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
       
       if (!token) {
-        setError("❌ Token manquant. Connectez-vous à: http://localhost:5173/login");
+        setError("❌ Token manquant. Connectez-vous.");
         setLoading(false);
         return;
       }
@@ -79,6 +104,8 @@ export default function AdminChallengesManagement() {
       if (response.status === 401) {
         setError("❌ Session expirée. Reconnectez-vous.");
         localStorage.removeItem('vakio_token');
+        localStorage.removeItem('vakio_user');
+        localStorage.removeItem('user');
         setLoading(false);
         return;
       }
@@ -87,6 +114,10 @@ export default function AdminChallengesManagement() {
         setError("❌ Accès interdit. Vous n'êtes pas administrateur.");
         setLoading(false);
         return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
 
       const data = await response.json();
@@ -100,7 +131,7 @@ export default function AdminChallengesManagement() {
       }
     } catch (err) {
       console.error("❌ Erreur complète:", err);
-      setError("Erreur de connexion. Vérifiez que le serveur backend est démarré sur le port 5000.");
+      setError("Erreur de connexion: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -108,7 +139,7 @@ export default function AdminChallengesManagement() {
 
   const fetchBadges = async () => {
     try {
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
       if (!token) return;
 
       const response = await fetch('https://vakio-boky-backend.onrender.com/api/challenges/admin/badges/all', {
@@ -150,7 +181,7 @@ export default function AdminChallengesManagement() {
     e.preventDefault();
 
     try {
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
       if (!token) {
         alert("❌ Vous n'êtes pas connecté.");
         return;
@@ -208,7 +239,7 @@ export default function AdminChallengesManagement() {
     }
 
     try {
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
       if (!token) {
         alert("❌ Vous n'êtes pas connecté.");
         return;
@@ -238,7 +269,7 @@ export default function AdminChallengesManagement() {
 
   const handleStatusChange = async (challengeId, newStatus) => {
     try {
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
       if (!token) {
         alert("❌ Vous n'êtes pas connecté.");
         return;
@@ -768,6 +799,8 @@ export default function AdminChallengesManagement() {
                 <button
                   onClick={() => {
                     localStorage.removeItem('vakio_token');
+                    localStorage.removeItem('vakio_user');
+                    localStorage.removeItem('user');
                     window.location.href = '/login';
                   }}
                   className="ml-4 bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors"
@@ -785,7 +818,7 @@ export default function AdminChallengesManagement() {
             <div className="mt-2 text-sm">
               <p>Pour vous connecter:</p>
               <ol className="list-decimal ml-4 mt-1">
-                <li>Allez sur <a href="http://localhost:5173/login" className="text-blue-600 underline">http://localhost:5173/login</a></li>
+                <li>Allez sur <a href="/login" className="text-blue-600 underline">/login</a></li>
                 <li>Connectez-vous avec un compte administrateur</li>
                 <li>Revenez sur cette page</li>
               </ol>

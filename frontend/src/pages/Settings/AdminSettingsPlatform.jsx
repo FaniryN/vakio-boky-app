@@ -13,6 +13,7 @@ import {
   FiAlertTriangle,
   FiInfo,
 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminSettingsPlatform() {
   const [settings, setSettings] = useState({});
@@ -21,10 +22,35 @@ export default function AdminSettingsPlatform() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [activeTab, setActiveTab] = useState("general");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  // Fonction pour nettoyer tous les tokens
+  const clearAllTokens = () => {
+    localStorage.removeItem('vakio_token');
+    localStorage.removeItem('vakio_user');
+    localStorage.removeItem('user');
+    sessionStorage.removeItem('vakio_token');
+    sessionStorage.removeItem('vakio_user');
+  };
+
+  // Fonction pour vérifier et gérer les erreurs 401
+  const handleUnauthorized = (response) => {
+    if (response.status === 401) {
+      clearAllTokens();
+      navigate('/login', { 
+        state: { 
+          message: 'Votre session a expiré. Veuillez vous reconnecter.',
+          type: 'error'
+        }
+      });
+      return true;
+    }
+    return false;
+  };
 
   const fetchSettings = async () => {
     try {
@@ -38,6 +64,12 @@ export default function AdminSettingsPlatform() {
           },
         }
       );
+
+      // Vérifier l'erreur 401
+      if (handleUnauthorized(response)) {
+        setError("Session expirée. Veuillez vous reconnecter.");
+        return;
+      }
 
       const data = await response.json();
 
@@ -69,9 +101,15 @@ export default function AdminSettingsPlatform() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ settings }), // Note: wrapper dans un objet { settings }
+          body: JSON.stringify({ settings }),
         }
       );
+
+      // Vérifier l'erreur 401
+      if (handleUnauthorized(response)) {
+        setError("Session expirée. Veuillez vous reconnecter.");
+        return;
+      }
 
       const data = await response.json();
 

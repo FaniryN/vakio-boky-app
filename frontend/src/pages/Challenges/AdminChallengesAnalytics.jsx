@@ -18,14 +18,41 @@ export default function AdminChallengesAnalytics() {
   const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState('30d');
 
+  // FONCTION POUR RÉCUPÉRER LE TOKEN
+  const getToken = () => {
+    const vakioUser = localStorage.getItem('vakio_user');
+    if (vakioUser) {
+      try {
+        const parsed = JSON.parse(vakioUser);
+        return parsed?.token;
+      } catch (e) {
+        console.error('❌ Erreur parsing vakio_user:', e);
+      }
+    }
+    
+    const user = localStorage.getItem('user');
+    if (user) {
+      try {
+        const parsed = JSON.parse(user);
+        return parsed?.token;
+      } catch (e) {
+        console.error('❌ Erreur parsing user:', e);
+      }
+    }
+    
+    return localStorage.getItem('vakio_token');
+  };
+
   useEffect(() => {
+    console.log('🔍 [ChallengesAnalytics] Token:', getToken()?.substring(0, 20) + '...');
     fetchAnalytics();
   }, [timeRange]);
 
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
+      
       if (!token) {
         setError("Token d'authentification manquant. Veuillez vous reconnecter.");
         setLoading(false);
@@ -39,11 +66,19 @@ export default function AdminChallengesAnalytics() {
         },
       });
 
+      console.log('📊 [ChallengesAnalytics] Statut:', response.status);
+      
       if (response.status === 401 || response.status === 403) {
         setError("Session expirée. Veuillez vous reconnecter.");
         localStorage.removeItem('vakio_token');
+        localStorage.removeItem('vakio_user');
+        localStorage.removeItem('user');
         setLoading(false);
         return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
 
       const data = await response.json();
@@ -55,8 +90,8 @@ export default function AdminChallengesAnalytics() {
         setError(data.error || "Erreur lors du chargement");
       }
     } catch (err) {
-      setError("Erreur de connexion au serveur");
       console.error("❌ Erreur chargement statistiques défis:", err);
+      setError(err.message || "Erreur de connexion au serveur");
     } finally {
       setLoading(false);
     }

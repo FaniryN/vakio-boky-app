@@ -13,6 +13,7 @@ import {
   FiCheckCircle,
   FiAlertTriangle,
 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminSettingsEmail() {
   const [templates, setTemplates] = useState([]);
@@ -23,10 +24,35 @@ export default function AdminSettingsEmail() {
   const [success, setSuccess] = useState(null);
   const [previewMode, setPreviewMode] = useState(false);
   const [testEmail, setTestEmail] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchTemplates();
   }, []);
+
+  // Fonction pour nettoyer tous les tokens
+  const clearAllTokens = () => {
+    localStorage.removeItem('vakio_token');
+    localStorage.removeItem('vakio_user');
+    localStorage.removeItem('user');
+    sessionStorage.removeItem('vakio_token');
+    sessionStorage.removeItem('vakio_user');
+  };
+
+  // Fonction pour vérifier et gérer les erreurs 401
+  const handleUnauthorized = (response) => {
+    if (response.status === 401) {
+      clearAllTokens();
+      navigate('/login', { 
+        state: { 
+          message: 'Votre session a expiré. Veuillez vous reconnecter.',
+          type: 'error'
+        }
+      });
+      return true;
+    }
+    return false;
+  };
 
   const fetchTemplates = async () => {
     try {
@@ -40,6 +66,12 @@ export default function AdminSettingsEmail() {
           },
         }
       );
+
+      // Vérifier l'erreur 401
+      if (handleUnauthorized(response)) {
+        setError("Session expirée. Veuillez vous reconnecter.");
+        return;
+      }
 
       const data = await response.json();
 
@@ -87,6 +119,12 @@ export default function AdminSettingsEmail() {
         }
       );
 
+      // Vérifier l'erreur 401
+      if (handleUnauthorized(response)) {
+        setError("Session expirée. Veuillez vous reconnecter.");
+        return;
+      }
+
       const data = await response.json();
 
       if (data.success) {
@@ -103,6 +141,7 @@ export default function AdminSettingsEmail() {
       setSaving(false);
     }
   };
+
   const sendTestEmail = async () => {
     if (!selectedTemplate || !testEmail) return;
 
@@ -122,6 +161,12 @@ export default function AdminSettingsEmail() {
           }),
         }
       );
+
+      // Vérifier l'erreur 401
+      if (handleUnauthorized(response)) {
+        setError("Session expirée. Veuillez vous reconnecter.");
+        return;
+      }
 
       const data = await response.json();
 

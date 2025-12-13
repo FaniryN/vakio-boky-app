@@ -7,7 +7,6 @@ import {
   FiCreditCard,
   FiCloud,
   FiKey,
-  // FiTestTube,
   FiCheckCircle,
   FiXCircle,
   FiAlertTriangle,
@@ -15,6 +14,7 @@ import {
   FiRefreshCw,
   FiExternalLink,
 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminSettingsSystem() {
   const [config, setConfig] = useState({});
@@ -24,10 +24,35 @@ export default function AdminSettingsSystem() {
   const [success, setSuccess] = useState(null);
   const [activeTab, setActiveTab] = useState("database");
   const [testResults, setTestResults] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchConfig();
   }, []);
+
+  // Fonction pour nettoyer tous les tokens
+  const clearAllTokens = () => {
+    localStorage.removeItem('vakio_token');
+    localStorage.removeItem('vakio_user');
+    localStorage.removeItem('user');
+    sessionStorage.removeItem('vakio_token');
+    sessionStorage.removeItem('vakio_user');
+  };
+
+  // Fonction pour vérifier et gérer les erreurs 401
+  const handleUnauthorized = (response) => {
+    if (response.status === 401) {
+      clearAllTokens();
+      navigate('/login', { 
+        state: { 
+          message: 'Votre session a expiré. Veuillez vous reconnecter.',
+          type: 'error'
+        }
+      });
+      return true;
+    }
+    return false;
+  };
 
   const fetchConfig = async () => {
     try {
@@ -41,6 +66,12 @@ export default function AdminSettingsSystem() {
           },
         }
       );
+
+      // Vérifier l'erreur 401
+      if (handleUnauthorized(response)) {
+        setError("Session expirée. Veuillez vous reconnecter.");
+        return;
+      }
 
       const data = await response.json();
 
@@ -72,9 +103,15 @@ export default function AdminSettingsSystem() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ config }), // Note: wrapper dans un objet { config }
+          body: JSON.stringify({ config }),
         }
       );
+
+      // Vérifier l'erreur 401
+      if (handleUnauthorized(response)) {
+        setError("Session expirée. Veuillez vous reconnecter.");
+        return;
+      }
 
       const data = await response.json();
 
@@ -91,6 +128,7 @@ export default function AdminSettingsSystem() {
       setSaving(false);
     }
   };
+
   const testConnection = async (service) => {
     try {
       const token = localStorage.getItem("vakio_token");
@@ -102,6 +140,12 @@ export default function AdminSettingsSystem() {
           },
         }
       );
+
+      // Vérifier l'erreur 401
+      if (handleUnauthorized(response)) {
+        setError("Session expirée. Veuillez vous reconnecter.");
+        return;
+      }
 
       const data = await response.json();
 

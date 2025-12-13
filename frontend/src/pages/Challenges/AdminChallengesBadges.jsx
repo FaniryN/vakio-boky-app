@@ -27,14 +27,41 @@ export default function AdminChallengesBadges() {
     points: 10,
   });
 
+  // FONCTION POUR RÉCUPÉRER LE TOKEN
+  const getToken = () => {
+    const vakioUser = localStorage.getItem('vakio_user');
+    if (vakioUser) {
+      try {
+        const parsed = JSON.parse(vakioUser);
+        return parsed?.token;
+      } catch (e) {
+        console.error('❌ Erreur parsing vakio_user:', e);
+      }
+    }
+    
+    const user = localStorage.getItem('user');
+    if (user) {
+      try {
+        const parsed = JSON.parse(user);
+        return parsed?.token;
+      } catch (e) {
+        console.error('❌ Erreur parsing user:', e);
+      }
+    }
+    
+    return localStorage.getItem('vakio_token');
+  };
+
   useEffect(() => {
+    console.log('🔍 [ChallengesBadges] Token:', getToken()?.substring(0, 20) + '...');
     fetchBadges();
   }, []);
 
   const fetchBadges = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
+      
       if (!token) {
         setError("Token d'authentification manquant. Veuillez vous reconnecter.");
         setLoading(false);
@@ -48,11 +75,19 @@ export default function AdminChallengesBadges() {
         },
       });
 
+      console.log('📊 [ChallengesBadges] Statut:', response.status);
+      
       if (response.status === 401 || response.status === 403) {
         setError("Session expirée. Veuillez vous reconnecter.");
         localStorage.removeItem('vakio_token');
+        localStorage.removeItem('vakio_user');
+        localStorage.removeItem('user');
         setLoading(false);
         return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
 
       const data = await response.json();
@@ -64,8 +99,8 @@ export default function AdminChallengesBadges() {
         setError(data.error || "Erreur lors du chargement");
       }
     } catch (err) {
-      setError("Erreur de connexion au serveur");
       console.error("❌ Erreur chargement badges:", err);
+      setError(err.message || "Erreur de connexion au serveur");
     } finally {
       setLoading(false);
     }
@@ -75,7 +110,8 @@ export default function AdminChallengesBadges() {
     e.preventDefault();
 
     try {
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
+      
       if (!token) {
         alert("Session expirée. Veuillez vous reconnecter.");
         return;
@@ -132,7 +168,8 @@ export default function AdminChallengesBadges() {
     }
 
     try {
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
+      
       if (!token) {
         alert("Session expirée. Veuillez vous reconnecter.");
         return;
