@@ -26,7 +26,33 @@ export default function AdminModerationActions() {
   const [selectedAction, setSelectedAction] = useState(null);
   const [filter, setFilter] = useState('all');
 
+  // FONCTION POUR RÉCUPÉRER LE TOKEN
+  const getToken = () => {
+    const vakioUser = localStorage.getItem('vakio_user');
+    if (vakioUser) {
+      try {
+        const parsed = JSON.parse(vakioUser);
+        return parsed?.token;
+      } catch (e) {
+        console.error('❌ Erreur parsing vakio_user:', e);
+      }
+    }
+    
+    const user = localStorage.getItem('user');
+    if (user) {
+      try {
+        const parsed = JSON.parse(user);
+        return parsed?.token;
+      } catch (e) {
+        console.error('❌ Erreur parsing user:', e);
+      }
+    }
+    
+    return localStorage.getItem('vakio_token');
+  };
+
   useEffect(() => {
+    console.log('🔍 [ModerationActions] Token:', getToken()?.substring(0, 20) + '...');
     fetchActions();
     fetchStats();
   }, [filter]);
@@ -34,23 +60,38 @@ export default function AdminModerationActions() {
   const fetchActions = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
+      
+      if (!token) {
+        setError("Token d'authentification manquant. Veuillez vous reconnecter.");
+        setLoading(false);
+        return;
+      }
+      
       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/moderation/actions?filter=${filter}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
       });
 
+      console.log('📊 [ModerationActions] Statut:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
       const data = await response.json();
 
       if (data.success) {
         setActions(data.actions || []);
+        setError(null);
       } else {
         setError(data.error || "Erreur lors du chargement");
       }
     } catch (err) {
-      setError("Erreur lors du chargement des actions de modération");
       console.error("❌ Erreur chargement actions modération:", err);
+      setError(err.message || "Erreur de connexion au serveur");
     } finally {
       setLoading(false);
     }
@@ -58,10 +99,17 @@ export default function AdminModerationActions() {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
+      
+      if (!token) {
+        console.log('⚠️ [ModerationActions] Pas de token pour stats');
+        return;
+      }
+      
       const response = await fetch('https://vakio-boky-backend.onrender.com/api/admin/moderation/actions/stats', {
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
       });
 
@@ -537,13 +585,21 @@ export default function AdminModerationActions() {
         {/* Error */}
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
+            <div className="flex items-center">
+              <FiAlertTriangle className="mr-2" />
+              <span>{error}</span>
+            </div>
             <button
               onClick={fetchActions}
-              className="ml-4 underline hover:no-underline"
+              className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
             >
               Réessayer
             </button>
+            {!getToken() && (
+              <p className="mt-2 text-sm">
+                Aucun token trouvé. Veuillez vous <a href="/login" className="underline">reconnecter</a>.
+              </p>
+            )}
           </div>
         )}
       </div>
