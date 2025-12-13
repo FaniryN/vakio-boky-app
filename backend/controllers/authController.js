@@ -972,6 +972,6 @@ export {
   forgotPassword, 
   verifyCode, 
   resetPassword,
-  cleanImageUrl,           // ← Déjà exporté avec "export const"
-  getSafeProfileImage      // ← Déjà exporté avec "export const"
+  // cleanImageUrl,           // ← Déjà exporté avec "export const"
+  // getSafeProfileImage      // ← Déjà exporté avec "export const"
 };
