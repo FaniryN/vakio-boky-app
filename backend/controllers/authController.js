@@ -37,7 +37,7 @@ const cleanImageUrl = (url, type = "profile") => {
 };
 
 // Login utilisateur - VERSION SIMPLIFIÉE ET SÉCURISÉE
-export const login = async (req, res) => {
+const login = async (req, res) => {
   try {
     const { email, mot_de_passe } = req.body;
 
@@ -120,7 +120,7 @@ export const login = async (req, res) => {
 };
 
 // Inscription utilisateur
-export const register = async (req, res) => {
+const register = async (req, res) => {
   try {
     const {
       nom,
@@ -223,7 +223,7 @@ export const register = async (req, res) => {
 };
 
 // Récupérer un utilisateur par ID
-export const getUserById = async (req, res) => {
+const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -270,7 +270,7 @@ export const getUserById = async (req, res) => {
 };
 
 // Récupérer tous les utilisateurs (pour admin)
-export const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT id, nom, email, role, telephone, genre_prefere, 
@@ -299,7 +299,7 @@ export const getAllUsers = async (req, res) => {
 };
 
 // Mot de passe oublié - VERSION SIMPLIFIÉE
-export const forgotPassword = async (req, res) => {
+const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -362,7 +362,7 @@ export const forgotPassword = async (req, res) => {
 };
 
 // Vérification du code
-export const verifyCode = async (req, res) => {
+const verifyCode = async (req, res) => {
   try {
     const { email, code } = req.body;
 
@@ -429,7 +429,7 @@ export const verifyCode = async (req, res) => {
 };
 
 // Réinitialisation du mot de passe
-export const resetPassword = async (req, res) => {
+const resetPassword = async (req, res) => {
   try {
     const { email, token, newPassword } = req.body;
 
@@ -489,13 +489,13 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-// export { 
-//   login, 
-//   register, 
-//   getUserById, 
-//   getAllUsers,
-//   forgotPassword, 
-//   verifyCode, 
-//   resetPassword,
-//   cleanImageUrl
-// };
+export { 
+  login, 
+  register, 
+  getUserById, 
+  getAllUsers,
+  forgotPassword, 
+  verifyCode, 
+  resetPassword,
+  cleanImageUrl
+};
