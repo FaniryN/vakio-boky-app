@@ -25,11 +25,11 @@ export default function AdminSettingsEmail() {
   const [previewMode, setPreviewMode] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [filter, setFilter] = useState("all");
-  const [stats, setStats] = useState({});
+  // const [stats, setStats] = useState({});
 
   useEffect(() => {
     fetchTemplates();
-    fetchEmailStats();
+    // fetchEmailStats();
   }, [filter]);
 
   const fetchTemplates = async () => {
@@ -60,56 +60,56 @@ export default function AdminSettingsEmail() {
     }
   };
 
-  const fetchEmailStats = async () => {
-    try {
-      const response = await apiService.get('/api/admin/settings/email/stats');
-      const data = response.data;
+  // const fetchEmailStats = async () => {
+  //   try {
+  //     const response = await apiService.get('/api/admin/settings/email/stats');
+  //     const data = response.data;
 
-      if (data.success) {
-        setStats(data.stats || {});
-      }
-    } catch (err) {
-      console.error("❌ Erreur chargement stats email:", err);
-    }
-  };
+  //     if (data.success) {
+  //       setStats(data.stats || {});
+  //     }
+  //   } catch (err) {
+  //     console.error("❌ Erreur chargement stats email:", err);
+  //   }
+  // };
 
-  const saveTemplate = async () => {
-    if (!selectedTemplate) return;
+  // const saveTemplate = async () => {
+  //   if (!selectedTemplate) return;
 
-    try {
-      setSaving(true);
-      setError(null);
-      setSuccess(null);
+  //   try {
+  //     setSaving(true);
+  //     setError(null);
+  //     setSuccess(null);
 
-      // UTILISATION DE apiService
-      const response = await apiService.put(
-        `/api/admin/settings/email/templates/${selectedTemplate.id}`,
-        {
-          name: selectedTemplate.name,
-          category: selectedTemplate.category,
-          description: selectedTemplate.description,
-          subject: selectedTemplate.subject,
-          html_content: selectedTemplate.html_content,
-          text_content: selectedTemplate.text_content || "",
-        }
-      );
+  //     // UTILISATION DE apiService
+  //     const response = await apiService.put(
+  //       `/api/admin/settings/email/templates/${selectedTemplate.id}`,
+  //       {
+  //         name: selectedTemplate.name,
+  //         category: selectedTemplate.category,
+  //         description: selectedTemplate.description,
+  //         subject: selectedTemplate.subject,
+  //         html_content: selectedTemplate.html_content,
+  //         text_content: selectedTemplate.text_content || "",
+  //       }
+  //     );
 
-      const data = response.data;
+  //     const data = response.data;
 
-      if (data.success) {
-        setSuccess("Template sauvegardé avec succès");
-        await fetchTemplates();
-        setTimeout(() => setSuccess(null), 3000);
-      } else {
-        setError(data.error || "Erreur lors de la sauvegarde");
-      }
-    } catch (err) {
-      setError("Erreur lors de la sauvegarde");
-      console.error("❌ Erreur sauvegarde template:", err);
-    } finally {
-      setSaving(false);
-    }
-  };
+  //     if (data.success) {
+  //       setSuccess("Template sauvegardé avec succès");
+  //       await fetchTemplates();
+  //       setTimeout(() => setSuccess(null), 3000);
+  //     } else {
+  //       setError(data.error || "Erreur lors de la sauvegarde");
+  //     }
+  //   } catch (err) {
+  //     setError("Erreur lors de la sauvegarde");
+  //     console.error("❌ Erreur sauvegarde template:", err);
+  //   } finally {
+  //     setSaving(false);
+  //   }
+  // };
 
   const sendTestEmail = async () => {
     if (!selectedTemplate || !testEmail) return;
@@ -202,7 +202,7 @@ export default function AdminSettingsEmail() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -274,7 +274,7 @@ export default function AdminSettingsEmail() {
               <FiSend className="text-green-600 text-2xl" />
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Success/Error Messages */}
         {success && (

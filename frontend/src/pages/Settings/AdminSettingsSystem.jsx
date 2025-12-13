@@ -28,11 +28,11 @@ export default function AdminSettingsSystem() {
   const [success, setSuccess] = useState(null);
   const [activeTab, setActiveTab] = useState("database");
   const [testResults, setTestResults] = useState({});
-  const [stats, setStats] = useState({});
+  // const [stats, setStats] = useState({});
 
   useEffect(() => {
     fetchConfig();
-    fetchSystemStats();
+    // fetchSystemStats();
   }, []);
 
   const fetchConfig = async () => {
@@ -60,42 +60,42 @@ export default function AdminSettingsSystem() {
     }
   };
 
-  const fetchSystemStats = async () => {
-    try {
-      const response = await apiService.get('/api/admin/settings/system/stats');
-      const data = response.data;
+  // const fetchSystemStats = async () => {
+  //   try {
+  //     const response = await apiService.get('/api/admin/settings/system/stats');
+  //     const data = response.data;
 
-      if (data.success) {
-        setStats(data.stats || {});
-      }
-    } catch (err) {
-      console.error("❌ Erreur chargement stats système:", err);
-    }
-  };
+  //     if (data.success) {
+  //       setStats(data.stats || {});
+  //     }
+  //   } catch (err) {
+  //     console.error("❌ Erreur chargement stats système:", err);
+  //   }
+  // };
 
-  const saveConfig = async () => {
-    try {
-      setSaving(true);
-      setError(null);
-      setSuccess(null);
+  // const saveConfig = async () => {
+  //   try {
+  //     setSaving(true);
+  //     setError(null);
+  //     setSuccess(null);
 
-      // UTILISATION DE apiService
-      const response = await apiService.put('/api/admin/settings/system', { config });
-      const data = response.data;
+  //     // UTILISATION DE apiService
+  //     const response = await apiService.put('/api/admin/settings/system', { config });
+  //     const data = response.data;
 
-      if (data.success) {
-        setSuccess("Configuration sauvegardée avec succès");
-        setTimeout(() => setSuccess(null), 3000);
-      } else {
-        setError(data.error || "Erreur lors de la sauvegarde");
-      }
-    } catch (err) {
-      setError("Erreur lors de la sauvegarde");
-      console.error("❌ Erreur sauvegarde config:", err);
-    } finally {
-      setSaving(false);
-    }
-  };
+  //     if (data.success) {
+  //       setSuccess("Configuration sauvegardée avec succès");
+  //       setTimeout(() => setSuccess(null), 3000);
+  //     } else {
+  //       setError(data.error || "Erreur lors de la sauvegarde");
+  //     }
+  //   } catch (err) {
+  //     setError("Erreur lors de la sauvegarde");
+  //     console.error("❌ Erreur sauvegarde config:", err);
+  //   } finally {
+  //     setSaving(false);
+  //   }
+  // };
 
   const testConnection = async (service) => {
     try {
@@ -196,7 +196,7 @@ export default function AdminSettingsSystem() {
           </p>
         </div>
 
-        {/* Stats Overview */}
+        {/* Stats Overview
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between">
@@ -269,7 +269,7 @@ export default function AdminSettingsSystem() {
               <FiShield className="text-red-600 text-2xl" />
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Success/Error Messages */}
         {success && (

@@ -27,11 +27,11 @@ export default function AdminSettingsPlatform() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [activeTab, setActiveTab] = useState("general");
-  const [stats, setStats] = useState({});
+  // const [stats, setStats] = useState({});
 
   useEffect(() => {
     fetchSettings();
-    fetchPlatformStats();
+    // fetchPlatformStats();
   }, []);
 
   const fetchSettings = async () => {
@@ -59,18 +59,18 @@ export default function AdminSettingsPlatform() {
     }
   };
 
-  const fetchPlatformStats = async () => {
-    try {
-      const response = await apiService.get('/api/admin/settings/platform/stats');
-      const data = response.data;
+  // const fetchPlatformStats = async () => {
+  //   try {
+  //     const response = await apiService.get('/api/admin/settings/platform/stats');
+  //     const data = response.data;
 
-      if (data.success) {
-        setStats(data.stats || {});
-      }
-    } catch (err) {
-      console.error("❌ Erreur chargement stats platform:", err);
-    }
-  };
+  //     if (data.success) {
+  //       setStats(data.stats || {});
+  //     }
+  //   } catch (err) {
+  //     console.error("❌ Erreur chargement stats platform:", err);
+  //   }
+  // };
 
   const saveSettings = async () => {
     try {
@@ -171,7 +171,7 @@ export default function AdminSettingsPlatform() {
           </p>
         </div>
 
-        {/* Stats Overview */}
+        {/* Stats Overview
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between">
@@ -244,7 +244,7 @@ export default function AdminSettingsPlatform() {
               <FiShield className="text-red-600 text-2xl" />
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Success/Error Messages */}
         {success && (
