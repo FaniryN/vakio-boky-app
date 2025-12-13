@@ -25,7 +25,42 @@ export default function AdminModerationReports() {
   const [searchTerm, setSearchTerm] = useState('');
   const [stats, setStats] = useState({});
 
+  // FONCTION POUR RÉCUPÉRER LE TOKEN
+  const getToken = () => {
+    // Essayer vakio_user d'abord
+    const vakioUser = localStorage.getItem('vakio_user');
+    if (vakioUser) {
+      try {
+        const parsed = JSON.parse(vakioUser);
+        return parsed?.token;
+      } catch (e) {
+        console.error('❌ Erreur parsing vakio_user:', e);
+      }
+    }
+    
+    // Sinon essayer user (compatibilité)
+    const user = localStorage.getItem('user');
+    if (user) {
+      try {
+        const parsed = JSON.parse(user);
+        return parsed?.token;
+      } catch (e) {
+        console.error('❌ Erreur parsing user:', e);
+      }
+    }
+    
+    // Sinon vakio_token (ancien format)
+    return localStorage.getItem('vakio_token');
+  };
+
   useEffect(() => {
+    // Debug au chargement
+    console.log('🔍 [Moderation] Vérification token au chargement:');
+    console.log('- vakio_user:', localStorage.getItem('vakio_user'));
+    console.log('- user:', localStorage.getItem('user'));
+    console.log('- vakio_token:', localStorage.getItem('vakio_token'));
+    console.log('- Token extrait:', getToken()?.substring(0, 20) + '...');
+    
     fetchReports();
     fetchStats();
   }, [filter]);
@@ -33,23 +68,40 @@ export default function AdminModerationReports() {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
+      
+      if (!token) {
+        setError("Token d'authentification manquant. Veuillez vous reconnecter.");
+        setLoading(false);
+        return;
+      }
+      
+      console.log('🔑 [Moderation] Token utilisé:', token.substring(0, 20) + '...');
+      
       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/moderation/reports?filter=${filter}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
       });
 
+      console.log('📊 [Moderation] Statut réponse:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
       const data = await response.json();
 
       if (data.success) {
         setReports(data.reports || []);
+        setError(null);
       } else {
         setError(data.error || "Erreur lors du chargement");
       }
     } catch (err) {
-      setError("Erreur lors du chargement des signalements");
       console.error("❌ Erreur chargement signalements:", err);
+      setError(err.message || "Erreur de connexion au serveur. Vérifiez votre connexion internet.");
     } finally {
       setLoading(false);
     }
@@ -57,10 +109,17 @@ export default function AdminModerationReports() {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
+      
+      if (!token) {
+        console.log('⚠️ [Moderation] Pas de token pour stats');
+        return;
+      }
+      
       const response = await fetch('https://vakio-boky-backend.onrender.com/api/admin/moderation/reports/stats', {
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
       });
 
@@ -76,12 +135,18 @@ export default function AdminModerationReports() {
 
   const handleResolveReport = async (reportId, action, notes = '') => {
     try {
-      const token = localStorage.getItem('vakio_token');
+      const token = getToken();
+      
+      if (!token) {
+        alert('Token d\'authentification manquant. Veuillez vous reconnecter.');
+        return;
+      }
+      
       const response = await fetch(`https://vakio-boky-backend.onrender.com/api/admin/moderation/reports/${reportId}/resolve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ action, notes }),
       });
@@ -98,7 +163,7 @@ export default function AdminModerationReports() {
       }
     } catch (err) {
       console.error('❌ Erreur résolution signalement:', err);
-      alert('Erreur lors de la résolution');
+      alert('Erreur de connexion au serveur');
     }
   };
 
@@ -551,13 +616,31 @@ export default function AdminModerationReports() {
         {/* Error */}
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
+            <div className="flex items-center">
+              <FiAlertTriangle className="mr-2" />
+              <span>{error}</span>
+            </div>
             <button
               onClick={fetchReports}
-              className="ml-4 underline hover:no-underline"
+              className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
             >
               Réessayer
             </button>
+            {!getToken() && (
+              <p className="mt-2 text-sm">
+                Aucun token trouvé. Veuillez vous <a href="/login" className="underline">reconnecter</a>.
+              </p>
+            )}
+          </div>
+        )}
+        
+        {/* Debug info (optionnel - à supprimer en production) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-8 p-4 bg-gray-100 rounded-lg text-sm">
+            <p className="font-medium">Debug Info:</p>
+            <p>Token présent: {getToken() ? 'Oui' : 'Non'}</p>
+            <p>Nombre de rapports: {reports.length}</p>
+            <p>URL API: /api/admin/moderation/reports</p>
           </div>
         )}
       </div>
