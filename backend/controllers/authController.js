@@ -489,13 +489,13 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-export { 
-  login, 
-  register, 
-  getUserById, 
-  getAllUsers,
-  forgotPassword, 
-  verifyCode, 
-  resetPassword,
-  cleanImageUrl
-};
+// export { 
+//   login, 
+//   register, 
+//   getUserById, 
+//   getAllUsers,
+//   forgotPassword, 
+//   verifyCode, 
+//   resetPassword,
+//   cleanImageUrl
+// };

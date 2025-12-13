@@ -179,10 +179,10 @@ export const requestLogger = (req, res, next) => {
   next();
 };
 
-export { 
-  authenticateToken, 
-  checkRole, 
-  requireAdmin,
-  checkOwnership,
-  requestLogger
-};
+// export { 
+//   authenticateToken, 
+//   checkRole, 
+//   requireAdmin,
+//   checkOwnership,
+//   requestLogger
+// };
