@@ -250,7 +250,8 @@ const EventsCalendarPage = () => {
                       Nouvel Événement
                     </button> */}
                   </div>
-                  <InteractiveCalendar />
+                  {/* <InteractiveCalendar /> */}
+                   <InteractiveCalendar />
                 </div>
               </motion.div>
             )}
