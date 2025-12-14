@@ -425,17 +425,17 @@ const corsOptions = {
   maxAge: 86400
 };
 
-// CORRECTION ICI : Utiliser cors middleware directement
+// ✅ CORRECTION PRINCIPALE : Middleware CORS seulement
 app.use(cors(corsOptions));
 
-// CORRECTION ICI : Gérer OPTIONS manuellement sans path-to-regexp
-app.options('*', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', corsOptions.origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-  res.setHeader('Access-Control-Max-Age', '86400');
-  res.status(200).end();
-});
+// ❌ SUPPRIMEZ COMPLÈTEMENT CETTE LIGNE ET TOUT LE BLOC SUIVANT :
+// app.options('*', (req, res) => {
+//   res.setHeader('Access-Control-Allow-Origin', corsOptions.origin);
+//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+//   res.setHeader('Access-Control-Max-Age', '86400');
+//   res.status(200).end();
+// });
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
@@ -446,7 +446,13 @@ app.use("/uploads", express.static(uploadsPath, {
     if (filePath.endsWith('.png') || filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || 
         filePath.endsWith('.gif') || filePath.endsWith('.webp')) {
       res.setHeader('Cache-Control', 'public, max-age=86400');
-      res.setHeader('Access-Control-Allow-Origin', '*');
+      // ✅ CORRECTION : Remplacer l'étoile par une gestion dynamique
+      const origin = req?.headers?.origin;
+      if (origin && allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+      } else {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+      }
     }
     
     if (process.env.NODE_ENV === 'production') {
