@@ -14,7 +14,7 @@
 // // Middleware
 // import { handleUploadErrors } from "./middleware/upload.js";
 
-// // Routes imports
+// // Routes imports - CORRIGÉ
 // import authRoutes from "./routes/auth.js";
 // import profileRoutes from "./routes/profile.js";
 // import postRoutes from "./routes/posts.js";
@@ -36,9 +36,9 @@
 // import donationRoutes from "./routes/donationRoutes.js";
 // import contactRoutes from "./routes/contact.js";
 // import analyticsRoutes from "./routes/adminAnalytics.js";
-// import adminRoutes from  "./routes/adminModeration.js";
+// import moderationRoutes from "./routes/adminModeration.js";  // ← CORRIGÉ
 // import reportRoutes from "./routes/reports.js";
-// import settingsRoutes from "./routes/settings.js";
+// import settingsRoutes from "./routes/adminSettings.js";  // ← CORRIGÉ
 
 // const app = express();
 
@@ -130,7 +130,7 @@
 //   }
 // };
 
-// // API routes organized by domain
+// // API routes organized by domain - CORRIGÉ
 // const API_ROUTES = {
 //   // Authentication and profile
 //   "/api/auth": authRoutes,
@@ -173,11 +173,11 @@
 //   // Analytics
 //   "/api/admin/analytics": analyticsRoutes,
 
-//   // Moderation
+//   // Moderation - CORRIGÉ
 //   "/api/admin/moderation": moderationRoutes,
 //   "/api/reports": reportRoutes,
 
-//   // Settings
+//   // Settings - CORRIGÉ
 //   "/api/admin/settings": settingsRoutes,
 
 //   // Landing page
@@ -339,16 +339,11 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 
-// Configuration
 dotenv.config();
 
-// Database
 import pool from "./config/db.js";
-
-// Middleware
 import { handleUploadErrors } from "./middleware/upload.js";
 
-// Routes imports - CORRIGÉ
 import authRoutes from "./routes/auth.js";
 import profileRoutes from "./routes/profile.js";
 import postRoutes from "./routes/posts.js";
@@ -370,17 +365,15 @@ import campaignRoutes from "./routes/campaign.js";
 import donationRoutes from "./routes/donationRoutes.js";
 import contactRoutes from "./routes/contact.js";
 import analyticsRoutes from "./routes/adminAnalytics.js";
-import moderationRoutes from "./routes/adminModeration.js";  // ← CORRIGÉ
+import moderationRoutes from "./routes/adminModeration.js";
 import reportRoutes from "./routes/reports.js";
-import settingsRoutes from "./routes/adminSettings.js";  // ← CORRIGÉ
+import settingsRoutes from "./routes/adminSettings.js";
 
 const app = express();
 
-// Path configuration
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Créer les dossiers uploads s'ils n'existent pas
 const createUploadsFolders = () => {
   const folders = [
     'uploads',
@@ -402,48 +395,72 @@ const createUploadsFolders = () => {
 
 createUploadsFolders();
 
-// CORS configuration
 const corsOptions = {
-  origin: [
-    "https://vakio-boky-frontend.onrender.com",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174"
-  ],
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      "https://vakio-boky-frontend.onrender.com",
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      "http://localhost:5174",
+      "http://127.0.0.1:5174"
+    ];
+    
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.warn(`⚠️ Origine bloquée par CORS: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  allowedHeaders: [
+    "Content-Type", 
+    "Authorization", 
+    "X-Requested-With",
+    "Accept",
+    "Origin"
+  ],
+  exposedHeaders: ["Content-Disposition"],
+  maxAge: 86400
 };
 
 app.use(cors(corsOptions));
 
-// Body parser configuration with extended limits
+app.options('*', cors(corsOptions));
+
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
-// Static file server - CORRECTION ICI
-app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
+const uploadsPath = path.join(__dirname, "uploads");
+app.use("/uploads", express.static(uploadsPath, {
   setHeaders: (res, filePath) => {
-    // Ajouter des en-têtes de cache pour les images
-    if (filePath.endsWith('.png') || filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
-      res.setHeader('Cache-Control', 'public, max-age=86400'); // 24h cache
+    if (filePath.endsWith('.png') || filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || 
+        filePath.endsWith('.gif') || filePath.endsWith('.webp')) {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+    
+    if (process.env.NODE_ENV === 'production') {
+      res.setHeader('Content-Security-Policy', "default-src 'self' https: data:; img-src 'self' https: data: blob:;");
     }
   }
 }));
 
-// Middleware pour servir des images par défaut si non trouvées
 app.use((req, res, next) => {
   if (req.url.startsWith('/uploads/')) {
     const filePath = path.join(__dirname, req.url);
     
-    // Si le fichier n'existe pas, servir une image par défaut
     if (!fs.existsSync(filePath)) {
       console.log(`⚠️ Fichier non trouvé: ${req.url}`);
       
-      // Image par défaut selon le type
       if (req.url.includes('/profiles/')) {
-        const defaultImage = path.join(__dirname, 'uploads', 'default-profile.png');
+        const defaultImage = path.join(__dirname, 'assets', 'images', 'default-profile.png');
+        if (fs.existsSync(defaultImage)) {
+          return res.sendFile(defaultImage);
+        }
+      } else if (req.url.includes('/books/')) {
+        const defaultImage = path.join(__dirname, 'assets', 'images', 'default-book.png');
         if (fs.existsSync(defaultImage)) {
           return res.sendFile(defaultImage);
         }
@@ -453,7 +470,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Database connection test
 const initializeDatabase = async () => {
   try {
     await pool.connect();
@@ -464,67 +480,37 @@ const initializeDatabase = async () => {
   }
 };
 
-// API routes organized by domain - CORRIGÉ
 const API_ROUTES = {
-  // Authentication and profile
   "/api/auth": authRoutes,
   "/api/profile": profileRoutes,
-
-  // User content
   "/api/posts": postRoutes,
   "/api/comments": commentRoutes,
   "/api/medias": mediaRoutes,
-
-  // Library
   "/api/books": bookRoutes,
   "/api/admin/books": adminBookRoutes,
-
-  // Community
   "/api/clubs": clubRoutes,
   "/api/events": eventsRoutes,
-
-  // Social features
   "/api/notifications": notificationRoutes,
   "/api/emails": emailRoutes,
-
-  // Challenges and badges
   "/api/challenges": challengesRoutes,
-
-  // Reading statistics
   "/api/reading": readingRoutes,
-
-  // Fundraising
   "/api/campaigns": campaignRoutes,
   "/api/donations": donationRoutes,
-
-  // Marketplace
   "/api/marketplace": marketplaceRoutes,
-
-  // Admin
   "/api/admin": adminRoutes,
   "/api/admin/users": adminUsersRoutes,
-
-  // Analytics
   "/api/admin/analytics": analyticsRoutes,
-
-  // Moderation - CORRIGÉ
   "/api/admin/moderation": moderationRoutes,
   "/api/reports": reportRoutes,
-
-  // Settings - CORRIGÉ
   "/api/admin/settings": settingsRoutes,
-
-  // Landing page
   "/api/landing": landingRoutes,
   "/api/contact": contactRoutes,
 };
 
-// Route registration
 Object.entries(API_ROUTES).forEach(([path, route]) => {
   app.use(path, route);
 });
 
-// Status and health routes
 app.get("/", (req, res) => {
   res.json({
     message: "🚀 Vakio Boky API - Literary Platform",
@@ -546,7 +532,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Available endpoints documentation
 app.get("/api/docs", (req, res) => {
   res.json({
     message: "Vakio Boky API Endpoints Documentation",
@@ -573,7 +558,6 @@ app.get("/api/docs", (req, res) => {
   });
 });
 
-// 404 Middleware - Route not found
 app.use((req, res) => {
   res.status(404).json({
     error: "Endpoint not found",
@@ -584,11 +568,9 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler
 app.use((err, req, res, next) => {
   console.error("🔥 Server error:", err);
 
-  // JWT errors
   if (err.name === "JsonWebTokenError") {
     return res.status(401).json({
       error: "Invalid authentication token",
@@ -596,7 +578,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Validation errors
   if (err.name === "ValidationError") {
     return res.status(400).json({
       error: "Invalid data",
@@ -604,7 +585,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // PostgreSQL unique constraint violation
   if (err.code === "23505") {
     return res.status(409).json({
       error: "Data conflict - Resource already exists",
@@ -612,14 +592,12 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Generic error
   const errorResponse = {
     error: "Internal server error",
     code: "INTERNAL_SERVER_ERROR",
     timestamp: new Date().toISOString(),
   };
 
-  // Details in development
   if (process.env.NODE_ENV === "development") {
     errorResponse.details = err.message;
     errorResponse.stack = err.stack;
@@ -628,10 +606,8 @@ app.use((err, req, res, next) => {
   res.status(500).json(errorResponse);
 });
 
-// Upload error middleware
 app.use(handleUploadErrors);
 
-// Server startup
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
@@ -644,6 +620,7 @@ const startServer = async () => {
     console.log(`🚀 Environment: ${process.env.NODE_ENV || "development"}`);
     console.log(`📍 Port: ${PORT}`);
     console.log(`🔗 URL: http://localhost:${PORT}`);
+    console.log(`🔗 Production URL: ${process.env.BACKEND_URL || 'Non configuré'}`);
     console.log(`📊 Health: http://localhost:${PORT}/api/health`);
     console.log(`📁 Files: http://localhost:${PORT}/uploads`);
     console.log("📂 Dossiers uploads créés avec succès");
@@ -651,7 +628,6 @@ const startServer = async () => {
   });
 };
 
-// Graceful shutdown handling
 process.on("SIGTERM", async () => {
   console.log("🛑 Server shutdown in progress...");
   await pool.end();
@@ -664,5 +640,4 @@ process.on("SIGINT", async () => {
   process.exit(0);
 });
 
-// Application launch
 startServer().catch(console.error);

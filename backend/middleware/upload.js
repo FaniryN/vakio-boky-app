@@ -6,13 +6,11 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Dossier d'upload
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configuration Multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
@@ -71,4 +69,118 @@ const handleUploadErrors = (err, req, res, next) => {
   next();
 };
 
-export { upload, handleUploadErrors };
+const generateFileUrl = (req, filename) => {
+  if (process.env.NODE_ENV === 'production' || req.hostname.includes('render.com') || req.hostname.includes('onrender.com')) {
+    const baseUrl = process.env.BACKEND_URL || `https://${req.hostname}`;
+    return `${baseUrl}/uploads/${filename}`;
+  }
+  
+  return `/uploads/${filename}`;
+};
+
+const processUpload = async (req, res) => {
+  try {
+    console.log("📤 [upload] Upload en cours...");
+    
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Aucun fichier fourni"
+      });
+    }
+
+    const uploadedFiles = req.files.map(file => {
+      const fileUrl = generateFileUrl(req, file.filename);
+      
+      console.log(`✅ [upload] Fichier: ${file.filename}, URL: ${fileUrl}`);
+      
+      return {
+        id: Date.now() + Math.random(),
+        filename: file.filename,
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        url: fileUrl,
+        path: `/uploads/${file.filename}`
+      };
+    });
+
+    console.log(`✅ [upload] ${uploadedFiles.length} fichier(s) uploadé(s)`);
+    
+    res.json({
+      success: true,
+      message: `${uploadedFiles.length} fichier(s) uploadé(s) avec succès`,
+      medias: uploadedFiles,
+      count: uploadedFiles.length
+    });
+  } catch (error) {
+    console.error("❌ [upload] Erreur lors du traitement:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erreur serveur lors de l'upload"
+    });
+  }
+};
+
+const processSingleUpload = async (req, res) => {
+  try {
+    console.log("📤 [upload-single] Upload single en cours...");
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "Aucun fichier fourni"
+      });
+    }
+
+    const fileUrl = generateFileUrl(req, req.file.filename);
+    
+    console.log(`✅ [upload-single] Fichier uploadé: ${req.file.filename}`);
+    console.log(`🔗 [upload-single] URL: ${fileUrl}`);
+    
+    res.json({
+      success: true,
+      message: "Fichier uploadé avec succès",
+      media: {
+        id: Date.now(),
+        filename: req.file.filename,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        url: fileUrl,
+        path: `/uploads/${req.file.filename}`
+      }
+    });
+  } catch (error) {
+    console.error("❌ [upload-single] Erreur:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erreur serveur lors de l'upload"
+    });
+  }
+};
+
+const deleteMediaFile = async (filename) => {
+  try {
+    const filePath = path.join(uploadDir, filename);
+    
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log(`🗑️ [upload] Fichier supprimé: ${filename}`);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error(`❌ [upload] Erreur suppression fichier ${filename}:`, error);
+    return false;
+  }
+};
+
+export { 
+  upload, 
+  handleUploadErrors, 
+  generateFileUrl,
+  processUpload,
+  processSingleUpload,
+  deleteMediaFile
+};

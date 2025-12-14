@@ -16,12 +16,16 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
     if (book) {
       setFormData(book);
       if (book.couverture_url) {
-        setPreviewUrl(book.couverture_url);
+        const cleanUrl = book.couverture_url.includes('localhost') 
+          ? book.couverture_url.replace('http://localhost:5000', 'https://vakio-boky-backend.onrender.com')
+          : book.couverture_url;
+        setPreviewUrl(cleanUrl);
       }
     }
   }, [book]);
@@ -30,16 +34,17 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
     const file = event.target.files[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        alert("Veuillez sélectionner une image valide (JPEG, PNG, etc.)");
+        setUploadError("Veuillez sélectionner une image valide (JPEG, PNG, etc.)");
         return;
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        alert("L'image ne doit pas dépasser 5MB");
+        setUploadError("L'image ne doit pas dépasser 5MB");
         return;
       }
 
       setSelectedFile(file);
+      setUploadError("");
 
       const reader = new FileReader();
       reader.onload = (e) => setPreviewUrl(e.target.result);
@@ -53,16 +58,24 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
     if (!selectedFile) return null;
 
     setIsUploading(true);
+    setUploadError("");
+    
     try {
       const result = await uploadMedias([selectedFile]);
 
       if (result.success && result.medias && result.medias.length > 0) {
-        return result.medias[0].url;
+        const mediaUrl = result.medias[0].url;
+        console.log("✅ Image uploadée, URL:", mediaUrl);
+        return mediaUrl;
       } else {
+        const errorMsg = result.error || "Erreur lors de l'upload";
+        setUploadError(errorMsg);
         console.error("Erreur upload:", result.error);
         return null;
       }
     } catch (error) {
+      const errorMsg = "Erreur réseau lors de l'upload";
+      setUploadError(errorMsg);
       console.error("Erreur lors de l'upload:", error);
       return null;
     } finally {
@@ -76,10 +89,20 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
       ...prev,
       [name]: value,
     }));
+    
+    if (name === 'couverture_url') {
+      setUploadError("");
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setUploadError("");
+
+    if (!formData.titre.trim()) {
+      setUploadError("Le titre est obligatoire");
+      return;
+    }
 
     let finalFormData = { ...formData };
 
@@ -88,18 +111,33 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
       if (uploadedImageUrl) {
         finalFormData.couverture_url = uploadedImageUrl;
       } else {
-        alert("Erreur lors de l'upload de l'image");
+        if (!uploadError) {
+          setUploadError("Erreur lors de l'upload de l'image");
+        }
         return;
+      }
+    } else if (finalFormData.couverture_url) {
+      if (finalFormData.couverture_url.includes('localhost:5000')) {
+        finalFormData.couverture_url = finalFormData.couverture_url.replace(
+          'http://localhost:5000', 
+          'https://vakio-boky-backend.onrender.com'
+        );
       }
     }
 
-    onSubmit(finalFormData);
+    try {
+      await onSubmit(finalFormData);
+    } catch (error) {
+      console.error("Erreur soumission formulaire:", error);
+      setUploadError(error.message || "Erreur lors de la création du livre");
+    }
   };
 
   const removeImage = () => {
     setSelectedFile(null);
     setPreviewUrl("");
     setFormData((prev) => ({ ...prev, couverture_url: "" }));
+    setUploadError("");
   };
 
   return (
@@ -108,10 +146,16 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
         {book ? "Modifier le livre" : "Nouveau livre"}
       </h2>
 
+      {uploadError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded">
+          {uploadError}
+        </div>
+      )}
+
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Couverture du livre
+            Couverture du livre *
           </label>
 
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
@@ -141,11 +185,11 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
                 />
                 <label
                   htmlFor="cover-upload"
-                  className="cursor-pointer text-blue-600 hover:text-blue-800"
+                  className="cursor-pointer text-blue-600 hover:text-blue-800 inline-block px-4 py-2 border border-blue-600 rounded"
                 >
-                  Cliquez pour sélectionner une image
+                  Sélectionner une image
                 </label>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 mt-2">
                   Formats acceptés: JPEG, PNG, WebP (max 5MB)
                 </p>
               </div>
@@ -157,7 +201,6 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
           )}
         </div>
 
-        {/* Champ URL de couverture (optionneIIe) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             OU URL de la couverture
@@ -167,12 +210,12 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
             name="couverture_url"
             value={formData.couverture_url}
             onChange={handleChange}
-            placeholder="https://example.com/image.jpg"
+            placeholder="https://vakio-boky-backend.onrender.com/uploads/livre-cover.jpg"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={!!selectedFile}
           />
           <p className="text-xs text-gray-500 mt-1">
-            Utilisez ce champ si vous avez déjà une URL d'image
+            Utilisez une URL complète (commençant par https://)
           </p>
         </div>
 
@@ -187,6 +230,7 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Titre du livre"
           />
         </div>
 
@@ -200,6 +244,7 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
             onChange={handleChange}
             rows="4"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Description du livre..."
           />
         </div>
 
@@ -213,6 +258,7 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
             value={formData.genre}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Roman, Poésie, Science-Fiction..."
           />
         </div>
 
@@ -226,6 +272,7 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
             value={formData.isbn}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="978-3-16-148410-0"
           />
         </div>
 
@@ -251,7 +298,7 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
           type="button"
           onClick={onCancel}
           className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-          disabled={isUploading}
+          disabled={isUploading || uploading}
         >
           Annuler
         </button>
@@ -260,7 +307,7 @@ const BookForm = ({ book, onSubmit, onCancel }) => {
           className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400"
           disabled={isUploading || uploading}
         >
-          {isUploading ? "Upload..." : book ? "Modifier" : "Créer"}
+          {isUploading ? "Upload..." : uploading ? "Upload..." : book ? "Modifier" : "Créer"}
         </button>
       </div>
     </form>
