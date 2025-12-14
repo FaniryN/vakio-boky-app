@@ -8,16 +8,20 @@ const router = express.Router();
 // ==================== ROUTES PUBLIQUES ====================
 router.get("/", bookController.getBooks); // Tous les livres publiés
 router.get("/recent", bookController.getRecent); // Livres récents
-router.get("/:id", bookController.getBook); // Un livre spécifique
 
 // ==================== ROUTES AUTHENTIFIÉES (utilisateurs normaux) ====================
 router.post("/", authenticateToken, bookController.createBook);
-router.get("/mes-livres", authenticateToken, bookController.getMyBooks); // Mes livres
+router.get("/mes-livres", authenticateToken, bookController.getMyBooks); // ⬅️ DOIT ÊTRE AVANT :id
+
+// ==================== ROUTES PUBLIQUES (suite) ====================
+router.get("/:id", bookController.getBook); // ⬅️ DÉPLACÉ APRÈS "mes-livres"
+
+// ==================== ROUTES AUTHENTIFIÉES (suite) ====================
 router.put("/:id", authenticateToken, bookController.updateBook);
 router.delete("/:id", authenticateToken, bookController.deleteBook);
 
 // ==================== ROUTES ADMIN (dans le même routeur) ====================
-router.get("/admin/all", authenticateToken, requireAdmin, bookController.getAllBooksAdmin); // AJOUTEZ CETTE LIGNE
+router.get("/admin/all", authenticateToken, requireAdmin, bookController.getAllBooksAdmin);
 
 // ==================== ROUTES EXTRAITS ====================
 router.post("/extraits", authenticateToken, ExtraitController.createExtrait);
