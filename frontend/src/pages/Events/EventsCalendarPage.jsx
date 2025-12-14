@@ -10,8 +10,8 @@ import {
   FiPlus,
   FiFilter
 } from 'react-icons/fi';
-// import InteractiveCalendar from '../../components/calendar/InteractiveCalendar';
-import InteractiveCalendar from './components/calendar/InteractiveCalendar'; // ✅ CORRECT
+import InteractiveCalendar from '../../components/calendar/InteractiveCalendar';
+// import InteractiveCalendar from './components/calendar/InteractiveCalendar'; // ✅ CORRECT
 import LiveSessionManager from '../../components/live/LiveSessionManager';
 
 const EventsCalendarPage = () => {
