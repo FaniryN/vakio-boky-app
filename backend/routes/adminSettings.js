@@ -11,6 +11,7 @@ import {
   getSystemConfig,
   updateSystemConfig,
   testConnection,
+  getPlatformStats,
 } from "../controllers/settingsController.js";
 
 const router = express.Router();
@@ -21,6 +22,7 @@ router.use(requireAdmin);
 
 // Routes settings
 router.get("/platform", getPlatformSettings);
+router.get("/platform/stats", getPlatformStats);
 router.put("/platform", updatePlatformSettings);
 router.get("/email/templates", getEmailTemplates);
 router.post("/email/templates", createEmailTemplate);
