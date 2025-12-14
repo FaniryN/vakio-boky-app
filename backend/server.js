@@ -395,7 +395,6 @@ const createUploadsFolders = () => {
 
 createUploadsFolders();
 
-// ✅ Définir allowedOrigins comme variable GLOBALE
 const allowedOrigins = [
   "https://vakio-boky-frontend.onrender.com",
   "http://localhost:5173",
@@ -426,22 +425,11 @@ const corsOptions = {
   maxAge: 86400
 };
 
-// ✅ CORRECTION : Middleware CORS seulement
+// ✅ CORRECTION : Middleware CORS seulement - PAS de app.options('*', ...)
 app.use(cors(corsOptions));
 
-// ✅ CORRECTION : Gestion OPTIONS manuelle mais SANS '*'
-app.options('*', (req, res) => {
-  const origin = req.headers.origin;
-  
-  if (origin && allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Max-Age', '86400');
-  res.status(200).end();
-});
+// ❌ NE PAS AJOUTER CETTE LIGNE - C'est elle qui cause l'erreur !
+// app.options('*', (req, res) => { ... });
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
@@ -452,9 +440,6 @@ app.use("/uploads", express.static(uploadsPath, {
     if (filePath.endsWith('.png') || filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || 
         filePath.endsWith('.gif') || filePath.endsWith('.webp')) {
       res.setHeader('Cache-Control', 'public, max-age=86400');
-      
-      // ✅ CORRECTION : Utiliser req.headers.origin via closure
-      // Note: req n'est pas accessible directement ici, donc on utilise un middleware avant
     }
     
     if (process.env.NODE_ENV === 'production') {
@@ -463,7 +448,7 @@ app.use("/uploads", express.static(uploadsPath, {
   }
 }));
 
-// ✅ CORRECTION : Middleware pour gérer CORS sur les fichiers statiques
+// Middleware CORS pour les fichiers statiques
 app.use("/uploads", (req, res, next) => {
   const origin = req.headers.origin;
   
@@ -638,7 +623,7 @@ app.use((err, req, res, next) => {
 
 app.use(handleUploadErrors);
 
-// ✅ CORRECTION : Keep-alive pour Render Free
+// Keep-alive pour Render Free
 const keepAlive = () => {
   setInterval(async () => {
     try {
@@ -647,7 +632,7 @@ const keepAlive = () => {
     } catch (error) {
       console.error('❌ Keep-alive échoué:', error.message);
     }
-  }, 4 * 60 * 1000); // Toutes les 4 minutes
+  }, 4 * 60 * 1000);
 };
 
 const PORT = process.env.PORT || 5000;
@@ -655,7 +640,6 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   await initializeDatabase();
   
-  // Démarrer le keep-alive
   keepAlive();
 
   app.listen(PORT, () => {
