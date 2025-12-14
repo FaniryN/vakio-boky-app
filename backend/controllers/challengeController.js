@@ -1,8 +1,5 @@
 import pool from "../config/db.js";
 
-/**
- * Get all active challenges
- */
 export const getChallenges = async (req, res) => {
   try {
     const result = await pool.query(`
@@ -26,9 +23,6 @@ export const getChallenges = async (req, res) => {
   }
 };
 
-/**
- * Get challenge by ID
- */
 export const getChallengeById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -60,9 +54,6 @@ export const getChallengeById = async (req, res) => {
   }
 };
 
-/**
- * Get user's challenge progress
- */
 export const getUserChallenges = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -90,9 +81,6 @@ export const getUserChallenges = async (req, res) => {
   }
 };
 
-/**
- * Join a challenge
- */
 export const joinChallenge = async (req, res) => {
   const client = await pool.connect();
 
@@ -102,7 +90,6 @@ export const joinChallenge = async (req, res) => {
     const { challengeId } = req.params;
     const userId = req.user.id;
 
-    // Check if challenge exists and is active
     const challengeCheck = await client.query(
       "SELECT * FROM challenges WHERE id = $1 AND status = 'active'",
       [challengeId]
@@ -116,7 +103,6 @@ export const joinChallenge = async (req, res) => {
       });
     }
 
-    // Check if user already joined
     const existingJoin = await client.query(
       "SELECT * FROM user_challenges WHERE user_id = $1 AND challenge_id = $2",
       [userId, challengeId]
@@ -130,7 +116,6 @@ export const joinChallenge = async (req, res) => {
       });
     }
 
-    // Join the challenge
     const result = await client.query(`
       INSERT INTO user_challenges (user_id, challenge_id)
       VALUES ($1, $2)
@@ -156,9 +141,6 @@ export const joinChallenge = async (req, res) => {
   }
 };
 
-/**
- * Update user challenge progress
- */
 export const updateChallengeProgress = async (req, res) => {
   const client = await pool.connect();
 
@@ -169,7 +151,6 @@ export const updateChallengeProgress = async (req, res) => {
     const { progress } = req.body;
     const userId = req.user.id;
 
-    // Get current progress
     const currentResult = await client.query(
       "SELECT * FROM user_challenges WHERE user_id = $1 AND challenge_id = $2",
       [userId, challengeId]
@@ -186,7 +167,6 @@ export const updateChallengeProgress = async (req, res) => {
     const userChallenge = currentResult.rows[0];
     const newProgress = Math.max(userChallenge.current_value, progress);
 
-    // Update progress
     const updateResult = await client.query(`
       UPDATE user_challenges
       SET current_value = $1, updated_at = CURRENT_TIMESTAMP
@@ -194,7 +174,6 @@ export const updateChallengeProgress = async (req, res) => {
       RETURNING *
     `, [newProgress, userId, challengeId]);
 
-    // Check if challenge is completed
     const challengeResult = await client.query(
       "SELECT * FROM challenges WHERE id = $1",
       [challengeId]
@@ -203,14 +182,12 @@ export const updateChallengeProgress = async (req, res) => {
     const challenge = challengeResult.rows[0];
 
     if (newProgress >= challenge.target_value && userChallenge.status !== 'completed') {
-      // Mark as completed
       await client.query(`
         UPDATE user_challenges
         SET status = 'completed', completed_at = CURRENT_TIMESTAMP
         WHERE user_id = $1 AND challenge_id = $2
       `, [userId, challengeId]);
 
-      // Award badge if there's a reward
       if (challenge.reward_badge_id) {
         await client.query(`
           INSERT INTO user_badges (user_id, badge_id)
@@ -239,9 +216,6 @@ export const updateChallengeProgress = async (req, res) => {
   }
 };
 
-/**
- * Get all badges
- */
 export const getBadges = async (req, res) => {
   try {
     const result = await pool.query(`
@@ -262,9 +236,6 @@ export const getBadges = async (req, res) => {
   }
 };
 
-/**
- * Get user's earned badges
- */
 export const getUserBadges = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -290,18 +261,20 @@ export const getUserBadges = async (req, res) => {
   }
 };
 
-/**
- * Create a new challenge (Admin only)
- */
 export const createChallenge = async (req, res) => {
   try {
-    const { title, description, type, target_value, reward_badge_id, end_date } = req.body;
+    const { title, description, type, target_value, reward_badge_id, end_date, status } = req.body;
+
+    // Convertir les chaînes vides en null pour les champs optionnels
+    const badgeId = reward_badge_id && reward_badge_id !== '' ? parseInt(reward_badge_id) : null;
+    const endDate = end_date && end_date !== '' ? end_date : null;
+    const challengeStatus = status || 'draft';
 
     const result = await pool.query(`
-      INSERT INTO challenges (title, description, type, target_value, reward_badge_id, end_date)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO challenges (title, description, type, target_value, reward_badge_id, end_date, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
-    `, [title, description, type, target_value, reward_badge_id, end_date]);
+    `, [title, description, type, parseInt(target_value), badgeId, endDate, challengeStatus]);
 
     res.status(201).json({
       success: true,
@@ -312,23 +285,26 @@ export const createChallenge = async (req, res) => {
     console.error("❌ Error creating challenge:", error);
     res.status(500).json({
       success: false,
-      error: "Server error",
+      error: error.message || "Server error",
     });
   }
 };
 
-/**
- * Create a new badge (Admin only)
- */
 export const createBadge = async (req, res) => {
   try {
     const { name, description, icon_url, category, rarity, points } = req.body;
+
+    // Valeurs par défaut et validation
+    const iconUrl = icon_url && icon_url !== '' ? icon_url : null;
+    const badgeCategory = category || 'achievement';
+    const badgeRarity = rarity || 'common';
+    const badgePoints = points ? parseInt(points) : 10;
 
     const result = await pool.query(`
       INSERT INTO badges (name, description, icon_url, category, rarity, points)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
-    `, [name, description, icon_url, category, rarity, points]);
+    `, [name, description, iconUrl, badgeCategory, badgeRarity, badgePoints]);
 
     res.status(201).json({
       success: true,
@@ -339,22 +315,20 @@ export const createBadge = async (req, res) => {
     console.error("❌ Error creating badge:", error);
     res.status(500).json({
       success: false,
-      error: "Server error",
+      error: error.message || "Server error",
     });
   }
 };
 
-/**
- * Get all challenges for admin management
- */
 export const getAllChallengesAdmin = async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT c.*,
-             COUNT(uc.id) as participants_count,
-             COUNT(CASE WHEN uc.status = 'completed' THEN 1 END) as completions_count,
+             COUNT(DISTINCT uc.id) as participants_count,
+             COUNT(DISTINCT CASE WHEN uc.status = 'completed' THEN uc.id END) as completions_count,
              CASE
-               WHEN COUNT(uc.id) > 0 THEN ROUND(COUNT(CASE WHEN uc.status = 'completed' THEN 1 END)::decimal / COUNT(uc.id) * 100, 1)
+               WHEN COUNT(DISTINCT uc.id) > 0 THEN 
+                 ROUND(COUNT(DISTINCT CASE WHEN uc.status = 'completed' THEN uc.id END)::decimal / COUNT(DISTINCT uc.id) * 100, 1)
                ELSE 0
              END as completion_rate
       FROM challenges c
@@ -376,13 +350,15 @@ export const getAllChallengesAdmin = async (req, res) => {
   }
 };
 
-/**
- * Update a challenge
- */
 export const updateChallenge = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, type, target_value, reward_badge_id, end_date, status } = req.body;
+
+    // Convertir les chaînes vides en null
+    const badgeId = reward_badge_id && reward_badge_id !== '' ? parseInt(reward_badge_id) : null;
+    const endDate = end_date && end_date !== '' ? end_date : null;
+    const challengeStatus = status || 'draft';
 
     const result = await pool.query(`
       UPDATE challenges
@@ -390,7 +366,7 @@ export const updateChallenge = async (req, res) => {
           reward_badge_id = $5, end_date = $6, status = $7, updated_at = CURRENT_TIMESTAMP
       WHERE id = $8
       RETURNING *
-    `, [title, description, type, target_value, reward_badge_id, end_date, status, id]);
+    `, [title, description, type, parseInt(target_value), badgeId, endDate, challengeStatus, id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -408,14 +384,11 @@ export const updateChallenge = async (req, res) => {
     console.error("❌ Error updating challenge:", error);
     res.status(500).json({
       success: false,
-      error: "Server error",
+      error: error.message || "Server error",
     });
   }
 };
 
-/**
- * Delete a challenge
- */
 export const deleteChallenge = async (req, res) => {
   try {
     const { id } = req.params;
@@ -442,9 +415,6 @@ export const deleteChallenge = async (req, res) => {
   }
 };
 
-/**
- * Update challenge status
- */
 export const updateChallengeStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -478,9 +448,6 @@ export const updateChallengeStatus = async (req, res) => {
   }
 };
 
-/**
- * Get all badges for admin management
- */
 export const getAllBadgesAdmin = async (req, res) => {
   try {
     const result = await pool.query(`
@@ -505,20 +472,23 @@ export const getAllBadgesAdmin = async (req, res) => {
   }
 };
 
-/**
- * Update a badge
- */
 export const updateBadge = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, icon_url, category, rarity, points } = req.body;
+
+    // Validation et conversion
+    const iconUrl = icon_url && icon_url !== '' ? icon_url : null;
+    const badgeCategory = category || 'achievement';
+    const badgeRarity = rarity || 'common';
+    const badgePoints = points ? parseInt(points) : 10;
 
     const result = await pool.query(`
       UPDATE badges
       SET name = $1, description = $2, icon_url = $3, category = $4, rarity = $5, points = $6, updated_at = CURRENT_TIMESTAMP
       WHERE id = $7
       RETURNING *
-    `, [name, description, icon_url, category, rarity, points, id]);
+    `, [name, description, iconUrl, badgeCategory, badgeRarity, badgePoints, id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -536,14 +506,11 @@ export const updateBadge = async (req, res) => {
     console.error("❌ Error updating badge:", error);
     res.status(500).json({
       success: false,
-      error: "Server error",
+      error: error.message || "Server error",
     });
   }
 };
 
-/**
- * Delete a badge
- */
 export const deleteBadge = async (req, res) => {
   try {
     const { id } = req.params;
@@ -570,14 +537,10 @@ export const deleteBadge = async (req, res) => {
   }
 };
 
-/**
- * Get challenges analytics
- */
 export const getChallengesAnalytics = async (req, res) => {
   try {
     const { range = '30d' } = req.query;
 
-    // Calculate date range
     const now = new Date();
     let startDate;
     switch (range) {
@@ -597,19 +560,15 @@ export const getChallengesAnalytics = async (req, res) => {
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     }
 
-    // Get total challenges
     const totalChallengesResult = await pool.query("SELECT COUNT(*) as count FROM challenges");
     const totalChallenges = parseInt(totalChallengesResult.rows[0].count);
 
-    // Get active challenges
     const activeChallengesResult = await pool.query("SELECT COUNT(*) as count FROM challenges WHERE status = 'active'");
     const activeChallenges = parseInt(activeChallengesResult.rows[0].count);
 
-    // Get total participants
     const totalParticipantsResult = await pool.query("SELECT COUNT(DISTINCT user_id) as count FROM user_challenges");
     const totalParticipants = parseInt(totalParticipantsResult.rows[0].count);
 
-    // Get completion rate
     const completionResult = await pool.query(`
       SELECT
         COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
@@ -619,11 +578,9 @@ export const getChallengesAnalytics = async (req, res) => {
     const completionData = completionResult.rows[0];
     const completionRate = completionData.total > 0 ? Math.round((completionData.completed / completionData.total) * 100) : 0;
 
-    // Get total badges earned
     const totalBadgesResult = await pool.query("SELECT COUNT(*) as count FROM user_badges");
     const totalBadges = parseInt(totalBadgesResult.rows[0].count);
 
-    // Get daily participation (last 7 days)
     const dailyParticipationResult = await pool.query(`
       SELECT 
         DATE(uc.started_at) as date,
@@ -636,18 +593,16 @@ export const getChallengesAnalytics = async (req, res) => {
       LIMIT 7
     `, [startDate]);
 
-    // Get challenge types distribution
     const challengeTypesResult = await pool.query(`
       SELECT 
         type,
         COUNT(*) as count,
-        ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM challenges), 1) as percentage
+        ROUND(COUNT(*) * 100.0 / NULLIF((SELECT COUNT(*) FROM challenges), 0), 1) as percentage
       FROM challenges
       GROUP BY type
       ORDER BY count DESC
     `);
 
-    // Get top challenges by participants
     const topChallengesResult = await pool.query(`
       SELECT 
         c.id,
@@ -666,7 +621,6 @@ export const getChallengesAnalytics = async (req, res) => {
       LIMIT 5
     `);
 
-    // Get top participants
     const topParticipantsResult = await pool.query(`
       SELECT 
         u.id,
@@ -680,7 +634,6 @@ export const getChallengesAnalytics = async (req, res) => {
       LIMIT 5
     `);
 
-    // Get badge distribution
     const badgeDistributionResult = await pool.query(`
       SELECT 
         b.id,
@@ -693,7 +646,6 @@ export const getChallengesAnalytics = async (req, res) => {
       LIMIT 5
     `);
 
-    // Get monthly trends (challenges created per month)
     const monthlyTrendsResult = await pool.query(`
       SELECT 
         TO_CHAR(created_at, 'Month') as month,
@@ -704,12 +656,11 @@ export const getChallengesAnalytics = async (req, res) => {
       ORDER BY EXTRACT(MONTH FROM created_at)
     `, [startDate]);
 
-    // Get challenge status distribution
     const statusDistributionResult = await pool.query(`
       SELECT 
         status,
         COUNT(*) as count,
-        ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM challenges), 1) as percentage
+        ROUND(COUNT(*) * 100.0 / NULLIF((SELECT COUNT(*) FROM challenges), 0), 1) as percentage
       FROM challenges
       GROUP BY status
       ORDER BY count DESC
@@ -721,7 +672,7 @@ export const getChallengesAnalytics = async (req, res) => {
       totalParticipants,
       completionRate,
       totalBadges,
-      challengesGrowth: 12.5, // Mock data
+      challengesGrowth: 12.5,
       dailyParticipation: dailyParticipationResult.rows,
       challengeTypes: challengeTypesResult.rows,
       topChallenges: topChallengesResult.rows,
@@ -730,7 +681,7 @@ export const getChallengesAnalytics = async (req, res) => {
       monthlyTrends: monthlyTrendsResult.rows,
       engagementMetrics: [
         { name: 'Temps moyen par défi', value: '12 jours' },
-        { name: 'Taux d\'abandon', value: '23%' },
+        { name: "Taux d'abandon", value: '23%' },
         { name: 'Partages sociaux', value: '156' },
         { name: 'Commentaires', value: '89' },
       ],

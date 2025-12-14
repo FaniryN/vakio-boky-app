@@ -177,47 +177,155 @@ export default function AdminChallengesManagement() {
     return true;
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Extrait de AdminChallengesManagement.jsx - Fonction handleSubmit corrigée
 
-    try {
-      const token = getToken();
-      if (!token) {
-        alert("❌ Vous n'êtes pas connecté.");
-        return;
-      }
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-      const url = editingChallenge
-        ? `https://vakio-boky-backend.onrender.com/api/challenges/admin/${editingChallenge.id}`
-        : 'https://vakio-boky-backend.onrender.com/api/challenges/admin';
-
-      const method = editingChallenge ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        await fetchChallenges();
-        setShowCreateModal(false);
-        setEditingChallenge(null);
-        resetForm();
-        alert(editingChallenge ? '✅ Défi modifié avec succès' : '✅ Défi créé avec succès');
-      } else {
-        alert('❌ ' + (data.error || 'Erreur lors de la sauvegarde'));
-      }
-    } catch (err) {
-      console.error('❌ Erreur sauvegarde:', err);
-      alert('❌ Erreur lors de la sauvegarde');
+  try {
+    const token = getToken();
+    if (!token) {
+      alert("❌ Vous n'êtes pas connecté.");
+      return;
     }
-  };
+
+    // Nettoyage des données avant envoi
+    const cleanedData = {
+      title: formData.title.trim(),
+      description: formData.description.trim(),
+      type: formData.type,
+      target_value: parseInt(formData.target_value),
+      // Convertir chaîne vide en null pour reward_badge_id
+      reward_badge_id: formData.reward_badge_id && formData.reward_badge_id !== '' 
+        ? parseInt(formData.reward_badge_id) 
+        : null,
+      // Convertir chaîne vide en null pour end_date
+      end_date: formData.end_date && formData.end_date !== '' 
+        ? formData.end_date 
+        : null,
+      status: formData.status || 'draft',
+    };
+
+    // Validation
+    if (!cleanedData.title || cleanedData.title.length < 3) {
+      alert("❌ Le titre doit contenir au moins 3 caractères");
+      return;
+    }
+
+    if (!cleanedData.description || cleanedData.description.length < 10) {
+      alert("❌ La description doit contenir au moins 10 caractères");
+      return;
+    }
+
+    if (cleanedData.target_value < 1) {
+      alert("❌ L'objectif doit être supérieur à 0");
+      return;
+    }
+
+    const url = editingChallenge
+      ? `https://vakio-boky-backend.onrender.com/api/challenges/admin/${editingChallenge.id}`
+      : 'https://vakio-boky-backend.onrender.com/api/challenges/admin';
+
+    const method = editingChallenge ? 'PUT' : 'POST';
+
+    console.log('📤 Envoi des données:', cleanedData);
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(cleanedData),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      await fetchChallenges();
+      setShowCreateModal(false);
+      setEditingChallenge(null);
+      resetForm();
+      alert(editingChallenge ? '✅ Défi modifié avec succès' : '✅ Défi créé avec succès');
+    } else {
+      alert('❌ ' + (data.error || 'Erreur lors de la sauvegarde'));
+    }
+  } catch (err) {
+    console.error('❌ Erreur sauvegarde:', err);
+    alert('❌ Erreur lors de la sauvegarde: ' + err.message);
+  }
+};
+
+// Même chose pour les badges
+const handleBadgeSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const token = getToken();
+    
+    if (!token) {
+      alert("Session expirée. Veuillez vous reconnecter.");
+      return;
+    }
+
+    // Nettoyage et validation
+    const cleanedData = {
+      name: formData.name.trim(),
+      description: formData.description.trim(),
+      icon_url: formData.icon_url && formData.icon_url !== '' ? formData.icon_url : null,
+      category: formData.category || 'achievement',
+      rarity: formData.rarity || 'common',
+      points: parseInt(formData.points) || 10,
+    };
+
+    if (!cleanedData.name || cleanedData.name.length < 3) {
+      alert("❌ Le nom doit contenir au moins 3 caractères");
+      return;
+    }
+
+    if (!cleanedData.description || cleanedData.description.length < 10) {
+      alert("❌ La description doit contenir au moins 10 caractères");
+      return;
+    }
+
+    if (cleanedData.points < 1) {
+      alert("❌ Les points doivent être supérieurs à 0");
+      return;
+    }
+
+    const url = editingBadge
+      ? `https://vakio-boky-backend.onrender.com/api/challenges/admin/badges/${editingBadge.id}`
+      : 'https://vakio-boky-backend.onrender.com/api/challenges/admin/badges';
+
+    const method = editingBadge ? 'PUT' : 'POST';
+
+    console.log('📤 Envoi badge:', cleanedData);
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(cleanedData),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      await fetchBadges();
+      setShowCreateModal(false);
+      setEditingBadge(null);
+      resetForm();
+      alert(editingBadge ? '✅ Badge modifié avec succès' : '✅ Badge créé avec succès');
+    } else {
+      alert('❌ ' + (data.error || 'Erreur lors de la sauvegarde'));
+    }
+  } catch (err) {
+    console.error('❌ Erreur sauvegarde badge:', err);
+    alert('❌ Erreur lors de la sauvegarde: ' + err.message);
+  }
+};
 
   const handleEdit = (challenge) => {
     setEditingChallenge(challenge);
