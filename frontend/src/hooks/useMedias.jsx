@@ -38,13 +38,18 @@ export function useMedias() {
         fichiers.length,
         "fichier(s)"
       );
-      const response = await fetch("https://vakio-boky-backend.onrender.com/api/medias/upload", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      // Dans useMedias.js - ligne du fetch
+      const response = await fetch(
+        "https://vakio-boky-backend.onrender.com/api/medias/upload",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+          signal: AbortSignal.timeout(60000), // ⬅️ Ajoutez cette ligne (60 secondes)
+        }
+      );
 
       const data = await response.json();
       console.log("📡 [useMedias] Réponse upload:", data);
