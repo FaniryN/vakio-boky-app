@@ -395,16 +395,17 @@ const createUploadsFolders = () => {
 
 createUploadsFolders();
 
+// ✅ Définir allowedOrigins comme variable GLOBALE
+const allowedOrigins = [
+  "https://vakio-boky-frontend.onrender.com",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5174"
+];
+
 const corsOptions = {
   origin: (origin, callback) => {
-    const allowedOrigins = [
-      "https://vakio-boky-frontend.onrender.com",
-      "http://localhost:5173",
-      "http://127.0.0.1:5173",
-      "http://localhost:5174",
-      "http://127.0.0.1:5174"
-    ];
-    
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -425,34 +426,35 @@ const corsOptions = {
   maxAge: 86400
 };
 
-// ✅ CORRECTION PRINCIPALE : Middleware CORS seulement
+// ✅ CORRECTION : Middleware CORS seulement
 app.use(cors(corsOptions));
 
-// ❌ SUPPRIMEZ COMPLÈTEMENT CETTE LIGNE ET TOUT LE BLOC SUIVANT :
-// app.options('*', (req, res) => {
-//   res.setHeader('Access-Control-Allow-Origin', corsOptions.origin);
-//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-//   res.setHeader('Access-Control-Max-Age', '86400');
-//   res.status(200).end();
-// });
+// ✅ CORRECTION : Gestion OPTIONS manuelle mais SANS '*'
+app.options('*', (req, res) => {
+  const origin = req.headers.origin;
+  
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  res.status(200).end();
+});
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 const uploadsPath = path.join(__dirname, "uploads");
 app.use("/uploads", express.static(uploadsPath, {
-  setHeaders: (res, filePath) => {
+  setHeaders: (res, filePath, statResult) => {
     if (filePath.endsWith('.png') || filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || 
         filePath.endsWith('.gif') || filePath.endsWith('.webp')) {
       res.setHeader('Cache-Control', 'public, max-age=86400');
-      // ✅ CORRECTION : Remplacer l'étoile par une gestion dynamique
-      const origin = req?.headers?.origin;
-      if (origin && allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-      } else {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-      }
+      
+      // ✅ CORRECTION : Utiliser req.headers.origin via closure
+      // Note: req n'est pas accessible directement ici, donc on utilise un middleware avant
     }
     
     if (process.env.NODE_ENV === 'production') {
@@ -460,6 +462,20 @@ app.use("/uploads", express.static(uploadsPath, {
     }
   }
 }));
+
+// ✅ CORRECTION : Middleware pour gérer CORS sur les fichiers statiques
+app.use("/uploads", (req, res, next) => {
+  const origin = req.headers.origin;
+  
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  
+  next();
+});
 
 app.use((req, res, next) => {
   if (req.url.startsWith('/uploads/')) {
@@ -622,10 +638,25 @@ app.use((err, req, res, next) => {
 
 app.use(handleUploadErrors);
 
+// ✅ CORRECTION : Keep-alive pour Render Free
+const keepAlive = () => {
+  setInterval(async () => {
+    try {
+      await pool.query('SELECT 1');
+      console.log('💓 Keep-alive ping - Backend actif');
+    } catch (error) {
+      console.error('❌ Keep-alive échoué:', error.message);
+    }
+  }, 4 * 60 * 1000); // Toutes les 4 minutes
+};
+
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   await initializeDatabase();
+  
+  // Démarrer le keep-alive
+  keepAlive();
 
   app.listen(PORT, () => {
     console.log("\n" + "=".repeat(50));
