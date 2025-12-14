@@ -157,11 +157,11 @@ export default function Home() {
     // 4. Sinon, retourner l'URL telle quelle
     return url;
   };
-  // 1. Récupération des livres récents
+  // 1. Récupération des livres récents DYNAMIQUES depuis la base de données
   useEffect(() => {
     const fetchLivres = async () => {
       try {
-        console.log("🔄 Récupération des livres récents depuis l'API...");
+        console.log("🔄 Récupération des livres dynamiques depuis l'API...");
 
         const response = await fetch(`${API_BASE_URL}/books/recent`);
 
@@ -170,89 +170,89 @@ export default function Home() {
         }
 
         const data = await response.json();
-        console.log("📦 Réponse API:", data);
+        console.log("📦 Réponse API dynamique:", data);
 
         // Gérer les livres reçus
         if (data.success && data.books) {
           // Nettoyer les URLs d'images
           const cleanedBooks = data.books.map((book) => ({
-            ...book,
+            id: book.id,
+            titre: book.title || book.titre,
+            description: book.description,
             couverture_url: getImageUrl(
-              book.couverture_url || book.cover,
+              book.cover || book.couverture_url,
               "book"
             ),
+            genre: book.category || book.genre,
+            auteur: book.author || book.auteur_nom,
+            prix: book.price || 0,
+            note: book.rating || 0,
+            pages: book.pages || 0,
+            annee_publication: book.published_year,
+            langue: book.language,
+            editeur: book.publisher,
+            statut: book.status || "publié",
+            created_at: book.created_at,
           }));
-          console.log(`✅ ${cleanedBooks.length} livres chargés`);
-          setLivres(cleanedBooks);
-        } else if (Array.isArray(data)) {
-          const cleanedBooks = data.map((book) => ({
-            ...book,
-            couverture_url: getImageUrl(
-              book.couverture_url || book.cover,
-              "book"
-            ),
-          }));
-          console.log(`✅ ${cleanedBooks.length} livres chargés`);
+
+          console.log(
+            `✅ ${cleanedBooks.length} livres dynamiques chargés depuis la base de données`
+          );
+          console.log("📊 Détails des livres:", cleanedBooks);
           setLivres(cleanedBooks);
         } else {
           console.warn("Format de données inattendu:", data);
-          // Données mock avec images PNG
-          setLivres([
-            {
-              id: 1,
-              titre: "Ny Onja",
-              description: "Roman poétique sur la vie à Madagascar",
-              couverture_url: "/assets/images/books/book-default.png",
-              genre: "Roman",
-              auteur: "Johary Ravaloson",
-            },
-            {
-              id: 2,
-              titre: "Dernier Crépuscule",
-              description: "Histoire d'une famille malgache",
-              couverture_url: "/assets/images/books/book-default.png",
-              genre: "Roman",
-              auteur: "Michèle Rakotoson",
-            },
-            {
-              id: 3,
-              titre: "Contes de Madagascar",
-              description: "Contes traditionnels malgaches",
-              couverture_url: "/assets/images/books/book-default.png",
-              genre: "Contes",
-              auteur: "Collectif",
-            },
-          ]);
+
+          // Si pas de livres dans la base, afficher un message
+          if (data.books && data.books.length === 0) {
+            console.log("ℹ️ Aucun livre publié dans la base de données");
+            setLivres([]);
+          } else {
+            // Essayer de récupérer tous les livres publiés
+            try {
+              console.log(
+                "🔄 Tentative de récupération de tous les livres publiés..."
+              );
+              const allBooksResponse = await fetch(`${API_BASE_URL}/books/`);
+              if (allBooksResponse.ok) {
+                const allBooksData = await allBooksResponse.json();
+
+                if (Array.isArray(allBooksData)) {
+                  const publishedBooks = allBooksData
+                    .filter((book) => book.statut === "publié")
+                    .slice(0, 6)
+                    .map((book) => ({
+                      id: book.id,
+                      titre: book.titre,
+                      description: book.description,
+                      couverture_url: getImageUrl(book.couverture_url, "book"),
+                      genre: book.genre,
+                      auteur: book.auteur_nom,
+                      statut: book.statut,
+                    }));
+
+                  setLivres(publishedBooks);
+                  console.log(
+                    `✅ ${publishedBooks.length} livres publiés chargés`
+                  );
+                }
+              }
+            } catch (fallbackError) {
+              console.error("❌ Fallback échoué:", fallbackError);
+              setLivres([]);
+            }
+          }
         }
       } catch (err) {
-        console.error("❌ Erreur récupération livres:", err);
-        // Données mock avec images PNG
-        setLivres([
-          {
-            id: 1,
-            titre: "Ny Onja",
-            description: "Roman poétique sur la vie à Madagascar",
-            couverture_url: "/assets/images/books/book-default.png",
-            genre: "Roman",
-            auteur: "Johary Ravaloson",
-          },
-          {
-            id: 2,
-            titre: "Dernier Crépuscule",
-            description: "Histoire d'une famille malgache",
-            couverture_url: "/assets/images/books/book-default.png",
-            genre: "Roman",
-            auteur: "Michèle Rakotoson",
-          },
-          {
-            id: 3,
-            titre: "Contes de Madagascar",
-            description: "Contes traditionnels malgaches",
-            couverture_url: "/assets/images/books/book-default.png",
-            genre: "Contes",
-            auteur: "Collectif",
-          },
-        ]);
+        console.error("❌ Erreur récupération livres dynamiques:", err);
+
+        // Ne plus utiliser les données mock - afficher un état vide
+        setLivres([]);
+
+        // Optionnel: Afficher un message d'erreur à l'utilisateur
+        setError(
+          "Impossible de charger les livres pour le moment. Veuillez réessayer plus tard."
+        );
       }
     };
 
@@ -694,7 +694,7 @@ export default function Home() {
         </motion.section>
       )}
 
-      {/* TESTIMONIALS SECTION */}
+      {/* TESTIMONIALS SECTION
       <motion.section
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
@@ -769,7 +769,7 @@ export default function Home() {
             </div>
           )}
         </div>
-      </motion.section>
+      </motion.section> */}
 
       {/* EVENTS SECTION */}
       <motion.section
@@ -947,11 +947,25 @@ export default function Home() {
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Découvrez une sélection de nos livres les plus populaires
             </p>
+            <p className="text-sm text-blue-600 mt-2">
+              {livres.length > 0
+                ? `${livres.length} livres disponibles`
+                : "Chargement des livres..."}
+            </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {livres.length > 0 ? (
-              livres.slice(0, 6).map((livre, index) => (
+          {loading ? (
+            <div className="col-span-full text-center py-12">
+              <div className="inline-block p-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl">
+                <FiLoader className="animate-spin text-4xl text-blue-400 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg mb-2">
+                  Chargement des livres...
+                </p>
+              </div>
+            </div>
+          ) : livres.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {livres.map((livre, index) => (
                 <motion.div
                   key={livre.id || index}
                   initial={{ opacity: 0, y: 30 }}
@@ -993,30 +1007,56 @@ export default function Home() {
                       >
                         Voir plus
                       </button>
-                      <button
-                        onClick={() => navigate("/login")}
-                        className="text-blue-600 hover:text-blue-700 font-semibold transition-colors duration-300"
-                      >
-                        Se connecter
-                      </button>
+                      <div className="text-sm text-gray-500">
+                        <div className="font-medium text-gray-800">
+                          {livre.auteur}
+                        </div>
+                        {livre.prix > 0 && (
+                          <div className="text-green-600 font-bold">
+                            {livre.prix.toLocaleString()} Ar
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <div className="inline-block p-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl">
-                  <FiBook className="text-4xl text-blue-400 mx-auto mb-4" />
-                  <p className="text-gray-500 text-lg mb-2">
-                    Aucun livre disponible pour le moment.
-                  </p>
-                  <p className="text-gray-400 text-sm">
-                    Nos livres seront bientôt disponibles
-                  </p>
-                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <div className="inline-block p-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl">
+                <FiBook className="text-4xl text-blue-400 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg mb-2">
+                  Aucun livre disponible pour le moment.
+                </p>
+                <p className="text-gray-400 text-sm mb-4">
+                  Les livres publiés apparaîtront ici automatiquement.
+                </p>
+                {error && (
+                  <p className="text-sm text-red-500 mb-2">Erreur: {error}</p>
+                )}
+                <button
+                  onClick={() => window.location.reload()}
+                  className="text-blue-600 hover:text-blue-700 underline text-sm"
+                >
+                  Rafraîchir la page
+                </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {livres.length > 0 && (
+            <div className="text-center mt-12">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => navigate("/books")}
+                className="border-blue-600 text-blue-600 hover:bg-blue-50"
+              >
+                Voir tous les livres ({livres.length})
+              </Button>
+            </div>
+          )}
 
           <BookModal
             livre={selectedLivre}

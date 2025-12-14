@@ -352,86 +352,59 @@ const deleteBook = async (req, res) => {
 };
 
 const getRecent = async (req, res) => {
-  console.log('📚 Controller: getRecent appelé');
+  console.log('📚 Controller: getRecent appelé - version dynamique');
   
   try {
-    const recentBooks = [
-      {
-        id: 1,
-        title: "Ny Onja",
-        author: "Johary Ravaloson",
-        description: "Roman poétique sur la vie à Madagascar",
-        cover: "/assets/images/books/ny-onja.png",
-        price: 15000,
-        rating: 4.5,
-        category: "Roman",
-        pages: 240,
-        published_year: 2020,
-        language: "Français",
-        publisher: "Éditions Malgaches",
-        created_at: new Date().toISOString(),
-        status: "published"
-      },
-      {
-        id: 2,
-        title: "Dernier Crépuscule",
-        author: "Michèle Rakotoson",
-        description: "Histoire contemporaine malgache",
-        cover: "/assets/images/books/dernier-crepuscule.png",
-        price: 12000,
-        rating: 4.2,
-        category: "Roman",
-        pages: 320,
-        published_year: 2018,
-        language: "Français",
-        publisher: "Madabook",
-        created_at: new Date().toISOString(),
-        status: "published"
-      },
-      {
-        id: 3,
-        title: "Contes de la Nuit Malgache",
-        author: "Collectif d'Auteurs",
-        description: "Recueil de contes traditionnels malgaches",
-        cover: "/assets/images/books/contes-nuit-malgache.png",
-        price: 8000,
-        rating: 4.7,
-        category: "Contes",
-        pages: 180,
-        published_year: 2021,
-        language: "Français",
-        publisher: "Éditions Traditions",
-        created_at: new Date().toISOString(),
-        status: "published"
-      }
-    ];
+    // Récupérer les 6 derniers livres publiés depuis la base de données
+    const query = `
+      SELECT l.*, u.nom as auteur_nom 
+      FROM livres l 
+      LEFT JOIN utilisateur u ON l.auteur_id = u.id 
+      WHERE l.statut = 'publié'
+      ORDER BY l.created_at DESC
+      LIMIT 6
+    `;
+    const result = await pool.query(query);
+    
+    const formattedBooks = result.rows.map(book => ({
+      id: book.id,
+      title: book.titre,
+      author: book.auteur_nom,
+      description: book.description,
+      cover: cleanImageUrl(book.couverture_url, "book") || getBookCoverPath(book.titre, book.genre),
+      price: book.prix || 0,
+      rating: book.note || 4.0,
+      category: book.genre || 'Non spécifié',
+      pages: book.nombre_pages || 0,
+      published_year: book.annee_publication || new Date().getFullYear(),
+      language: book.langue || 'Français',
+      publisher: book.editeur || 'Éditions Vakio Boky',
+      created_at: book.created_at,
+      status: book.statut
+    }));
+    
+    console.log(`✅ ${formattedBooks.length} livres récents récupérés depuis la base de données`);
     
     res.status(200).json({
       success: true,
-      message: "Livres récents récupérés (données de démonstration)",
-      books: recentBooks,
-      count: recentBooks.length,
-      timestamp: new Date().toISOString()
+      message: "Livres récents récupérés avec succès",
+      books: formattedBooks,
+      count: formattedBooks.length,
+      timestamp: new Date().toISOString(),
+      is_dynamic_data: true
     });
     
   } catch (error) {
     console.error('❌ Erreur dans getRecent:', error);
     
+    // En cas d'erreur, retourner un tableau vide plutôt que des données mock
     res.status(200).json({
       success: true,
-      message: "Livres récents - Données de secours",
-      books: [
-        {
-          id: 999,
-          title: "Livre de Test",
-          author: "Auteur Test",
-          cover: "/assets/images/books/livre-test.png",
-          price: 10000,
-          category: "Test"
-        }
-      ],
-      count: 1,
-      is_mock_data: true
+      message: "Livres récents - Données dynamiques temporairement indisponibles",
+      books: [],
+      count: 0,
+      is_dynamic_data: false,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
