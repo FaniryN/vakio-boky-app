@@ -1,25 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import frLocale from '@fullcalendar/core/locales/fr';
-import { FiCalendar, FiMapPin, FiUsers, FiVideo } from 'react-icons/fi';
-import { useEvenements } from '../../hooks/useEvenements';
-import { useAuth } from '../../hooks/useAuth';
-import Button from '../ui/Button';
-import Modal from '../ui/Modal';
+import React, { useState, useEffect, useRef } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+// import frLocale from "@fullcalendar/core/locales/fr";
+import { frLocale } from '@fullcalendar/core/locales-all';
+import { FiCalendar, FiMapPin, FiUsers, FiVideo } from "react-icons/fi";
+import { useEvenements } from "../../hooks/useEvenements";
+import { useAuth } from "../../hooks/useAuth";
+import Button from "../ui/Button";
+import Modal from "../ui/Modal";
 
 const InteractiveCalendar = () => {
   const calendarRef = useRef(null);
-  const { events, loading, error, fetchEvents, registerForEvent } = useEvenements();
+  const { events, loading, error, fetchEvents, registerForEvent } =
+    useEvenements();
   const { user } = useAuth();
 
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEventDetails, setShowEventDetails] = useState(false);
 
   // Transform events for FullCalendar
-  const calendarEvents = events.map(event => ({
+  const calendarEvents = events.map((event) => ({
     id: event.id,
     title: event.title,
     start: event.event_date, // Utilise event_date au lieu de start_date
@@ -30,21 +32,27 @@ const InteractiveCalendar = () => {
       max_participants: event.max_participants,
       registered_count: event.registered_count || 0,
       price: event.price,
-      image_url: event.image_url
+      image_url: event.image_url,
     },
     backgroundColor: getEventColor(event.type),
     borderColor: getEventColor(event.type),
-    textColor: '#ffffff'
+    textColor: "#ffffff",
   }));
 
   function getEventColor(type) {
     switch (type) {
-      case 'conference': return '#3b82f6';
-      case 'workshop': return '#10b981';
-      case 'webinar': return '#8b5cf6';
-      case 'club_meeting': return '#f59e0b';
-      case 'festival': return '#ef4444';
-      default: return '#6b7280';
+      case "conference":
+        return "#3b82f6";
+      case "workshop":
+        return "#10b981";
+      case "webinar":
+        return "#8b5cf6";
+      case "club_meeting":
+        return "#f59e0b";
+      case "festival":
+        return "#ef4444";
+      default:
+        return "#6b7280";
     }
   }
 
@@ -55,7 +63,7 @@ const InteractiveCalendar = () => {
       title: event.title,
       start: event.start,
       end: event.end,
-      ...event.extendedProps
+      ...event.extendedProps,
     });
     setShowEventDetails(true);
   };
@@ -66,7 +74,7 @@ const InteractiveCalendar = () => {
       setShowEventDetails(false);
       fetchEvents(); // Refresh events
     } catch (error) {
-      console.error('Error registering for event:', error);
+      console.error("Error registering for event:", error);
     }
   };
 
@@ -85,7 +93,9 @@ const InteractiveCalendar = () => {
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-600 mb-4">Erreur lors du chargement du calendrier: {error}</p>
+        <p className="text-red-600 mb-4">
+          Erreur lors du chargement du calendrier: {error}
+        </p>
         <Button onClick={fetchEvents}>Réessayer</Button>
       </div>
     );
@@ -136,9 +146,9 @@ const InteractiveCalendar = () => {
           ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           headerToolbar={{
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
           initialView="dayGridMonth"
           locale={frLocale}
@@ -150,9 +160,9 @@ const InteractiveCalendar = () => {
           dayMaxEvents={3}
           moreLinkClick="popover"
           eventTimeFormat={{
-            hour: '2-digit',
-            minute: '2-digit',
-            meridiem: false
+            hour: "2-digit",
+            minute: "2-digit",
+            meridiem: false,
           }}
         />
       </div>
@@ -173,13 +183,13 @@ const InteractiveCalendar = () => {
               <div className="flex items-center gap-2 text-gray-600">
                 <FiCalendar />
                 <span>
-                  {new Date(selectedEvent.start).toLocaleDateString('fr-FR', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                  {new Date(selectedEvent.start).toLocaleDateString("fr-FR", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
                   })}
                 </span>
               </div>
@@ -194,13 +204,16 @@ const InteractiveCalendar = () => {
               <div className="flex items-center gap-2 text-gray-600">
                 <FiUsers />
                 <span>
-                  {selectedEvent.registered_count || 0} / {selectedEvent.max_participants || '∞'} participants
+                  {selectedEvent.registered_count || 0} /{" "}
+                  {selectedEvent.max_participants || "∞"} participants
                 </span>
               </div>
 
               {selectedEvent.description && (
                 <div className="mt-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">Description</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    Description
+                  </h4>
                   <p className="text-gray-700 whitespace-pre-wrap">
                     {selectedEvent.description}
                   </p>
@@ -221,15 +234,16 @@ const InteractiveCalendar = () => {
                     onClick={() => handleRegisterForEvent(selectedEvent.id)}
                     className="flex-1"
                     disabled={
-                      selectedEvent.registered_count >= selectedEvent.max_participants &&
+                      selectedEvent.registered_count >=
+                        selectedEvent.max_participants &&
                       selectedEvent.max_participants > 0
                     }
                   >
-                    {selectedEvent.registered_count >= selectedEvent.max_participants &&
-                     selectedEvent.max_participants > 0
-                      ? 'Complet'
-                      : 'S\'inscrire'
-                    }
+                    {selectedEvent.registered_count >=
+                      selectedEvent.max_participants &&
+                    selectedEvent.max_participants > 0
+                      ? "Complet"
+                      : "S'inscrire"}
                   </Button>
                 )}
               </div>
@@ -241,4 +255,5 @@ const InteractiveCalendar = () => {
   );
 };
 
-export default InteractiveCalendar;
+// export default InteractiveCalendar;
+export default InteractiveCalendar; // ✅ CORRECT pour votre usage

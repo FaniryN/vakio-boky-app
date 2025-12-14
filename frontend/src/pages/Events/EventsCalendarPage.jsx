@@ -1,92 +1,3 @@
-// import React, { useState } from 'react';
-// import { FiCalendar, FiVideo, FiUsers } from 'react-icons/fi';
-// import InteractiveCalendar from '../../components/calendar/InteractiveCalendar';
-// import LiveSessionManager from '../../components/live/LiveSessionManager';
-
-// const EventsCalendarPage = () => {
-//   const [activeTab, setActiveTab] = useState('calendar');
-
-//   const tabs = [
-//     {
-//       id: 'calendar',
-//       label: 'Calendrier',
-//       icon: <FiCalendar />,
-//       description: 'Voir tous les événements'
-//     },
-//     {
-//       id: 'live',
-//       label: 'Sessions Live',
-//       icon: <FiVideo />,
-//       description: 'Participer aux sessions en direct'
-//     }
-//   ];
-
-//   return (
-//     <div className="min-h-screen bg-gray-50">
-//       {/* Header */}
-//       <div className="bg-white shadow-sm border-b">
-//         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-//           <div className="py-6">
-//             <div className="flex items-center justify-between">
-//               <div>
-//                 <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-//                   <FiCalendar className="text-blue-600" />
-//                   Événements & Sessions
-//                 </h1>
-//                 <p className="mt-2 text-gray-600">
-//                   Découvrez les événements littéraires et participez aux sessions interactives
-//                 </p>
-//               </div>
-//             </div>
-
-//             {/* Tab Navigation */}
-//             <div className="mt-6">
-//               <div className="border-b border-gray-200">
-//                 <nav className="-mb-px flex space-x-8">
-//                   {tabs.map((tab) => (
-//                     <button
-//                       key={tab.id}
-//                       onClick={() => setActiveTab(tab.id)}
-//                       className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${
-//                         activeTab === tab.id
-//                           ? 'border-blue-500 text-blue-600'
-//                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-//                       }`}
-//                     >
-//                       {tab.icon}
-//                       {tab.label}
-//                     </button>
-//                   ))}
-//                 </nav>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Content */}
-//       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-//         {activeTab === 'calendar' && (
-//           <div className="space-y-6">
-//             <div className="bg-white rounded-lg shadow-sm p-6">
-//               <InteractiveCalendar />
-//             </div>
-//           </div>
-//         )}
-
-//         {activeTab === 'live' && (
-//           <div className="space-y-6">
-//             <div className="bg-white rounded-lg shadow-sm p-6">
-//               <LiveSessionManager />
-//             </div>
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default EventsCalendarPage;
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -99,7 +10,8 @@ import {
   FiPlus,
   FiFilter
 } from 'react-icons/fi';
-import InteractiveCalendar from '../../components/calendar/InteractiveCalendar';
+// import InteractiveCalendar from '../../components/calendar/InteractiveCalendar';
+import InteractiveCalendar from './components/calendar/InteractiveCalendar'; // ✅ CORRECT
 import LiveSessionManager from '../../components/live/LiveSessionManager';
 
 const EventsCalendarPage = () => {
