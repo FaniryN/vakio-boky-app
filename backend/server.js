@@ -425,9 +425,17 @@ const corsOptions = {
   maxAge: 86400
 };
 
+// CORRECTION ICI : Utiliser cors middleware directement
 app.use(cors(corsOptions));
 
-app.options('*', cors(corsOptions));
+// CORRECTION ICI : Gérer OPTIONS manuellement sans path-to-regexp
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', corsOptions.origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  res.status(200).end();
+});
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
