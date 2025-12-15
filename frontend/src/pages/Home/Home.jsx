@@ -406,22 +406,36 @@ export default function Home() {
   ];
 
   // Fonctions utilitaires
+  // Fonctions utilitaires
   const formatEventDate = (dateString) => {
     try {
-      return new Date(dateString).toLocaleDateString("fr-FR", {
+      if (!dateString) return "Date à déterminer";
+
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Date à déterminer";
+
+      return date.toLocaleDateString("fr-FR", {
+        weekday: "long",
         day: "numeric",
-        month: "short",
+        month: "long",
         year: "numeric",
       });
     } catch (error) {
-      return "Date à venir";
+      console.error("Erreur formatage date:", error);
+      return "Date à déterminer";
     }
   };
 
   const getEventTypeLabel = (event) => {
-    if (event.title?.toLowerCase().includes("rencontre")) return "Rencontre";
-    if (event.title?.toLowerCase().includes("webinaire")) return "Webinaire";
-    if (event.title?.toLowerCase().includes("atelier")) return "Atelier";
+    if (!event || !event.title) return "Événement";
+
+    const title = event.title.toLowerCase();
+    if (title.includes("rencontre")) return "Rencontre";
+    if (title.includes("webinaire")) return "Webinaire";
+    if (title.includes("atelier")) return "Atelier";
+    if (title.includes("lecture")) return "Lecture";
+    if (title.includes("débat")) return "Débat";
+    if (title.includes("conférence")) return "Conférence";
     return "Événement";
   };
 
@@ -791,13 +805,27 @@ export default function Home() {
               Événements à ne pas manquer
             </h2>
             <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-              Découvrez les prochains événements généraux et de clubs
+              Découvrez les prochains événements littéraires
+            </p>
+            <p className="text-sm text-blue-200 mt-2">
+              {landingData?.events?.length > 0
+                ? `${landingData.events.length} événement(s) à venir`
+                : "Chargement des événements..."}
             </p>
           </motion.div>
 
-          {landingData?.events?.length > 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block p-8 bg-white/10 backdrop-blur-sm rounded-2xl">
+                <FiLoader className="animate-spin text-blue-200 text-4xl mx-auto mb-4" />
+                <p className="text-blue-100 text-lg mb-2">
+                  Chargement des événements...
+                </p>
+              </div>
+            </div>
+          ) : landingData?.events?.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-              {landingData.events.slice(0, 6).map((event, index) => (
+              {landingData.events.map((event, index) => (
                 <motion.div
                   key={event.id || index}
                   initial={{ opacity: 0, y: 30 }}
@@ -808,7 +836,7 @@ export default function Home() {
                 >
                   {event.image_url ? (
                     <img
-                      src={event.image_url}
+                      src={getImageUrl(event.image_url, "event")}
                       alt={event.title}
                       className="w-full h-48 object-cover rounded-xl mb-6 shadow-lg"
                       onError={(e) => {
@@ -854,6 +882,14 @@ export default function Home() {
                         </span>
                       </div>
                     )}
+                    {event.price > 0 && (
+                      <div className="flex items-center gap-3">
+                        <FiShoppingBag className="text-blue-200 text-lg" />
+                        <span className="text-base font-semibold">
+                          {event.price.toLocaleString()} Ar
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <Button
@@ -874,15 +910,28 @@ export default function Home() {
                 <p className="text-blue-100 text-lg mb-2">
                   Aucun événement à venir pour le moment.
                 </p>
-                <p className="text-blue-200 text-sm">
+                <p className="text-blue-200 text-sm mb-4">
                   Revenez bientôt pour découvrir nos prochains événements
                 </p>
+                {error && (
+                  <p className="text-sm text-blue-200 mt-4">
+                    Erreur de chargement: {error}
+                  </p>
+                )}
               </div>
-              {error && (
-                <p className="text-sm text-blue-200 mt-4">
-                  Erreur de chargement: {error}
-                </p>
-              )}
+            </div>
+          )}
+
+          {landingData?.events?.length > 0 && (
+            <div className="text-center mt-12">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => navigate("/events")}
+                className="border-white/30 text-white hover:bg-white/10"
+              >
+                Voir tous les événements
+              </Button>
             </div>
           )}
 
