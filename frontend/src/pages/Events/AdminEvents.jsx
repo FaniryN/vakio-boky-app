@@ -1,41 +1,44 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  FiPlus, 
-  FiEdit, 
-  FiTrash2, 
-  FiCalendar, 
-  FiUsers, 
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiCalendar,
+  FiUsers,
   FiEye,
   FiCheck,
   FiX,
   FiTrendingUp,
   FiSearch,
   FiFilter,
-  FiRefreshCw
-} from 'react-icons/fi';
-import { useEvenements } from '@/hooks/useEvenements';
-import { useAuth } from '@/hooks/useAuth';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+  FiRefreshCw,
+} from "react-icons/fi";
+import { useEvenements } from "@/hooks/useEvenements";
+import CreateEventModal from "@/components/events/CreateEventModal";
+import { useAuth } from "@/hooks/useAuth";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 
 export default function AdminEvents() {
-  const { 
-    events, 
-    loading, 
-    error, 
-    fetchAdminEvents, 
-    approveEvent, 
-    rejectEvent, 
-    featureEvent, 
-    deleteEvent 
+  const {
+    events,
+    loading,
+    error,
+    fetchAdminEvents,
+    approveEvent,
+    rejectEvent,
+    featureEvent,
+    deleteEvent,
   } = useEvenements();
-  
+
   const { isAdmin, isAuthenticated } = useAuth();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [actionLoading, setActionLoading] = useState(null);
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && isAdmin) {
@@ -54,26 +57,28 @@ export default function AdminEvents() {
     );
   }
 
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.location?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || event.status === statusFilter;
-    
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.location?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === "all" || event.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
   const formatDate = (dateString) => {
     try {
-      return new Intl.DateTimeFormat('fr-FR', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return new Intl.DateTimeFormat("fr-FR", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       }).format(new Date(dateString));
     } catch {
-      return 'Date invalide';
+      return "Date invalide";
     }
   };
 
@@ -89,29 +94,29 @@ export default function AdminEvents() {
     setActionLoading(eventId);
     const result = await approveEvent(eventId);
     setActionLoading(null);
-    
+
     if (result.success) {
-      alert('Événement approuvé');
+      alert("Événement approuvé");
     } else {
-      alert('Erreur: ' + result.error);
+      alert("Erreur: " + result.error);
     }
   };
 
   const handleReject = async (eventId) => {
-    const reason = prompt('Motif du rejet:');
-    if (!reason || reason.trim() === '') {
-      alert('Motif requis');
+    const reason = prompt("Motif du rejet:");
+    if (!reason || reason.trim() === "") {
+      alert("Motif requis");
       return;
     }
-    
+
     setActionLoading(eventId);
     const result = await rejectEvent(eventId, reason);
     setActionLoading(null);
-    
+
     if (result.success) {
-      alert('Événement rejeté');
+      alert("Événement rejeté");
     } else {
-      alert('Erreur: ' + result.error);
+      alert("Erreur: " + result.error);
     }
   };
 
@@ -119,44 +124,51 @@ export default function AdminEvents() {
     setActionLoading(eventId);
     const result = await featureEvent(eventId, featured);
     setActionLoading(null);
-    
+
     if (result.success) {
-      alert(featured ? 'Mis en avant' : 'Retiré');
+      alert(featured ? "Mis en avant" : "Retiré");
     } else {
-      alert('Erreur: ' + result.error);
+      alert("Erreur: " + result.error);
     }
   };
 
   const handleDelete = async (eventId) => {
-    if (!window.confirm('Supprimer cet événement ?')) {
+    if (!window.confirm("Supprimer cet événement ?")) {
       return;
     }
-    
+
     setActionLoading(eventId);
     const result = await deleteEvent(eventId);
     setActionLoading(null);
-    
+
     if (result.success) {
-      alert('Événement supprimé');
+      alert("Événement supprimé");
     } else {
-      alert('Erreur: ' + result.error);
+      alert("Erreur: " + result.error);
     }
   };
 
   const getStatusBadge = (status, eventDate) => {
     const statusConfig = {
-      active: { 
-        label: isEventUpcoming(eventDate) ? 'À venir' : 'Terminé', 
-        class: isEventUpcoming(eventDate) ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' 
+      active: {
+        label: isEventUpcoming(eventDate) ? "À venir" : "Terminé",
+        class: isEventUpcoming(eventDate)
+          ? "bg-green-100 text-green-800"
+          : "bg-gray-100 text-gray-800",
       },
-      pending: { label: 'En attente', class: 'bg-yellow-100 text-yellow-800' },
-      rejected: { label: 'Rejeté', class: 'bg-red-100 text-red-800' }
+      pending: { label: "En attente", class: "bg-yellow-100 text-yellow-800" },
+      rejected: { label: "Rejeté", class: "bg-red-100 text-red-800" },
     };
 
-    const config = statusConfig[status] || { label: 'Inconnu', class: 'bg-gray-100 text-gray-800' };
-    
+    const config = statusConfig[status] || {
+      label: "Inconnu",
+      class: "bg-gray-100 text-gray-800",
+    };
+
     return (
-      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${config.class}`}>
+      <span
+        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${config.class}`}
+      >
         {config.label}
       </span>
     );
@@ -164,8 +176,10 @@ export default function AdminEvents() {
 
   const stats = {
     total: events.length,
-    upcoming: events.filter(event => isEventUpcoming(event.event_date) && event.status === 'active').length,
-    pending: events.filter(event => event.status === 'pending').length,
+    upcoming: events.filter(
+      (event) => isEventUpcoming(event.event_date) && event.status === "active"
+    ).length,
+    pending: events.filter((event) => event.status === "pending").length,
   };
 
   if (loading && events.length === 0) {
@@ -184,7 +198,6 @@ export default function AdminEvents() {
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
@@ -196,23 +209,34 @@ export default function AdminEvents() {
           </p>
         </div>
 
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm"
+        >
+          <FiPlus className="text-lg" />
+          Ajouter un événement
+        </button>
         {/* Statistiques */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total}
+                </p>
               </div>
               <FiCalendar className="text-purple-600 text-xl" />
             </div>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">À venir</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.upcoming}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.upcoming}
+                </p>
               </div>
               <FiEye className="text-green-600 text-xl" />
             </div>
@@ -222,7 +246,9 @@ export default function AdminEvents() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">En attente</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.pending}
+                </p>
               </div>
               <FiCalendar className="text-yellow-600 text-xl" />
             </div>
@@ -242,7 +268,7 @@ export default function AdminEvents() {
                   className="pl-10 w-full"
                 />
               </div>
-              
+
               <div className="relative">
                 <FiFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <select
@@ -257,8 +283,8 @@ export default function AdminEvents() {
                 </select>
               </div>
             </div>
-            
-            <button 
+
+            <button
               onClick={fetchAdminEvents}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
@@ -276,7 +302,7 @@ export default function AdminEvents() {
                 <strong>Erreur: </strong>
                 {error}
               </div>
-              <button 
+              <button
                 onClick={fetchAdminEvents}
                 className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
               >
@@ -292,7 +318,9 @@ export default function AdminEvents() {
             <div className="text-center py-12">
               <FiCalendar className="text-4xl text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 text-lg mb-2">
-                {searchTerm || statusFilter !== 'all' ? 'Aucun événement correspondant' : 'Aucun événement'}
+                {searchTerm || statusFilter !== "all"
+                  ? "Aucun événement correspondant"
+                  : "Aucun événement"}
               </p>
             </div>
           ) : (
@@ -342,10 +370,12 @@ export default function AdminEvents() {
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-semibold text-gray-900">
-                              {event.title || 'Sans titre'}
+                              {event.title || "Sans titre"}
                             </div>
                             <div className="text-sm text-gray-500 mt-1">
-                              {event.description ? event.description.substring(0, 50) + '...' : 'Aucune description'}
+                              {event.description
+                                ? event.description.substring(0, 50) + "..."
+                                : "Aucune description"}
                             </div>
                           </div>
                         </div>
@@ -355,12 +385,13 @@ export default function AdminEvents() {
                           {formatDate(event.event_date)}
                         </div>
                         <div className="text-sm text-gray-500 mt-1">
-                          {event.location || 'Non spécifié'}
+                          {event.location || "Non spécifié"}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-gray-900">
-                          {event.registered_count || 0} / {event.max_participants || '∞'}
+                          {event.registered_count || 0} /{" "}
+                          {event.max_participants || "∞"}
                         </div>
                         {event.price > 0 && (
                           <div className="text-sm text-green-600">
@@ -381,14 +412,16 @@ export default function AdminEvents() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
-                          {event.status === 'pending' && (
+                          {event.status === "pending" && (
                             <>
                               <button
                                 onClick={() => handleApprove(event.id)}
                                 disabled={actionLoading === event.id}
                                 className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50"
                               >
-                                {actionLoading === event.id ? '...' : 'Approuver'}
+                                {actionLoading === event.id
+                                  ? "..."
+                                  : "Approuver"}
                               </button>
                               <button
                                 onClick={() => handleReject(event.id)}
@@ -401,11 +434,13 @@ export default function AdminEvents() {
                           )}
 
                           <button
-                            onClick={() => handleFeature(event.id, !event.featured)}
+                            onClick={() =>
+                              handleFeature(event.id, !event.featured)
+                            }
                             disabled={actionLoading === event.id}
                             className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700 disabled:opacity-50"
                           >
-                            {event.featured ? 'Retirer' : 'Mettre en avant'}
+                            {event.featured ? "Retirer" : "Mettre en avant"}
                           </button>
 
                           <button
@@ -425,6 +460,17 @@ export default function AdminEvents() {
           )}
         </div>
       </div>
+      {/* MODAL DE CRÉATION D'ÉVÉNEMENT */}
+      {showCreateModal && (
+        <CreateEventModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            setShowCreateModal(false);
+            fetchAdminEvents(); // Recharge la liste
+          }}
+        />
+      )}
     </div>
   );
 }
