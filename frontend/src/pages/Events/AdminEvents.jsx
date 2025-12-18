@@ -15,6 +15,7 @@ import {
   FiRefreshCw
 } from 'react-icons/fi';
 import { useEvenements } from '@/hooks/useEvenements';
+import CreateEventModal from '@/components/events/CreateEventModal';
 import { useAuth } from '@/hooks/useAuth';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -36,6 +37,8 @@ export default function AdminEvents() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [actionLoading, setActionLoading] = useState(null);
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && isAdmin) {
@@ -195,6 +198,11 @@ export default function AdminEvents() {
             {events.length} événement(s) au total
           </p>
         </div>
+
+        <button onClick={() => setShowCreateModal(true)} className='flex items-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm'>
+         <FiPlus className='text-lg'/>
+         Ajouter un  événement
+        </button>
 
         {/* Statistiques */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -425,6 +433,18 @@ export default function AdminEvents() {
           )}
         </div>
       </div>
+      {/* MODAL DE CRÉATION D'ÉVÉNEMENT */}
+{showCreateModal && (
+  <CreateEventModal
+    isOpen={showCreateModal}
+    onClose={() => setShowCreateModal(false)}
+    onSuccess={() => {
+      setShowCreateModal(false);
+      fetchAdminEvents(); // Recharge la liste
+    }}
+  />
+)}
+
     </div>
   );
 }
